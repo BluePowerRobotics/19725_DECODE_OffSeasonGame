@@ -224,14 +224,14 @@ public class ChassisExample extends OpMode {
 
     // -------------------------- 10. 停止方法（run once when stop pressed） --------------------------
     @Override
-    public void stop() {
-        // 停止所有电机，开启制动
-        setMotorPowers(0, 0, 0, 0);
-        setMotorBrake(true);
-        // 显示停止信息
-        telemetry.addData("Status", "Stopped");
-        telemetry.addData("Final Pose", "X: %.1fcm | Y: %.1fcm | Theta: %.0f°",
-                x, y, Math.toDegrees(theta));
-        telemetry.update();
-    }
+        public void stop() {
+            // 停止所有电机，开启制动
+            setMotorPowers(0, 0, 0, 0);
+            setMotorBrake(true);
+            // 显示停止信息
+            telemetry.addData("Status", "Stopped");
+            telemetry.addData("Final Pose", "X: %.1fcm | Y: %.1fcm | Theta: %.0f°",
+                    x, y, Math.toDegrees(theta));
+            telemetry.update();
+        }
 }

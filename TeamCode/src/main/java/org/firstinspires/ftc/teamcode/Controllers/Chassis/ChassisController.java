@@ -16,16 +16,24 @@ public class ChassisController {
     HardwareMap hardwareMap;
     Telemetry telemetry;
 
+    public boolean NoHeadMode = false;
+
     // 机械参数
-    private static final double WHEEL_RADIUS_CM = 5.0;    // 麦克纳姆轮有效半径，单位：cm
+    //TODO: 根据实际底盘参数修改
     private static final double L = 15.0;                 // 底盘前后轮中心纵向距离，单位：cm
     private static final double W = 15.0;                 // 底盘左右轮中心横向距离，单位：cm
-    private static final double D = L + W;                // 复合参数，无需修改
+    private static final double D = Math.sqrt(L*L+W*W);    // 复合参数，无需修改
     private static final double GEAR_RATIO = 1.0;         // 减速比（无减速箱则为1，有则填实际值，如50:1则为50）
     private static final int ENCODER_PPR = 1024;          // 电机编码器线数（PPR），正交输出可×4（如1024×4=4096）
+    private static final double WHEEL_RADIUS_CM = 5.0;        // 车轮半径，单位：cm
 
+    // 控制参数
+    //TODO: 根据实际需求调整
+    private static final double DRIVE_SPEED = 0.8;        // 最大驱动速度（0~1，防止打滑）
+    private static final double TURN_SPEED = 0.6;         // 最大旋转速度（0~1）
 
     // 电机端口配置
+    //TODO: 根据实际接线修改
     private static final String FL_MOTOR = "frontLeft";  // 前左电机端口名
     private static final String FR_MOTOR = "frontRight"; // 前右电机端口名
     private static final String RL_MOTOR = "backLeft";   // 后左电机端口名
@@ -39,6 +47,10 @@ public class ChassisController {
     // 底盘全局位姿（x:X轴坐标 cm，y:Y轴坐标 cm，theta:航向角 rad，初始为原点）
     public double x = 0.0, y = 0.0, theta = 0.0;
 
+    //手柄解算参数
+    public double driveXTrans = 0.0;
+    public double driveYTrans = 0.0;
+
     public ChassisController(HardwareMap hardwareMap, Telemetry telemetry) {
         frontLeft = hardwareMap.get(DcMotorEx.class, FL_MOTOR);
         frontRight = hardwareMap.get(DcMotorEx.class, FR_MOTOR);
@@ -50,6 +62,7 @@ public class ChassisController {
     }
     public void ChassisInit(){
         // 右斜麦克纳姆轮标准配置：前右/后右电机反转，前左/后左正转（可根据实际运动调整）
+        //TODO: 根据实际运动调整电机方向
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -81,20 +94,76 @@ public class ChassisController {
         lastBLenc = backLeft.getCurrentPosition();
         lastBRenc = backRight.getCurrentPosition();
 
+        x = 0.0;
+        y = 0.0;
+        theta = 0.0;
+
 
     }
 
-    public void ChassisMoving(){
+    /**
+     *
+     * @param x
+     * @param y
+     * @param theta
+     *
+     * 底盘运动控制，包含telemetry
+     * frontleftpower
+     * frontrightpowe
+     * backleftpower
+     * backrightpower
+     */
+    public void ChassisMoving(double x, double y,double theta){
+        double flPower = x + y + theta*D;
+        double frPower = -x + y - theta*D;
+        double blPower = -x + y + theta*D;
+        double brPower = x + y - theta*D;
 
+        double maxPower = Math.max(1.0, Math.max(Math.abs(flPower),
+                Math.max(Math.abs(frPower), Math.max(Math.abs(blPower), Math.abs(brPower)))));
+        flPower /= maxPower;
+        frPower /= maxPower;
+        blPower /= maxPower;
+        brPower /= maxPower;
+        ChassisPowerTelemetry(flPower, frPower, blPower, brPower);
+        setMotorPowers(flPower, frPower, blPower, brPower);
     }
-    public void ChassisTelemetry(double x, double y ,double theta){
+
+    public void ChassisPowerTelemetry(double fl, double fr ,double bl, double br) {
+        telemetry.addData("Front Left Power: ", fl);
+        telemetry.addData("Front Right Power: ", fr);
+        telemetry.addData("Back Left Power: ", bl);
+        telemetry.addData("Back Right Power: ", br);
+    }
+    private void setMotorPowers(double fl, double fr, double rl, double rr) {
+        frontLeft.setPower(fl);
+        frontRight.setPower(fr);
+        backLeft.setPower(rl);
+        backRight.setPower(rr);
+    }
+    public void ChassisLocationTelemetry(double x, double y ,double theta){
         telemetry.addData("X Position (cm): ", x);
         telemetry.addData("Y Position (cm): ", y);
         telemetry.addData("Heading (rad): ", theta);
 
 
     }
-    private void Localization() {
+
+    public void ChassisStop(){
+        ChassisPowerTelemetry(0,0,0,0);
+        setMotorPowers(0,0,0,0);
+    }
+
+
+
+    /**
+     * 底盘定位，自解
+     * 包含telemetry
+     * Xposition
+     * Yposition
+     * Heading theta
+     */
+    public void Localization() {
         // 1. 获取当前时间和采样周期Δt（单位：s），避免积分误差
         double currentTime = runtime.seconds();
         double dt = currentTime - lastTime;
@@ -142,6 +211,8 @@ public class ChassisController {
         theta += deltaTheta;
         // 航向角归一化（-π ~ π），防止角度无限增大
         theta = normalizeAngle(theta);
+        ChassisLocationTelemetry(x, y, theta);
+
 
         // 8. 更新历史数据（为下一次采样做准备）
         lastTime = currentTime;
@@ -157,4 +228,38 @@ public class ChassisController {
         while (angle < -Math.PI) angle += 2 * Math.PI;
         return angle;
     }
+
+    public void GamepadCalculator(double gamepad_x, double gamepad_y,double gamepad_theta){
+        double x = gamepad_x*DRIVE_SPEED;
+        double y = gamepad_y*DRIVE_SPEED;
+        double theta = gamepad_theta*TURN_SPEED;
+        driveXTrans = x;
+        driveYTrans = y;
+        if (NoHeadMode) {
+            driveXTrans = x * Math.cos(this.theta) + y * Math.sin(this.theta);
+            driveYTrans = -x * Math.sin(this.theta) + y * Math.cos(this.theta);
+        }
+
+    }
+    public void SwitchHeadMode(){
+        NoHeadMode = !NoHeadMode;
+    }
+    public void resetPosition(){
+        x = 0.0;
+        y = 0.0;
+        theta = 0.0;
+    }
+    public void ChassisVelocityTelemetry(){
+        telemetry.addData("Front Left Velocity (cm/s): ", frontLeft.getVelocity() * (Math.PI * WHEEL_RADIUS_CM * 2) / (ENCODER_PPR * GEAR_RATIO));
+        telemetry.addData("Front Right Velocity (cm/s): ", frontRight.getVelocity() * (Math.PI * WHEEL_RADIUS_CM * 2) / (ENCODER_PPR * GEAR_RATIO));
+        telemetry.addData("Back Left Velocity (cm/s): ", backLeft.getVelocity() * (Math.PI * WHEEL_RADIUS_CM * 2) / (ENCODER_PPR * GEAR_RATIO));
+        telemetry.addData("Back Right Velocity (cm/s): ", backRight.getVelocity() * (Math.PI * WHEEL_RADIUS_CM * 2) / (ENCODER_PPR * GEAR_RATIO));
+    }
+    public void ChassisModeTelemetry(){
+        telemetry.addData("NoHeadMode: ", NoHeadMode);
+        telemetry.addData("movingspeed",DRIVE_SPEED);
+        telemetry.addData("turnspeed",TURN_SPEED);
+
+    }
+
 }
