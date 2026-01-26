@@ -34,12 +34,14 @@ public class ChassisController {
 
     // 电机端口配置
     //TODO: 根据实际接线修改
-    private static final String FL_MOTOR = "frontLeft";  // 前左电机端口名
-    private static final String FR_MOTOR = "frontRight"; // 前右电机端口名
-    private static final String RL_MOTOR = "backLeft";   // 后左电机端口名
-    private static final String BR_MOTOR = "backRight";  // 后右电机端口名
+    private static final String FL_MOTOR = "fL";  // 前左电机端口名
+    private static final String FR_MOTOR = "fR"; // 前右电机端口名
+    private static final String BL_MOTOR = "bL";   // 后左电机端口名
+    private static final String BR_MOTOR = "bR";  // 后右电机端口名
 
-    public int lastFLenc = 0, lastFRenc = 0, lastBLenc = 0, lastBRenc = 0;
+    public int lastFL_enc = 0, lastFR_enc = 0, lastBL_enc = 0, lastBR_enc = 0;
+
+
 
 
     // 定位参数
@@ -50,13 +52,15 @@ public class ChassisController {
     //手柄解算参数
     public double driveXTrans = 0.0;
     public double driveYTrans = 0.0;
+    public double drivethetaTrans= 0.0;
 
     public ChassisController(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.hardwareMap = hardwareMap;
         frontLeft = hardwareMap.get(DcMotorEx.class, FL_MOTOR);
         frontRight = hardwareMap.get(DcMotorEx.class, FR_MOTOR);
-        backLeft = hardwareMap.get(DcMotorEx.class, RL_MOTOR);
+        backLeft = hardwareMap.get(DcMotorEx.class, BL_MOTOR);
         backRight = hardwareMap.get(DcMotorEx.class, BR_MOTOR);
-        this.hardwareMap = hardwareMap;
+
         this.telemetry = telemetry;
 
     }
@@ -89,10 +93,10 @@ public class ChassisController {
         // 初始化计时和编码器初始值
         runtime.reset();
         lastTime = runtime.seconds();
-        lastFLenc = frontLeft.getCurrentPosition();
-        lastFRenc = frontRight.getCurrentPosition();
-        lastBLenc = backLeft.getCurrentPosition();
-        lastBRenc = backRight.getCurrentPosition();
+        lastFL_enc = frontLeft.getCurrentPosition();
+        lastFR_enc = frontRight.getCurrentPosition();
+        lastBL_enc = backLeft.getCurrentPosition();
+        lastBR_enc = backRight.getCurrentPosition();
 
         x = 0.0;
         y = 0.0;
@@ -125,6 +129,7 @@ public class ChassisController {
         frPower /= maxPower;
         blPower /= maxPower;
         brPower /= maxPower;
+
         ChassisPowerTelemetry(flPower, frPower, blPower, brPower);
         setMotorPowers(flPower, frPower, blPower, brPower);
     }
@@ -175,10 +180,10 @@ public class ChassisController {
         int currBL = backLeft.getCurrentPosition();
         int currBR = backRight.getCurrentPosition();
 
-        int deltaFL = currFL - lastFLenc;
-        int deltaFR = currFR - lastFRenc;
-        int deltaRL = currBL - lastBLenc;
-        int deltaRR = currBR - lastBRenc;
+        int deltaFL = currFL - lastFL_enc;
+        int deltaFR = currFR - lastFR_enc;
+        int deltaRL = currBL - lastBL_enc;
+        int deltaRR = currBR - lastBR_enc;
 
         // 3. 脉冲增量 → 车轮转角增量Δθ（单位：rad）
         // 公式：Δθ = (2π * ΔN) / (PPR * 减速比)
@@ -216,10 +221,10 @@ public class ChassisController {
 
         // 8. 更新历史数据（为下一次采样做准备）
         lastTime = currentTime;
-        lastFLenc = currFL;
-        lastFRenc = currFR;
-        lastBLenc = currBL;
-        lastBRenc = currBR;
+        lastFL_enc = currFL;
+        lastFR_enc = currFR;
+        lastBL_enc = currBL;
+        lastBR_enc = currBR;
     }
 
     // -------------------------- 6. 工具方法：航向角归一化（-π ~ π） --------------------------
@@ -235,6 +240,8 @@ public class ChassisController {
         double theta = gamepad_theta*TURN_SPEED;
         driveXTrans = x;
         driveYTrans = y;
+        drivethetaTrans  = theta;
+
         if (NoHeadMode) {
             driveXTrans = x * Math.cos(this.theta) + y * Math.sin(this.theta);
             driveYTrans = -x * Math.sin(this.theta) + y * Math.cos(this.theta);

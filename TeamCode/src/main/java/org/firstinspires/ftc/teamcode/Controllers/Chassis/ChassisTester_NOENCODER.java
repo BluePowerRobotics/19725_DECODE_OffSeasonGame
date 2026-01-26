@@ -6,14 +6,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-@TeleOp(name="ChassisTester", group="Tests")
-public class ChassisTester extends LinearOpMode {
-    ChassisController chassis;
-
-
+@TeleOp(name="ChassisTester_NOENCODER", group="Tests")
+public class ChassisTester_NOENCODER extends LinearOpMode {
+    ChassisController_NOENCODER chassis;
+    HardwareMap hardwareMap;
+    Telemetry telemetry;
     @Override
     public void runOpMode() throws InterruptedException {
-        chassis = new ChassisController(hardwareMap,telemetry);
+        hardwareMap = this.hardwareMap;
+        telemetry = this.telemetry;
+        chassis = new ChassisController_NOENCODER(hardwareMap,telemetry);
         boolean isRunning = false;
         waitForStart();
         isRunning = true;
@@ -36,8 +38,6 @@ public class ChassisTester extends LinearOpMode {
             if(isRunning){
                 chassis.GamepadCalculator(gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x);
                 chassis.ChassisMoving(chassis.driveXTrans,chassis.driveYTrans, chassis.drivethetaTrans);
-                chassis.Localization();
-                chassis.ChassisVelocityTelemetry();
                 chassis.ChassisModeTelemetry();
                 telemetry.addData("isRunning", isRunning);
                 telemetry.update();

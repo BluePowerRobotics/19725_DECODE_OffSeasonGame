@@ -7,8 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utility.filter.MeanFilter;
 @Config
 public class ShooterAction {
-    MeanFilter FilterLeft;
-    MeanFilter FilterRight;
+    MeanFilter Filter;
     private Telemetry telemetry;
     private Shooter shooter;
 
@@ -17,15 +16,15 @@ public class ShooterAction {
     public int WindowSize = 3;
     public ShooterAction(HardwareMap hardwareMap, Telemetry telerc) {
         telemetry = telerc;
-        FilterLeft = new MeanFilter(WindowSize);
+        Filter = new MeanFilter(WindowSize);
         shooter = new Shooter(hardwareMap, telemetry, "shooterMotor", true);
 
     }
     public boolean setShootSpeed(int TargetSpeedRC){
         boolean shootersituation;
         shooter.shoot(TargetSpeedRC);
-        FilterLeft.filter(shooter.getCurrent_speed());
-        shootersituation = (Math.abs(FilterLeft.getMean() - TargetSpeedRC) < Shooter.SpeedTolerance);
+        Filter.filter(shooter.getCurrent_speed());
+        shootersituation = (Math.abs(Filter.getMean() - TargetSpeedRC) < Shooter.SpeedTolerance);
         whetherReachTargetSpeed = shootersituation;
         return (shootersituation);
 
