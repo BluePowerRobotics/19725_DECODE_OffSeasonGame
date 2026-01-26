@@ -36,7 +36,7 @@ public class ChassisController {
     //TODO: 根据实际接线修改
     private static final String FL_MOTOR = "frontLeft";  // 前左电机端口名
     private static final String FR_MOTOR = "frontRight"; // 前右电机端口名
-    private static final String RL_MOTOR = "backLeft";   // 后左电机端口名
+    private static final String BL_MOTOR = "backLeft";   // 后左电机端口名
     private static final String BR_MOTOR = "backRight";  // 后右电机端口名
 
     public int lastFLenc = 0, lastFRenc = 0, lastBLenc = 0, lastBRenc = 0;
@@ -50,11 +50,12 @@ public class ChassisController {
     //手柄解算参数
     public double driveXTrans = 0.0;
     public double driveYTrans = 0.0;
+    public double driveTheta = 0.0;
 
     public ChassisController(HardwareMap hardwareMap, Telemetry telemetry) {
         frontLeft = hardwareMap.get(DcMotorEx.class, FL_MOTOR);
         frontRight = hardwareMap.get(DcMotorEx.class, FR_MOTOR);
-        backLeft = hardwareMap.get(DcMotorEx.class, RL_MOTOR);
+        backLeft = hardwareMap.get(DcMotorEx.class, BL_MOTOR);
         backRight = hardwareMap.get(DcMotorEx.class, BR_MOTOR);
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
