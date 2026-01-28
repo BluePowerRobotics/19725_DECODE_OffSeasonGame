@@ -21,7 +21,6 @@ public class Shooter {
     //找到motor
     public DcMotorEx shooterMotor;
 
-    double[] speedBuffer = new double[10];
     Telemetry telemetry;
     //当前功率
     double Power = 0;
@@ -91,7 +90,7 @@ public class Shooter {
             return true;
         }
         //电机模式调整
-        shooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         current_time = System.currentTimeMillis();
         current_encoder = shooterMotor.getCurrentPosition();
         current_speed = shooterMotor.getVelocity(AngleUnit.DEGREES);
@@ -100,10 +99,9 @@ public class Shooter {
         //计算PID
         Power = pidController.calculate(targetSpeed, current_speed, dt);
         //避免射球时出现负功率，导致震荡或电机损伤
-        if(targetSpeed > 0 && targetSpeed < 750){
+        if(targetSpeed > 0 && targetSpeed < PIDSwitchSpeed){
             Power = Range.clip(Power, MinPower_1, 1);
-        }
-        else if(targetSpeed > 0 && targetSpeed >=750){
+        } else if(targetSpeed > 0 && targetSpeed >= PIDSwitchSpeed){
             Power = Range.clip(Power, MinPower_2, 1);
         }
         shooterMotor.setPower(Power);

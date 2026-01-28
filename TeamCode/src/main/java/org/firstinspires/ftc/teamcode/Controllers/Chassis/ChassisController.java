@@ -1,12 +1,18 @@
 package org.firstinspires.ftc.teamcode.Controllers.Chassis;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+//import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+@Config
 
 public class ChassisController {
     public DcMotorEx frontLeft, frontRight, backLeft, backRight;
@@ -15,22 +21,23 @@ public class ChassisController {
 
     HardwareMap hardwareMap;
     Telemetry telemetry;
+//    IMU imu;
 
     public boolean NoHeadMode = false;
 
     // 机械参数
     //TODO: 根据实际底盘参数修改
-    private static final double L = 15.0;                 // 底盘前后轮中心纵向距离，单位：cm
-    private static final double W = 15.0;                 // 底盘左右轮中心横向距离，单位：cm
-    private static final double D = Math.sqrt(L*L+W*W);    // 复合参数，无需修改
-    private static final double GEAR_RATIO = 1.0;         // 减速比（无减速箱则为1，有则填实际值，如50:1则为50）
-    private static final int ENCODER_PPR = 1024;          // 电机编码器线数（PPR），正交输出可×4（如1024×4=4096）
-    private static final double WHEEL_RADIUS_CM = 5.0;        // 车轮半径，单位：cm
+    public static double L = 15.0;                 // 底盘前后轮中心纵向距离，单位：cm
+    public static double W = 15.0;                 // 底盘左右轮中心横向距离，单位：cm
+    public static double D = Math.sqrt(L*L+W*W);    // 复合参数，无需修改
+    public static double GEAR_RATIO = 19.2;         // 减速比（无减速箱则为1，有则填实际值，如50:1则为50）
+    public static int ENCODER_PPR = 1024;          // 电机编码器线数（PPR），正交输出可×4（如1024×4=4096）
+    public static double WHEEL_RADIUS_CM = 5.0;        // 车轮半径，单位：cm
 
     // 控制参数
     //TODO: 根据实际需求调整
-    private static final double DRIVE_SPEED = 0.8;        // 最大驱动速度（0~1，防止打滑）
-    private static final double TURN_SPEED = 0.6;         // 最大旋转速度（0~1）
+    public static double DRIVE_SPEED = 0.8;        // 最大驱动速度（0~1，防止打滑）
+    public static double TURN_SPEED = 0.6;         // 最大旋转速度（0~1）
 
     // 电机端口配置
     //TODO: 根据实际接线修改
@@ -41,6 +48,12 @@ public class ChassisController {
     private static final String BR_MOTOR = "bR";  // 后右电机端口名
 
     public int lastFL_enc = 0, lastFR_enc = 0, lastBL_enc = 0, lastBR_enc = 0;
+
+    //电机速度参数
+    public double flPower=0;
+    public double frPower=0;
+    public double blPower=0;
+    public double brPower=0;
 
 
 
@@ -63,6 +76,8 @@ public class ChassisController {
         frontRight = hardwareMap.get(DcMotorEx.class, FR_MOTOR);
         backLeft = hardwareMap.get(DcMotorEx.class, BL_MOTOR);
         backRight = hardwareMap.get(DcMotorEx.class, BR_MOTOR);
+//        imu = hardwareMap.get(IMU.class, "imu");
+
 
         this.telemetry = telemetry;
 
@@ -105,6 +120,13 @@ public class ChassisController {
         y = 0.0;
         theta = 0.0;
 
+//        imu.initialize(new IMU.Parameters(
+//                new RevHubOrientationOnRobot(
+//                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+//                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+//                )
+//        ));
+
 
     }
 
@@ -121,27 +143,26 @@ public class ChassisController {
      * backrightpower
      */
     public void ChassisMoving(double x, double y,double theta){
-        double flPower = x + y + theta*D;
-        double frPower = -x + y - theta*D;
-        double blPower = -x + y + theta*D;
-        double brPower = x + y - theta*D;
+        flPower = x + y + theta;
+        frPower = -x + y - theta;
+        blPower = -x + y + theta;
+        brPower = x + y - theta;
 
-        double maxPower = Math.max(1.0, Math.max(Math.abs(flPower),
-                Math.max(Math.abs(frPower), Math.max(Math.abs(blPower), Math.abs(brPower)))));
+        double maxPower = Math.max(1.0, Math.max(Math.abs(flPower),Math.max(Math.abs(frPower), Math.max(Math.abs(blPower), Math.abs(brPower)))));
         flPower /= maxPower;
         frPower /= maxPower;
         blPower /= maxPower;
         brPower /= maxPower;
 
-        ChassisPowerTelemetry(flPower, frPower, blPower, brPower);
+
         setMotorPowers(flPower, frPower, blPower, brPower);
     }
 
-    public void ChassisPowerTelemetry(double fl, double fr ,double bl, double br) {
-        telemetry.addData("Front Left Power: ", fl);
-        telemetry.addData("Front Right Power: ", fr);
-        telemetry.addData("Back Left Power: ", bl);
-        telemetry.addData("Back Right Power: ", br);
+    public void ChassisPowerTelemetry() {
+        telemetry.addData("Front Left Power: ", flPower);
+        telemetry.addData("Front Right Power: ", frPower);
+        telemetry.addData("Back Left Power: ", blPower);
+        telemetry.addData("Back Right Power: ", brPower);
     }
     private void setMotorPowers(double fl, double fr, double rl, double rr) {
         frontLeft.setPower(fl);
@@ -149,7 +170,7 @@ public class ChassisController {
         backLeft.setPower(rl);
         backRight.setPower(rr);
     }
-    public void ChassisLocationTelemetry(double x, double y ,double theta){
+    public void ChassisLocationTelemetry(){
         telemetry.addData("X Position (cm): ", x);
         telemetry.addData("Y Position (cm): ", y);
         telemetry.addData("Heading (rad): ", theta);
@@ -158,7 +179,11 @@ public class ChassisController {
     }
 
     public void ChassisStop(){
-        ChassisPowerTelemetry(0,0,0,0);
+        flPower=0;
+        frPower=0;
+        blPower=0;
+        brPower=0;
+        ChassisPowerTelemetry();
         setMotorPowers(0,0,0,0);
     }
 
@@ -217,9 +242,10 @@ public class ChassisController {
         x += deltaX;
         y += deltaY;
         theta += deltaTheta;
+//        theta=imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         // 航向角归一化（-π ~ π），防止角度无限增大
         theta = normalizeAngle(theta);
-        ChassisLocationTelemetry(x, y, theta);
+
 
 
         // 8. 更新历史数据（为下一次采样做准备）

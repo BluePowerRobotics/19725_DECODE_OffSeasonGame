@@ -15,7 +15,7 @@ public class ShooterAction {
 
     public int WindowSize = 3;
     public ShooterAction(HardwareMap hardwareMap, Telemetry telerc) {
-        telemetry = telerc;
+        this.telemetry = telerc;
         Filter = new MeanFilter(WindowSize);
         shooter = new Shooter(hardwareMap, telemetry, "shooterMotor", true);
 
