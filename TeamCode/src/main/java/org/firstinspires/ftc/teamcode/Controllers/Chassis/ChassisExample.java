@@ -21,10 +21,10 @@ public class ChassisExample extends OpMode {
 
     // -------------------------- 2. 核心参数标定区（根据实际硬件修改！） --------------------------
     // 电机端口配置（对应 Expansion Hub 端口，需与机器人配置一致）
-    private static final String FL_MOTOR = "frontLeft";  // 前左电机端口名
-    private static final String FR_MOTOR = "frontRight"; // 前右电机端口名
-    private static final String RL_MOTOR = "rearLeft";   // 后左电机端口名
-    private static final String RR_MOTOR = "rearRight";  // 后右电机端口名
+    private static final String FL_MOTOR = "fL";  // 前左电机端口名
+    private static final String FR_MOTOR = "fR"; // 前右电机端口名
+    private static final String RL_MOTOR = "bL";   // 后左电机端口名
+    private static final String RR_MOTOR = "bR";  // 后右电机端口名
 
     // 机械参数（必须精准测量/标定，定位和控制的核心）
     private static final double WHEEL_RADIUS_CM = 5.0;    // 麦克纳姆轮有效半径，单位：cm

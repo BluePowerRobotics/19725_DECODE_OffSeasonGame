@@ -33,8 +33,8 @@ public class ChassisTester extends LinearOpMode {
                 isRunning = !isRunning;
                 if(!isRunning){
                     chassis.ChassisStop();
-                    chassis.Localization();
-                    chassis.ChassisVelocityTelemetry();
+                    chassis.localization.Localization();
+                    chassis.localization.ChassisVelocityTelemetry();
                     chassis.ChassisModeTelemetry();
                     telemetry.addData("isRunning", isRunning);
                     telemetry.update();
@@ -42,15 +42,15 @@ public class ChassisTester extends LinearOpMode {
                 }
             }
             if(gamepad1.aWasPressed()){
-                chassis.resetPosition();
+                chassis.localization.resetPosition();
             }
             if(isRunning){
                 chassis.GamepadCalculator(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x);
                 chassis.ChassisMoving(chassis.driveXTrans,chassis.driveYTrans, chassis.drivethetaTrans);
-                chassis.ChassisLocationTelemetry();
+                chassis.localization.ChassisLocationTelemetry();
                 chassis.ChassisPowerTelemetry();
-                chassis.Localization();
-                chassis.ChassisVelocityTelemetry( );
+                chassis.localization.Localization();
+                chassis.localization.ChassisVelocityTelemetry( );
                 chassis.ChassisModeTelemetry();
                 telemetry.addData("isRunning", isRunning);
                 telemetry.update();

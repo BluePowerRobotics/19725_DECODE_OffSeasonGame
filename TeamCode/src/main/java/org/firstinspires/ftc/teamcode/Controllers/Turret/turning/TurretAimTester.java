@@ -47,8 +47,8 @@ public class TurretAimTester extends LinearOpMode {
                 isRunning = !isRunning;
                 if(!isRunning){
                     chassis.ChassisStop();
-                    chassis.Localization();
-                    chassis.ChassisVelocityTelemetry();
+                    chassis.localization.Localization();
+                    chassis.localization.ChassisVelocityTelemetry();
                     chassis.ChassisModeTelemetry();
                     telemetry.addData("isRunning", isRunning);
                     telemetry.update();
@@ -56,13 +56,13 @@ public class TurretAimTester extends LinearOpMode {
                 }
             }
             if(gamepad1.aWasPressed()){
-                chassis.resetPosition();
+                chassis.localization.resetPosition();
             }
             if(isRunning){
                 chassis.GamepadCalculator(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x);
                 chassis.ChassisMoving(chassis.driveXTrans,chassis.driveYTrans, chassis.drivethetaTrans);
-                chassis.Localization();
-                chassis.ChassisVelocityTelemetry( );
+                chassis.localization.Localization();
+                chassis.localization.ChassisVelocityTelemetry( );
                 chassis.ChassisModeTelemetry();
                 telemetry.addData("isRunning", isRunning);
                 telemetry.update();
@@ -76,7 +76,7 @@ public class TurretAimTester extends LinearOpMode {
             }
 
             // 更新炮台瞄准控制
-            turretAimController.update(chassis.x,chassis.y,chassis.theta);
+            turretAimController.update(chassis.localization.x,chassis.localization.y,chassis.localization.theta);
             // 添加其他测试逻辑和数据输出
             telemetry.addData("Turret Angle", turretAimController.getTurretAngle());
         }
