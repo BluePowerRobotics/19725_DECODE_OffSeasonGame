@@ -7,30 +7,27 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-
 @TeleOp(name = "Shootertester", group = "Tests")
 public class Shootertester extends LinearOpMode {
-    public ShooterAction shooterAction;
+
+    public Shooter shooter;
 
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        shooterAction = new ShooterAction(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry,"shooter",true);
         waitForStart();
         while (opModeIsActive()) {
             if (gamepad1.aWasPressed()) {
-                shooterAction.setShootSpeed(850);
+                shooter.shoot(850);
             } else if (gamepad1.bWasPressed()) {
-                shooterAction.setShootSpeed(760);
+                shooter.shoot(760);
             } else if (gamepad1.yWasPressed()) {
-                shooterAction.setShootSpeed(650);
+                shooter.shoot(650);
             } else if (gamepad1.xWasPressed()) {
-                shooterAction.setShootSpeed(0);
+                shooter.shoot(0);
             }
-            shooterAction.setTelemetry();
+            shooter.setTelemetry();
             telemetry.update();
         }
     }
-
-
-
- }
+}

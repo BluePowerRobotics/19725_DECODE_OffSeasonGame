@@ -126,5 +126,9 @@ public class Shooter {
     public double getCurrent_speed(){
         return current_speed;
     }
+    public void setTelemetry(){
+        telemetry.addData("Shooter Power", Power);
+        telemetry.addData("Shooter Velocity", current_speed);
+    }
 
 }
