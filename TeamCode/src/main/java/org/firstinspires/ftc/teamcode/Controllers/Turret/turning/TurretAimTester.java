@@ -6,17 +6,19 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
+import org.firstinspires.ftc.teamcode.Controllers.Chassis.ChassisController_ver1;
+
 @TeleOp(name = "TurretAimTester", group = "Tests")
 public class TurretAimTester extends LinearOpMode {
     TurretAimController turretAimController;
-    public ChassisController chassis;
+    public ChassisController_ver1 chassis;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        chassis = new ChassisController(hardwareMap,telemetry);
+        chassis = new ChassisController_ver1(hardwareMap,telemetry);
         boolean isRunning = false;
         waitForStart();
         isRunning = true;

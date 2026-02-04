@@ -29,17 +29,18 @@ public class RobotPosition {
     }
 
 
-    private final HardwareMap hardwareMap;
+
+    HardwareMap hardwareMap;
     private Localizer localizer;
     public double inchPerTick = 1;
 
-    private final Pose2d initpose;
+    private Pose2d initpose;
     private Pose2d pose2d;
 
 
 
     // 构造：直接传入 Localizer 实例（外部创建特定实现）
-    public RobotPosition(HardwareMap hardwareMap, Pose2d initpose, Localizer localizer) {
+    public void RobotPositioninit(HardwareMap hardwareMap, Pose2d initpose, Localizer localizer) {
         this.hardwareMap = hardwareMap;
         this.initpose = initpose != null ? initpose : new Pose2d(0,0,0);
         this.pose2d = this.initpose;
@@ -89,4 +90,5 @@ public class RobotPosition {
     public double getHeading() {
         return this.pose2d.heading.toDouble();
     }
+
 }
