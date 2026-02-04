@@ -51,136 +51,253 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Mecanum 驱动实现类，用于控制采用 Mecanum 轮的机器人
+ * 提供了完整的轨迹跟随、姿态控制和定位功能
+ * 
+ * 主要功能：
+ * 1. 基于编码器和 IMU 的轮式定位
+ * 2. 轨迹规划和跟随
+ * 3. 机器人姿态控制
+ * 4. 电机驱动和速度控制
+ * 5. 实时数据记录和可视化
+ */
 @Config
 public final class MecanumDrive {
+    /**
+     * Mecanum 驱动的参数配置类
+     * 包含了机器人硬件和控制相关的所有参数
+     */
     public static class Params {
-        // IMU orientation
-        // TODO: fill in these values based on
-        //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
+        // IMU 安装方向参数
+        // TODO: 根据实际硬件安装情况填写这些值
+        //   参考 https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
                 RevHubOrientationOnRobot.LogoFacingDirection.UP;
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
-        // drive model parameters
-        public double inPerTick = 1;
-        public double lateralInPerTick = inPerTick;
-        public double trackWidthTicks = 0;
+        // 驱动模型参数
+        public double inPerTick = 1; // 每个编码器 tick 对应的英寸数
+        public double lateralInPerTick = inPerTick; // 横向移动每个 tick 对应的英寸数
+        public double trackWidthTicks = 0; // 轮距（编码器 tick 单位）
 
-        // feedforward parameters (in tick units)
-        public double kS = 0;
-        public double kV = 0;
-        public double kA = 0;
+        // 电机前馈参数（tick 单位）
+        public double kS = 0; // 静态摩擦力补偿
+        public double kV = 0; // 速度比例系数
+        public double kA = 0; // 加速度比例系数
 
-        // path profile parameters (in inches)
-        public double maxWheelVel = 50;
-        public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        // 路径规划参数（英寸单位）
+        public double maxWheelVel = 50; // 最大轮速
+        public double minProfileAccel = -30; // 最小加速度
+        public double maxProfileAccel = 50; // 最大加速度
 
-        // turn profile parameters (in radians)
-        public double maxAngVel = Math.PI; // shared with path
-        public double maxAngAccel = Math.PI;
+        // 转向规划参数（弧度单位）
+        public double maxAngVel = Math.PI; // 最大角速度（与路径共享）
+        public double maxAngAccel = Math.PI; // 最大角加速度
 
-        // path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = 0.0;
-        public double headingGain = 0.0; // shared with turn
+        // 路径控制器增益
+        public double axialGain = 0.0; // 轴向控制增益
+        public double lateralGain = 0.0; // 横向控制增益
+        public double headingGain = 0.0; // 航向控制增益（与转向共享）
 
-        public double axialVelGain = 0.0;
-        public double lateralVelGain = 0.0;
-        public double headingVelGain = 0.0; // shared with turn
+        public double axialVelGain = 0.0; // 轴向速度控制增益
+        public double lateralVelGain = 0.0; // 横向速度控制增益
+        public double headingVelGain = 0.0; // 航向速度控制增益（与转向共享）
     }
 
+    /**
+     * 全局参数实例，可通过 FTC Dashboard 实时调整
+     */
     public static Params PARAMS = new Params();
 
+    /**
+     * Mecanum 轮运动学模型
+     */
     public final MecanumKinematics kinematics = new MecanumKinematics(
             PARAMS.inPerTick * PARAMS.trackWidthTicks, PARAMS.inPerTick / PARAMS.lateralInPerTick);
 
+    /**
+     * 默认转向约束
+     */
     public final TurnConstraints defaultTurnConstraints = new TurnConstraints(
             PARAMS.maxAngVel, -PARAMS.maxAngAccel, PARAMS.maxAngAccel);
+    
+    /**
+     * 默认速度约束
+     */
     public final VelConstraint defaultVelConstraint =
             new MinVelConstraint(Arrays.asList(
                     kinematics.new WheelVelConstraint(PARAMS.maxWheelVel),
                     new AngularVelConstraint(PARAMS.maxAngVel)
             ));
+    
+    /**
+     * 默认加速度约束
+     */
     public final AccelConstraint defaultAccelConstraint =
             new ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel);
 
+    /**
+     * 四个驱动电机
+     */
     public final DcMotorEx leftFront, leftBack, rightBack, rightFront;
 
+    /**
+     * 电压传感器，用于电机电压补偿
+     */
     public final VoltageSensor voltageSensor;
 
+    /**
+     * 延迟初始化的 IMU 传感器
+     */
     public final LazyImu lazyImu;
 
+    /**
+     * 定位器实例
+     */
     public final Localizer localizer;
+    
+    /**
+     * 位姿历史记录，用于绘制轨迹
+     */
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
 
+    /**
+     * 数据记录器，用于记录估计位姿
+     */
     private final DownsampledWriter estimatedPoseWriter = new DownsampledWriter("ESTIMATED_POSE", 50_000_000);
+    
+    /**
+     * 数据记录器，用于记录目标位姿
+     */
     private final DownsampledWriter targetPoseWriter = new DownsampledWriter("TARGET_POSE", 50_000_000);
+    
+    /**
+     * 数据记录器，用于记录驱动命令
+     */
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
+    
+    /**
+     * 数据记录器，用于记录 Mecanum 命令
+     */
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
 
+    /**
+     * 基于驱动电机编码器和 IMU 的定位器实现
+     */
     public class DriveLocalizer implements Localizer {
+        /**
+         * 四个电机的编码器
+         */
         public final Encoder leftFront, leftBack, rightBack, rightFront;
+        
+        /**
+         * IMU 传感器
+         */
         public final IMU imu;
 
+        /**
+         * 上次编码器位置
+         */
         private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
+        
+        /**
+         * 上次航向角
+         */
         private Rotation2d lastHeading;
+        
+        /**
+         * 初始化标志
+         */
         private boolean initialized;
+        
+        /**
+         * 当前位姿
+         */
         private Pose2d pose;
 
+        /**
+         * 构造函数
+         * @param pose 初始位姿
+         */
         public DriveLocalizer(Pose2d pose) {
+            // 初始化编码器
             leftFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftFront));
             leftBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftBack));
             rightBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightBack));
             rightFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightFront));
 
+            // 获取 IMU 实例
             imu = lazyImu.get();
 
-            // TODO: reverse encoders if needed
+            // TODO: 如果需要，反转编码器方向
             //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
             this.pose = pose;
         }
 
+        /**
+         * 设置当前位姿
+         * @param pose 要设置的位姿
+         */
         @Override
         public void setPose(Pose2d pose) {
             this.pose = pose;
         }
 
+        /**
+         * 获取当前位姿
+         * @return 当前位姿
+         */
         @Override
         public Pose2d getPose() {
             return pose;
         }
 
+        /**
+         * 更新位姿估计
+         * @return 当前速度估计
+         */
         @Override
         public PoseVelocity2d update() {
+            // 获取编码器位置和速度
             PositionVelocityPair leftFrontPosVel = leftFront.getPositionAndVelocity();
             PositionVelocityPair leftBackPosVel = leftBack.getPositionAndVelocity();
             PositionVelocityPair rightBackPosVel = rightBack.getPositionAndVelocity();
             PositionVelocityPair rightFrontPosVel = rightFront.getPositionAndVelocity();
 
+            // 获取 IMU 角度
             YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
 
+            // 记录本地化输入数据
             FlightRecorder.write("MECANUM_LOCALIZER_INPUTS", new MecanumLocalizerInputsMessage(
                     leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles));
 
+            // 计算航向角
             Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
 
+            // 初始化处理
             if (!initialized) {
                 initialized = true;
 
+                // 记录初始编码器位置
                 lastLeftFrontPos = leftFrontPosVel.position;
                 lastLeftBackPos = leftBackPosVel.position;
                 lastRightBackPos = rightBackPosVel.position;
                 lastRightFrontPos = rightFrontPosVel.position;
 
+                // 记录初始航向角
                 lastHeading = heading;
 
+                // 返回零速度
                 return new PoseVelocity2d(new Vector2d(0.0, 0.0), 0.0);
             }
 
+            // 计算航向角变化
             double headingDelta = heading.minus(lastHeading);
+            
+            // 使用运动学模型计算机器人运动
             Twist2dDual<Time> twist = kinematics.forward(new MecanumKinematics.WheelIncrements<>(
                     new DualNum<Time>(new double[]{
                             (leftFrontPosVel.position - lastLeftFrontPos),
@@ -200,80 +317,120 @@ public final class MecanumDrive {
                     }).times(PARAMS.inPerTick)
             ));
 
+            // 更新上次编码器位置
             lastLeftFrontPos = leftFrontPosVel.position;
             lastLeftBackPos = leftBackPosVel.position;
             lastRightBackPos = rightBackPosVel.position;
             lastRightFrontPos = rightFrontPosVel.position;
 
+            // 更新上次航向角
             lastHeading = heading;
 
+            // 更新位姿
             pose = pose.plus(new Twist2d(
                     twist.line.value(),
                     headingDelta
             ));
 
+            // 返回速度估计
             return twist.velocity().value();
         }
     }
 
+    /**
+     * 构造函数
+     * @param hardwareMap 硬件映射
+     * @param pose 初始位姿
+     */
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
+        // 检查 Lynx 模块固件是否最新
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
+        // 设置所有 Lynx 模块的缓存模式
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // TODO: make sure your config has motors with these names (or change them)
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
+        // TODO: 确保你的配置中有这些名称的电机（或修改它们）
+        //   参考 https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
         leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
         rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
         rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
 
+        // 设置电机零功率行为为制动
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // TODO: reverse motor directions if needed
+        // TODO: 如果需要，反转电机方向
         //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
+        // TODO: 确保你的配置中有这个名称的 IMU（可以是 BNO 或 BHI）
+        //   参考 https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         lazyImu = new LazyHardwareMapImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 PARAMS.logoFacingDirection, PARAMS.usbFacingDirection));
 
+        // 获取电压传感器
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
+        // 初始化定位器
         localizer = new DriveLocalizer(pose);
 
+        // 记录参数
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }
 
+    /**
+     * 设置驱动功率
+     * @param powers 机器人速度向量
+     */
     public void setDrivePowers(PoseVelocity2d powers) {
+        // 计算轮速
         MecanumKinematics.WheelVelocities<Time> wheelVels = new MecanumKinematics(1).inverse(
                 PoseVelocity2dDual.constant(powers, 1));
 
+        // 计算最大功率幅度，用于归一化
         double maxPowerMag = 1;
         for (DualNum<Time> power : wheelVels.all()) {
             maxPowerMag = Math.max(maxPowerMag, power.value());
         }
 
+        // 设置电机功率
         leftFront.setPower(wheelVels.leftFront.get(0) / maxPowerMag);
         leftBack.setPower(wheelVels.leftBack.get(0) / maxPowerMag);
         rightBack.setPower(wheelVels.rightBack.get(0) / maxPowerMag);
         rightFront.setPower(wheelVels.rightFront.get(0) / maxPowerMag);
     }
 
+    /**
+     * 轨迹跟随动作
+     */
     public final class FollowTrajectoryAction implements Action {
+        /**
+         * 时间轨迹
+         */
         public final TimeTrajectory timeTrajectory;
+        
+        /**
+         * 开始时间戳
+         */
         private double beginTs = -1;
 
+        /**
+         * 轨迹的 x 和 y 坐标点，用于绘制
+         */
         private final double[] xPoints, yPoints;
 
+        /**
+         * 构造函数
+         * @param t 时间轨迹
+         */
         public FollowTrajectoryAction(TimeTrajectory t) {
             timeTrajectory = t;
 
+            // 生成轨迹点，用于绘制
             List<Double> disps = com.acmerobotics.roadrunner.Math.range(
                     0, t.path.length(),
                     Math.max(2, (int) Math.ceil(t.path.length() / 2)));
@@ -286,9 +443,15 @@ public final class MecanumDrive {
             }
         }
 
+        /**
+         * 执行动作
+         * @param p 遥测数据包
+         * @return 是否继续执行
+         */
         @Override
         public boolean run(@NonNull TelemetryPacket p) {
             double t;
+            // 初始化开始时间
             if (beginTs < 0) {
                 beginTs = Actions.now();
                 t = 0;
@@ -296,7 +459,9 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
+            // 检查是否完成轨迹
             if (t >= timeTrajectory.duration) {
+                // 停止所有电机
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);
@@ -305,11 +470,14 @@ public final class MecanumDrive {
                 return false;
             }
 
+            // 获取目标位姿
             Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
             targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
 
+            // 更新位姿估计
             PoseVelocity2d robotVelRobot = updatePoseEstimate();
 
+            // 计算控制命令
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
                     PARAMS.axialVelGain, PARAMS.lateralVelGain, PARAMS.headingVelGain
@@ -317,9 +485,11 @@ public final class MecanumDrive {
                     .compute(txWorldTarget, localizer.getPose(), robotVelRobot);
             driveCommandWriter.write(new DriveCommandMessage(command));
 
+            // 计算轮速
             MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(command);
             double voltage = voltageSensor.getVoltage();
 
+            // 计算前馈控制
             final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS,
                     PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick);
             double leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage;
@@ -330,30 +500,36 @@ public final class MecanumDrive {
                     voltage, leftFrontPower, leftBackPower, rightBackPower, rightFrontPower
             ));
 
+            // 设置电机功率
             leftFront.setPower(leftFrontPower);
             leftBack.setPower(leftBackPower);
             rightBack.setPower(rightBackPower);
             rightFront.setPower(rightFrontPower);
 
+            // 添加遥测数据
             p.put("x", localizer.getPose().position.x);
             p.put("y", localizer.getPose().position.y);
             p.put("heading (deg)", Math.toDegrees(localizer.getPose().heading.toDouble()));
 
+            // 计算误差
             Pose2d error = txWorldTarget.value().minusExp(localizer.getPose());
             p.put("xError", error.position.x);
             p.put("yError", error.position.y);
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
 
-            // only draw when active; only one drive action should be active at a time
+            // 绘制轨迹和机器人
             Canvas c = p.fieldOverlay();
             drawPoseHistory(c);
 
+            // 绘制目标机器人
             c.setStroke("#4CAF50");
             Drawing.drawRobot(c, txWorldTarget.value());
 
+            // 绘制实际机器人
             c.setStroke("#3F51B5");
             Drawing.drawRobot(c, localizer.getPose());
 
+            // 绘制轨迹
             c.setStroke("#4CAF50FF");
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
@@ -361,26 +537,50 @@ public final class MecanumDrive {
             return true;
         }
 
+        /**
+         * 预览动作
+         * @param c 画布
+         */
         @Override
         public void preview(Canvas c) {
+            // 绘制轨迹预览
             c.setStroke("#4CAF507A");
             c.setStrokeWidth(1);
             c.strokePolyline(xPoints, yPoints);
         }
     }
 
+    /**
+     * 转向动作
+     */
     public final class TurnAction implements Action {
+        /**
+         * 时间转向
+         */
         private final TimeTurn turn;
 
+        /**
+         * 开始时间戳
+         */
         private double beginTs = -1;
 
+        /**
+         * 构造函数
+         * @param turn 时间转向
+         */
         public TurnAction(TimeTurn turn) {
             this.turn = turn;
         }
 
+        /**
+         * 执行动作
+         * @param p 遥测数据包
+         * @return 是否继续执行
+         */
         @Override
         public boolean run(@NonNull TelemetryPacket p) {
             double t;
+            // 初始化开始时间
             if (beginTs < 0) {
                 beginTs = Actions.now();
                 t = 0;
@@ -388,7 +588,9 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
+            // 检查是否完成转向
             if (t >= turn.duration) {
+                // 停止所有电机
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);
@@ -397,11 +599,14 @@ public final class MecanumDrive {
                 return false;
             }
 
+            // 获取目标位姿
             Pose2dDual<Time> txWorldTarget = turn.get(t);
             targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
 
+            // 更新位姿估计
             PoseVelocity2d robotVelRobot = updatePoseEstimate();
 
+            // 计算控制命令
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
                     PARAMS.axialVelGain, PARAMS.lateralVelGain, PARAMS.headingVelGain
@@ -409,6 +614,7 @@ public final class MecanumDrive {
                     .compute(txWorldTarget, localizer.getPose(), robotVelRobot);
             driveCommandWriter.write(new DriveCommandMessage(command));
 
+            // 计算轮速
             MecanumKinematics.WheelVelocities<Time> wheelVels = kinematics.inverse(command);
             double voltage = voltageSensor.getVoltage();
             final MotorFeedforward feedforward = new MotorFeedforward(PARAMS.kS,
@@ -421,48 +627,71 @@ public final class MecanumDrive {
                     voltage, leftFrontPower, leftBackPower, rightBackPower, rightFrontPower
             ));
 
+            // 设置电机功率
             leftFront.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
             leftBack.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
             rightBack.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
             rightFront.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
 
+            // 绘制
             Canvas c = p.fieldOverlay();
             drawPoseHistory(c);
 
+            // 绘制目标机器人
             c.setStroke("#4CAF50");
             Drawing.drawRobot(c, txWorldTarget.value());
 
+            // 绘制实际机器人
             c.setStroke("#3F51B5");
             Drawing.drawRobot(c, localizer.getPose());
 
+            // 绘制转向中心点
             c.setStroke("#7C4DFFFF");
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2);
 
             return true;
         }
 
+        /**
+         * 预览动作
+         * @param c 画布
+         */
         @Override
         public void preview(Canvas c) {
+            // 绘制转向中心点预览
             c.setStroke("#7C4DFF7A");
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2);
         }
     }
 
+    /**
+     * 更新位姿估计
+     * @return 当前速度估计
+     */
     public PoseVelocity2d updatePoseEstimate() {
+        // 更新定位器
         PoseVelocity2d vel = localizer.update();
+        
+        // 添加到位姿历史
         poseHistory.add(localizer.getPose());
         
+        // 保持历史记录大小
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();
         }
 
+        // 记录估计位姿
         estimatedPoseWriter.write(new PoseMessage(localizer.getPose()));
-        
         
         return vel;
     }
 
+    /**
+     * 绘制位姿历史
+     * @param c 画布
+     */
     private void drawPoseHistory(Canvas c) {
+        // 提取位姿历史点
         double[] xPoints = new double[poseHistory.size()];
         double[] yPoints = new double[poseHistory.size()];
 
@@ -474,11 +703,17 @@ public final class MecanumDrive {
             i++;
         }
 
+        // 绘制轨迹
         c.setStrokeWidth(1);
         c.setStroke("#3F51B5");
         c.strokePolyline(xPoints, yPoints);
     }
 
+    /**
+     * 创建轨迹动作构建器
+     * @param beginPose 起始位姿
+     * @return 轨迹动作构建器
+     */
     public TrajectoryActionBuilder actionBuilder(Pose2d beginPose) {
         return new TrajectoryActionBuilder(
                 TurnAction::new,

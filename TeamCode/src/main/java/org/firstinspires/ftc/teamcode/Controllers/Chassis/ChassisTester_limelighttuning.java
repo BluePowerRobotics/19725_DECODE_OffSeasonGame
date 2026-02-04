@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 
 @TeleOp(name="ChassisTester_limelight", group="Tests")
 public class ChassisTester_limelighttuning extends LinearOpMode {
-    public ChassisController chassis;
+    public ChassisController_ver1 chassis;
     public Limelight3A limelight;
 
 
@@ -28,7 +28,7 @@ public class ChassisTester_limelighttuning extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        chassis = new ChassisController(hardwareMap,telemetry);
+        chassis = new ChassisController_ver1(hardwareMap,telemetry);
         limelight=hardwareMap.get(Limelight3A.class,"limelight");
         limelight.pipelineSwitch(0);
         limelight.start();

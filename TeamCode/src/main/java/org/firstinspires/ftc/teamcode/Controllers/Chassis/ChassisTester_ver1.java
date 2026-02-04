@@ -1,36 +1,28 @@
-package org.firstinspires.ftc.teamcode.Controllers.Turret.turning;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+package org.firstinspires.ftc.teamcode.Controllers.Chassis;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "TurretAimTester", group = "Tests")
-public class TurretAimTester extends LinearOpMode {
-    TurretAimController turretAimController;
-    public ChassisController chassis;
+@TeleOp(name="ChassisTester-VER1", group="Tests")
+public class ChassisTester_ver1 extends LinearOpMode {
+    public ChassisController_ver1 chassis;
+
 
 
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        chassis = new ChassisController(hardwareMap,telemetry);
+        chassis = new ChassisController_ver1(hardwareMap,telemetry);
         boolean isRunning = false;
         waitForStart();
         isRunning = true;
         chassis.ChassisStop();
         chassis.ChassisInit();
 
-        turretAimController = new TurretAimController(hardwareMap, "shootingMotor");
-        waitForStart();
-        isRunning = true;
-        chassis.ChassisStop();
-        chassis.ChassisInit();
-
-
-        while (opModeIsActive()) {
+        while(opModeIsActive()){
             if(gamepad1.xWasPressed()){
                 chassis.SwitchHeadMode();
             }
@@ -52,6 +44,8 @@ public class TurretAimTester extends LinearOpMode {
             if(isRunning){
                 chassis.GamepadCalculator(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x);
                 chassis.ChassisMoving(chassis.driveXTrans,chassis.driveYTrans, chassis.drivethetaTrans);
+                chassis.localization.ChassisLocationTelemetry();
+                chassis.ChassisPowerTelemetry();
                 chassis.localization.Localization();
                 chassis.localization.ChassisVelocityTelemetry( );
                 chassis.ChassisModeTelemetry();
@@ -60,18 +54,13 @@ public class TurretAimTester extends LinearOpMode {
 
 
             }
-            // 示例：按下游戏手柄按钮设置目标位置
-            if(gamepad1.yWasPressed()){
 
-                turretAimController.setTargetPosition(100.0, 100.0);
-            }
 
-            // 更新炮台瞄准控制
-            turretAimController.update(chassis.localization.x,chassis.localization.y,chassis.localization.theta);
-            // 添加其他测试逻辑和数据输出
-            telemetry.addData("Turret Angle", turretAimController.getTurretAngle());
+
+
+
+
+
         }
     }
-
-
 }

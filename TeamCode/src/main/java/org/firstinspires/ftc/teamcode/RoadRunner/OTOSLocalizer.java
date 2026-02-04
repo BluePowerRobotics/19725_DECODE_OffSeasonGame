@@ -12,24 +12,46 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+/**
+ * 使用 SparkFun OTOS 传感器的定位器实现
+ * OTOS (Omnidirectional Tracking and Orientation System) 是一个集成了 IMU 和视觉传感器的定位系统
+ */
 @Config
 public class OTOSLocalizer implements Localizer {
+    /**
+     * OTOS 定位器的参数配置类
+     */
     public static class Params {
-        public double angularScalar = 1.0;
-        public double linearScalar = 1.0;
+        public double angularScalar = 1.0; // 角度缩放因子
+        public double linearScalar = 1.0; // 线性缩放因子
 
-        // Note: units are in inches and radians
-        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
+        // 注意：单位是英寸和弧度
+        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0); // OTOS 传感器的偏移量
     }
 
+    /**
+     * 全局参数实例，可通过 FTC Dashboard 实时调整
+     */
     public static Params PARAMS = new Params();
 
+    /**
+     * SparkFun OTOS 传感器实例
+     */
     public final SparkFunOTOS otos;
+    
+    /**
+     * 当前位姿
+     */
     private Pose2d currentPose;
 
+    /**
+     * 构造函数
+     * @param hardwareMap 硬件映射
+     * @param initialPose 初始位姿
+     */
     public OTOSLocalizer(HardwareMap hardwareMap, Pose2d initialPose) {
-        // TODO: make sure your config has an OTOS device with this name
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
+        // TODO: 确保你的配置中有这个名称的 OTOS 设备
+        //   参考 https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         otos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
         currentPose = initialPose;
         otos.setPosition(OTOSKt.toOTOSPose(currentPose));
@@ -42,17 +64,29 @@ public class OTOSLocalizer implements Localizer {
         otos.setOffset(PARAMS.offset);
     }
 
+    /**
+     * 获取当前位姿
+     * @return 当前位姿
+     */
     @Override
     public Pose2d getPose() {
         return currentPose;
     }
 
+    /**
+     * 设置当前位姿
+     * @param pose 要设置的位姿
+     */
     @Override
     public void setPose(Pose2d pose) {
         currentPose = pose;
         otos.setPosition(OTOSKt.toOTOSPose(currentPose));
     }
 
+    /**
+     * 更新位姿估计
+     * @return 当前速度估计
+     */
     @Override
     public PoseVelocity2d update() {
         SparkFunOTOS.Pose2D otosPose = new SparkFunOTOS.Pose2D();
