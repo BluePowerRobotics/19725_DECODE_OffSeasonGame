@@ -142,7 +142,7 @@ public class Turret {
             targetRoll = this.roll + 90;
             targetYaw = this.yaw;
         }
-
+        //先这样写，但可能apriltag的实际位置低于球门，yaw要加一个常量
         rotate_to(targetRoll, targetYaw);
 
         double[] angles = get_angle();
@@ -202,7 +202,7 @@ public class Turret {
                 shoot(targetRoll, targetYaw);
             }
         } else if (shouldShoot) {
-            shoot(roll, yaw);
+            shoot(roll, yaw);//注意逻辑：Turret.shoot传入的是目标位置对应的仰角，实际发射不使用传入的参数
         }
     }
 
