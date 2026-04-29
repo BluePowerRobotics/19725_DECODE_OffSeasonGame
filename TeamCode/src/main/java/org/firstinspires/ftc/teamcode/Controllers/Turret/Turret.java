@@ -1,20 +1,13 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.RK4.AutoSelect;
-import org.firstinspires.ftc.teamcode.utility.RK4.Solver;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 
 import java.util.List;
@@ -187,7 +180,12 @@ public class Turret {
         if (result.success) {
             double v0 = result.v0;
             int speed = (int) (k * v0 + b);
-            shooter.setTargetSpeed(speed);
+            if(shooter.setTargetSpeed(speed)){
+                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
+                telemetry.update();
+                //shooter.launch();
+                //为什么把扳机控制删了？
+            }
         }
     }
 
