@@ -68,7 +68,7 @@ public class AutoAction extends LinearOpMode {
         chassis = new Chassis();
 
         turret = new Turret(hardwareMap, telemetry, 1.0, 0.0, 0.5,
-            teamColor.toString(), 20, 24);
+            teamColor.toString());
 
         sweeper = new Sweeper(hardwareMap, telemetry);
 

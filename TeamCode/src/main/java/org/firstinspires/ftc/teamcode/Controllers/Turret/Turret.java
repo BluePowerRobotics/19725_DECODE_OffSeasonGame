@@ -20,8 +20,8 @@ public class Turret {
     private AprilTagProcessor aprilTag;         // AprilTag处理器
     private VisionPortal visionPortal;          // 视觉门户
     private String team_color;                  // 团队颜色
-    private int blueTagID;                     // 蓝队AprilTag ID
-    private int redTagID;                      // 红队AprilTag ID
+    private int blueTagID = 20;                     // 蓝队AprilTag ID
+    private int redTagID = 24;                      // 红队AprilTag ID
 
 
 
@@ -40,15 +40,14 @@ public class Turret {
     private static final double APRILTAG_ANGLE_TOLERANCE = 0.5;      // AprilTag瞄准容差（度）
 
     // 构造函数
-    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H, String teamColor, int blueTagId, int redTagId) {
+    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H, String teamColor) {
         roll = 0.0;
         yaw = 0.0;
         this.k = k;
         this.b = b;
         this.delta_H = delta_H;
         this.team_color = teamColor;
-        this.blueTagID = blueTagId;
-        this.redTagID = redTagId;
+
         // 初始化发射系统
         shooter = new Shooter(hardwareMap, telemetry);
         this.telemetry=telemetry;
@@ -59,14 +58,6 @@ public class Turret {
         initAprilTag(hardwareMap);
 
     }
-
-    /**
-     * 简化构造函数，使用默认的tag ID
-     */
-    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H) {
-        this(hardwareMap, telemetry, k, b, delta_H, "blue", 1, 2);
-    }
-
 
     /**
      * 获取当前高度差
@@ -155,11 +146,6 @@ public class Turret {
 
     public void setTeamColor(String teamColor) {
         this.team_color = teamColor;
-    }
-
-    public void setTagIDs(int blueTagId, int redTagId) {
-        this.blueTagID = blueTagId;
-        this.redTagID = redTagId;
     }
 
     public void shoot(double roll, double yaw) {

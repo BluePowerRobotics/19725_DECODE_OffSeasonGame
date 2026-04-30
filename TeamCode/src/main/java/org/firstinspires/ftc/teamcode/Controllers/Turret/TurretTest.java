@@ -38,7 +38,7 @@ public class TurretTest extends LinearOpMode {
             }
         }
         // 初始化 Turret
-        turret = new Turret(hardwareMap, telemetry,1.0,0.0,0,"blue",20,24);
+        turret = new Turret(hardwareMap, telemetry,1.0,0.0,0,"blue");
         
         turret.set(100, 50); // 设置速度转换参数 k 和 b
         
