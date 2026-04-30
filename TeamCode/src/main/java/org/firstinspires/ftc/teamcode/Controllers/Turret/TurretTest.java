@@ -15,6 +15,8 @@ public class TurretTest extends LinearOpMode {
     private Turret turret;
     public int targetTagId;
     boolean InitStarted = false;
+    boolean shouldShoot = false;
+    boolean shouldAim = false;
     
     @Override
     public void runOpMode() {
@@ -50,10 +52,12 @@ public class TurretTest extends LinearOpMode {
         
         while (opModeIsActive()) {
             // 检查是否按下 A 键
-            boolean shouldShoot = gamepad1.a;
+            shouldShoot = gamepad1.aWasPressed();
+            shouldShoot = gamepad1.bWasPressed();
+
             
             // 每帧调用 update 方法
-            turret.update(shouldShoot,targetTagId);
+            turret.update(shouldAim,shouldShoot,targetTagId);
             
             // 获取当前角度
             Object[] aimResult = turret.aim(targetTagId);

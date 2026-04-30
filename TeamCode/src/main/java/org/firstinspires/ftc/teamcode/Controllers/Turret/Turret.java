@@ -41,6 +41,14 @@ public class Turret {
 
     // 构造函数
     public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H, String teamColor, int blueTagId, int redTagId) {
+        roll = 0.0;
+        yaw = 0.0;
+        this.k = k;
+        this.b = b;
+        this.delta_H = delta_H;
+        this.team_color = teamColor;
+        this.blueTagID = blueTagId;
+        this.redTagID = redTagId;
         // 初始化发射系统
         shooter = new Shooter(hardwareMap, telemetry);
         this.telemetry=telemetry;
@@ -50,14 +58,6 @@ public class Turret {
 
         initAprilTag(hardwareMap);
 
-        roll = 0.0;
-        yaw = 0.0;
-        this.k = k;
-        this.b = b;
-        this.delta_H = delta_H;
-        this.team_color = teamColor;
-        this.blueTagID = blueTagId;
-        this.redTagID = redTagId;
     }
 
     /**
@@ -112,14 +112,13 @@ public class Turret {
         return new double[]{roll, yaw};
     }
 
-    public Object[] aim() {
+    public Object[] aim(int targetTagId) {
         get_angle();
 
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean isTargetFound = false;
         AprilTagDetection targetDetection = null;
 
-        int targetTagId = team_color.equalsIgnoreCase("blue") ? blueTagID : redTagID;
 
         for (AprilTagDetection detection : detections) {
             if (detection.id == targetTagId) {
@@ -189,11 +188,11 @@ public class Turret {
         }
     }
 
-    public void update(boolean shouldAim, boolean shouldShoot) {
+    public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {
         shooter.update();
 
         if (shouldAim) {
-            Object[] aimResult = aim();
+            Object[] aimResult = aim(targetTagId);
             boolean isTargetFound = (boolean) aimResult[0];
             double targetRoll = (double) aimResult[1];
             double targetYaw = (double) aimResult[2];
