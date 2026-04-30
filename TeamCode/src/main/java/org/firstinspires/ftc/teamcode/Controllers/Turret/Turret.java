@@ -170,6 +170,7 @@ public class Turret {
                 telemetry.update();
                 //shooter.launch();
                 //为什么把扳机控制删了？
+                //你们有真的有扳机吗？？？？
             }
         }
     }
