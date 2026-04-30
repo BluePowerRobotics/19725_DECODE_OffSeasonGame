@@ -190,6 +190,8 @@ public class TurretDegreeController {
 
         double yawTargetServo = (targetYaw - YAW_ANGLE_MIN) / (YAW_ANGLE_MAX - YAW_ANGLE_MIN);
         yawServo.setPosition(Math.max(YAW_SERVO_MIN, Math.min(YAW_SERVO_MAX, yawTargetServo)));
+        //提醒一点，这里的yawServo.getPosition()读取到的就是你给它set的targetposition。舵机不会
+        //以任何电气方式实时读取自己的位置并返回。所以currentYaw即yawTargetServo
         currentYaw = yawServo.getPosition() * (YAW_ANGLE_MAX - YAW_ANGLE_MIN) + YAW_ANGLE_MIN;
 
         if (telemetry != null) {
@@ -207,6 +209,7 @@ public class TurretDegreeController {
      */
     public boolean reachedTarget() {
         return Math.abs(rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE - targetRoll) <= ANGLE_TOLERANCE
+                //下面恒成立
                 && Math.abs(currentYaw - targetYaw) <= ANGLE_TOLERANCE;
     }
 
