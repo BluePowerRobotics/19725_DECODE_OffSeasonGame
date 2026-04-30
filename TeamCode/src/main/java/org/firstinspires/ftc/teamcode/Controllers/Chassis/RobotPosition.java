@@ -2,16 +2,56 @@ package org.firstinspires.ftc.teamcode.Controllers.Chassis;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RoadRunner.Localizer;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utility.MathSolver;
+import org.firstinspires.ftc.teamcode.utility.Point2D;
 
 public class RobotPosition {
 
     static MecanumDrive drive;
     HardwareMap hardwareMap;
     Localizer localizer;
+    public DistanceSensor sensorDistancemax;
+    public DistanceSensor sensorDistancemin;
+    public static double maxdistance=20;//此变量代表球满时与传感器的距离：最大值
+    public static double mindistance=50;//此变量代表球空时与传感器的距离：最小值
+    public static double wrongdistance=30;//那个b传感器，在3cm以内搁那乱转，神经病，写这个变量避免一下这种愚蠢行为。
+
+    public boolean ableToShoot = false;
+    //todo :调整距离
+    /**
+     *true 表示有3个球
+     * false 表示3个球未满（未检测到球）
+     */
+    public boolean isFull(){
+        double sensor_distance=sensorDistancemax.getDistance(DistanceUnit.MM);
+
+        if (sensor_distance <= maxdistance & sensor_distance>=wrongdistance) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    /**
+     *true 表示无球
+     *false 表示有球
+     */
+    public boolean isEmpty(){
+        double sensor_distance=sensorDistancemin.getDistance(DistanceUnit.MM);
+
+        if (sensor_distance >= mindistance & sensor_distance>=wrongdistance) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
     public Pose2d currentPose;
     public PoseVelocity2d currentVelocity2d;
@@ -35,6 +75,8 @@ public class RobotPosition {
 
         instance.currentPose = initpose != null ? initpose : new Pose2d(0,0,0);
         instance.drive=new MecanumDrive(hardwareMap,instance.currentPose);
+        instance.sensorDistancemax = hardwareMap.get(DistanceSensor.class, "dismax");
+        instance.sensorDistancemin = hardwareMap.get(DistanceSensor.class, "dismin");
         instance.localizer=instance.drive.localizer;
         return instance;
     }
@@ -55,7 +97,12 @@ public class RobotPosition {
                 // 如果 localizer 的方法抛异常，保持现有 pose
             }
         }
+        Point2D pose =new Point2D(instance.getX(),instance.getY());
+        ableToShoot = MathSolver.isPointInTriangle(pose, new Point2D(-72,12),new Point2D(-72,-12),new Point2D(-60,0))||
+                MathSolver.isPointInTriangle(pose, new Point2D(0,0),new Point2D(72,72),new Point2D(72,-72));
+
         return instance.currentPose;
+
     }
 
 
@@ -67,6 +114,7 @@ public class RobotPosition {
     public double getVx(){return  currentVelocity2d.linearVel.x;}
     public double getVy(){return  currentVelocity2d.linearVel.y;}
     public double getOmega(){return currentVelocity2d.angVel;}
+    public boolean isAbleToShoot(){return ableToShoot;}
 
 
 }
