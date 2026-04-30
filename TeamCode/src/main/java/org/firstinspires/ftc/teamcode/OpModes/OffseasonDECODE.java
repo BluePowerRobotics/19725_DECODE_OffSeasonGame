@@ -178,30 +178,28 @@ public class OffseasonDECODE extends LinearOpMode {
 //            //todo
 //            chassis.setHeadingLockRadian(heading);
 //        }
-//
-//        if(gamepad1.yWasPressed()){
-//            ReadyToShoot = !ReadyToShoot;
-//            if(ReadyToShoot){
-//                double heading = 0;
-//                if (teamColor == TEAM_COLOR.RED) {
-//                    heading = SolveShootPoint.solveREDShootHeading(pose);
-//                    targetSpeed = SolveShootPoint.solveShootSpeed(SolveShootPoint.solveREDShootDistance(pose));
-//                }
-//                if (teamColor == TEAM_COLOR.BLUE) {
-//                    heading = SolveShootPoint.solveBLUEShootHeading(pose);
-//                    targetSpeed = SolveShootPoint.solveShootSpeed(SolveShootPoint.solveBLUEShootDistance(pose));
-//                }
-//                chassis.setHeadingLockRadian(heading);
-//            }
-//        }
-//
-//        if(ReadyToShoot){
-//            double currentHeading = chassis.robotPosition.getData().headingRadian;
-//            double targetHeading = chassis.getHeadingLockRadian();
-//            if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
-//                robotStatus = ROBOT_STATUS.SHOOTING;
-//            }
-//        }
+
+//        todo: 发射部分
+        if(gamepad1.yWasPressed()){
+            ReadyToShoot = !ReadyToShoot;
+            if(ReadyToShoot){
+                double heading = 0;
+                if (teamColor == TEAM_COLOR.RED) {
+
+                }
+                if (teamColor == TEAM_COLOR.BLUE) {
+
+                }
+            }
+        }
+
+        if(ReadyToShoot){
+            double currentHeading = 0;//todo 位置角度正确值设定
+            double targetHeading = chassis.getHeadingLockRadian();
+            if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
+                robotStatus = ROBOT_STATUS.SHOOTING;
+            }
+        }
     }
     void setStatus() {
         switch (robotStatus) {
@@ -234,9 +232,9 @@ public class OffseasonDECODE extends LinearOpMode {
                 }
                 break;
             case SHOOTING:
-//                //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                 shooterStatus = SHOOTER_STATUS.SHOOTING;
-//                //sweeper和trigger状态由shooter条件决定，在shoot()中
+                //sweeper和trigger状态由shooter条件决定，在shoot()中
                 break;
 
 
