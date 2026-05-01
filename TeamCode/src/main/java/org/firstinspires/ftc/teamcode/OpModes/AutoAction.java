@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToShootingAreaAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.ShootAction;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
+import org.firstinspires.ftc.teamcode.Controllers.Chassis.ChassisController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Limelight.Tracker;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
@@ -32,12 +33,13 @@ public class AutoAction extends LinearOpMode {
     private Tracker tracker;
     private RobotPosition robotPosition;
     private Sweeper sweeper;
+    private double WanderSpeed;
     private int targetTagId;
 
     @Override
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
+        WanderSpeed= 1.0;
         while (opModeInInit() || !initStarted) {
             if (gamepad1.a) {
                 teamColor = TEAM_COLOR.BLUE;
@@ -65,14 +67,14 @@ public class AutoAction extends LinearOpMode {
 
         robotPosition = RobotPosition.RobotPositioninit(hardwareMap, new Pose2d(0, 0, 0));
 
-        chassis = new Chassis();
+        ChassisController chassisController = new ChassisController(hardwareMap, telemetry);
+        chassis = new Chassis(chassisController, WanderSpeed);
 
-        turret = new Turret(hardwareMap, telemetry, 1.0, 0.0, 0.5,
-            teamColor.toString());
+        turret = new Turret(hardwareMap, telemetry, 1.0, 0.0, 0.5);
 
         sweeper = new Sweeper(hardwareMap, telemetry);
 
-        tracker = new Tracker(hardwareMap, 10.0, 3, 5);
+        tracker = new Tracker(hardwareMap, 0.15, 3, 5);
         tracker.start();
 
         waitForStart();

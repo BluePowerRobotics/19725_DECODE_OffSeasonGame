@@ -19,11 +19,7 @@ public class Turret {
     private TurretDegreeController turretDegreeController; // 炮台旋转控制器
     private AprilTagProcessor aprilTag;         // AprilTag处理器
     private VisionPortal visionPortal;          // 视觉门户
-    private String team_color;                  // 团队颜色
-    private int blueTagID = 20;                     // 蓝队AprilTag ID
-    private int redTagID = 24;                      // 红队AprilTag ID
-
-
+    //tagID已经被yyc改成外部传入了，这里没删干净
 
     // 状态变量
     private double roll;                        // 绕z轴角（水平旋转角）
@@ -40,13 +36,12 @@ public class Turret {
     private static final double APRILTAG_ANGLE_TOLERANCE = 0.5;      // AprilTag瞄准容差（度）
 
     // 构造函数
-    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H, String teamColor) {
+    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H) {
         roll = 0.0;
         yaw = 0.0;
         this.k = k;
         this.b = b;
         this.delta_H = delta_H;
-        this.team_color = teamColor;
 
         // 初始化发射系统
         shooter = new Shooter(hardwareMap, telemetry);
@@ -144,10 +139,6 @@ public class Turret {
         this.b = b;
     }
 
-    public void setTeamColor(String teamColor) {
-        this.team_color = teamColor;
-    }
-
     public void shoot(double roll, double yaw) {
         double deltaH = delta_H;
         double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
@@ -168,7 +159,7 @@ public class Turret {
             if(shooter.setTargetSpeed(speed)){
                 telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
                 telemetry.update();
-                //shooter.launch();
+                //shooter.launch(); //launch()要把3个球射完
                 //为什么把扳机控制删了？
                 //你们有真的有扳机吗？？？？
             }
