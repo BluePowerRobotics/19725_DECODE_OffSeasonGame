@@ -125,10 +125,12 @@ public class Turret {
         if (isTargetFound && targetDetection != null) {
             double bearing = targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
-
+            //TODO check +-
             targetRoll = this.roll + bearing;
+            //TODO ???
             targetYaw = this.yaw + elevation;
         } else {
+            //TODO check logic
             targetRoll = this.roll + 90;
             targetYaw = this.yaw;
         }
