@@ -361,18 +361,6 @@ y_2
      * @param c
      * @return
      */
-    public static boolean isPointInTriangle(Point2D p, Point2D a, Point2D b, Point2D c) {
-        final double EPS = 1e-9;
-
-        double d1 = sign(p, a, b);
-        double d2 = sign(p, b, c);
-        double d3 = sign(p, c, a);
-
-        boolean hasNeg = (d1 < -EPS) || (d2 < -EPS) || (d3 < -EPS);
-        boolean hasPos = (d1 > EPS)  || (d2 > EPS)  || (d3 > EPS);
-
-        return !(hasNeg && hasPos); // 若同时存在正负则在三角形外，否者在内或在边上
-    }
 
     /**
      *  计算有向面积的两倍（即叉积）

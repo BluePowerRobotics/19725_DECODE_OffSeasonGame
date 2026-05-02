@@ -97,7 +97,7 @@ public class ProcessorTest extends LinearOpMode {
             telemetry.update();
 
             sleep(50); // 避免空转耗尽 CPU
-
+            
         }
 
 

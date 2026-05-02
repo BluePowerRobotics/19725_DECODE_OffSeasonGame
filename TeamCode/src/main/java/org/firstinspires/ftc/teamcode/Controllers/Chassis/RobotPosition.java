@@ -8,10 +8,39 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RoadRunner.Localizer;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
-import org.firstinspires.ftc.teamcode.utility.MathSolver;
+import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 
 public class RobotPosition {
+    private static final ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
+        new Point2D(-72, 12),
+        new Point2D(-72, -12),
+        new Point2D(-60, 0)
+    );
+
+    private static final ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
+        new Point2D(0, 0),
+        new Point2D(72, 72),
+        new Point2D(72, -72)
+    );
+
+    private static final ConvexPolygon BoundingBox = new ConvexPolygon(
+        //小车碰撞框顶点的相对坐标，可以调整顶点数量，如有需要可以留一点余量
+        new Point2D(20, 20),
+        new Point2D(-20, 20),
+        new Point2D(-20, -20),
+        new Point2D(20, -20)
+    );
+
+    public ConvexPolygon getShootingAreaLeft(){
+        return SHOOTING_AREA_LEFT;
+    }
+    public ConvexPolygon getShootingAreaRight(){
+        return SHOOTING_AREA_RIGHT;
+    }
+    public ConvexPolygon getBoundingBox(){
+        return BoundingBox;
+    }
 
     static MecanumDrive drive;
     HardwareMap hardwareMap;
@@ -97,10 +126,9 @@ public class RobotPosition {
                 // 如果 localizer 的方法抛异常，保持现有 pose
             }
         }
-        Point2D pose =new Point2D(instance.getX(),instance.getY());
-        ableToShoot = MathSolver.isPointInTriangle(pose, new Point2D(-72,12),new Point2D(-72,-12),new Point2D(-60,0))||
-                MathSolver.isPointInTriangle(pose, new Point2D(0,0),new Point2D(72,72),new Point2D(72,-72));
-
+        org.firstinspires.ftc.teamcode.utility.Point2D pose = new org.firstinspires.ftc.teamcode.utility.Point2D(instance.getX(), instance.getY());
+        ableToShoot = SHOOTING_AREA_LEFT.Contains(pose) || SHOOTING_AREA_RIGHT.Contains(pose); //基准点判断法
+        ableToShoot = BoundingBox.inAbsolute(currentPose).IsIntersected(SHOOTING_AREA_LEFT) || BoundingBox.inAbsolute(currentPose).IsIntersected(SHOOTING_AREA_RIGHT); //碰撞框压线判断法
         return instance.currentPose;
 
     }
