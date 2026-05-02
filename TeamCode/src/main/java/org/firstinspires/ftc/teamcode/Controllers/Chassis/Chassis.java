@@ -5,7 +5,9 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
@@ -16,18 +18,30 @@ public class Chassis{
     private static final ConvexPolygon SHOOTING_AREA_LEFT = RobotPosition.getInstance().getShootingAreaLeft();
     private static final ConvexPolygon SHOOTING_AREA_RIGHT = RobotPosition.getInstance().getShootingAreaRight();
     private static final ConvexPolygon BoundingBox = RobotPosition.getInstance().getBoundingBox();
-
+    public double maxV=0.5; // 最大线速度 (m/s)
+    public double maxOmega=Math.PI*1/2; // 最大角速度 (rad/s)
+    private Telemetry telemetry;
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
     private boolean RunningToPose = false;
     double WanderSpeed;
-    
-    public Chassis(MecanumDrive drive, double WanderSpeed, ActionRunner actionRunner) {
-        this.drive = drive;
+
+    public Chassis(HardwareMap hardwareMap, Pose2d pose, Telemetry telemetry, double WanderSpeed, ActionRunner actionRunner, boolean RunningToPose) {
+        this.drive = new MecanumDrive(hardwareMap, pose);
         this.WanderSpeed = WanderSpeed;
         this.actionRunner = actionRunner;
+        this.RunningToPose = RunningToPose;
+        this.telemetry=telemetry;
+        RobotPosition.RobotPositioninit(hardwareMap, pose);
     }
 
+    public void setMode(boolean RunningToPose){
+        this.RunningToPose = RunningToPose;
+    }
+
+    public void exchangeMode(){
+        RunningToPose = !RunningToPose;
+    }
     public ConvexPolygon getBoundingBox(){
         return BoundingBox;
     }
@@ -40,7 +54,7 @@ public class Chassis{
         //前进的同时转向
         double vx = Math.cos(targetTheta) * WanderSpeed;
         double vy = Math.sin(targetTheta) * WanderSpeed;
-        double k = ChassisController.PARAMS.maxOmega / (Math.PI / 2);
+        double k = maxOmega / (Math.PI / 2);
         double omega = targetTheta * k;
         //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试
         drive.setDrivePowers(new PoseVelocity2d(
@@ -75,7 +89,37 @@ public class Chassis{
         }
 
     }
-    public void update(){
-        //todo: 实现Chassis手动模式更新
+    public void update(double Kx, double Ky, double Komega){
+        if(!actionRunner.isBusy()){
+            double vx = Kx * maxV;
+            double vy = Ky * maxV;
+            //原来的controller是这样实现的，但如果各方向maxV相同应当是下面这个写法
+            //double vx = Kx / Math.hypot(Kx, Ky) * maxV;
+            //double vy = Ky / Math.hypot(Kx, Ky)* maxV;
+            double omega = Komega * maxOmega;
+            if(RunningToPose){
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vx,vy), omega));
+            }
+            else{
+                Point2D AbsVel=Point2D.rotate(new Point2D(vx, vy),RobotPosition.getInstance().getTheta());
+                drive.setDrivePowers(new PoseVelocity2d(
+                        new Vector2d(AbsVel.getX(),AbsVel.getY()),
+                        omega));
+            }
+        }
+    }
+    public void telemetry(){
+        telemetry.addData("X",RobotPosition.getInstance().getX());
+        telemetry.addData("Y",RobotPosition.getInstance().getY());
+        telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
+        telemetry.addData("Use No Head Mode",RunningToPose);
+        telemetry.addData("Vx",RobotPosition.getInstance().getVx());
+        telemetry.addData("Vy",RobotPosition.getInstance().getVy());
+        telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));
+        telemetry.addData("lfV",drive.leftFront.getVelocity());
+        telemetry.addData("rfV",drive.rightFront.getVelocity());
+        telemetry.addData("lbV",drive.leftBack.getVelocity());
+        telemetry.addData("rbV",drive.rightBack.getVelocity());
+
     }
 }

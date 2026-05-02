@@ -4,16 +4,19 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Controllers.BlinkinLedController;
-import org.firstinspires.ftc.teamcode.Controllers.Chassis.ChassisController;
+import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
+import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 
 import java.io.BufferedReader;
@@ -53,7 +56,7 @@ public class OffseasonDECODE extends LinearOpMode {
         STOP
     }
     SHOOTER_STATUS shooterStatus = SHOOTER_STATUS.STOP;
-    public ChassisController chassis; // 底盘控制器实例，负责机器人的移动控制
+    public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
     public Sweeper sweeper; // 清扫器控制器实例
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
@@ -74,17 +77,20 @@ public class OffseasonDECODE extends LinearOpMode {
     public double degreeOffset = 0;
     public static double startShootingHeading = Math.PI / 2;
     public boolean ReadyToShoot = false;
+    public double WanderSpeed = 0.5;
+    public Boolean RunningToPose = true;
 
     void Init(){
 
         //todo set team color
         teamColor = TEAM_COLOR.RED;
-//
+        Pose2d start= new Pose2d(new Vector2d(0,0),0); //根据场地和队伍颜色调整
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 //        telemetry = InstanceTelemetry.init(telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
-        chassis = new ChassisController(hardwareMap, telemetry);
+        ActionRunner actionRunner = new ActionRunner();
+        chassis = new Chassis(hardwareMap, start, telemetry, WanderSpeed, actionRunner, RunningToPose);
         ledController = new BlinkinLedController(hardwareMap);
     }
     void inputRobotStatus(){
@@ -110,7 +116,7 @@ public class OffseasonDECODE extends LinearOpMode {
 ////        }
         if(gamepad1.xWasPressed()){
             robotStatus = ROBOT_STATUS.WAITING;
-            chassis.exchangeNoHeadMode();
+            chassis.exchangeMode();
         }
 //        if(gamepad2.bWasPressed()){
 //            targetSpeed = tmpSpeed;
@@ -195,7 +201,7 @@ public class OffseasonDECODE extends LinearOpMode {
 
         if(ReadyToShoot){
             double currentHeading = 0;//todo 位置角度正确值设定
-            double targetHeading = chassis.getHeadingLockRadian();
+            double targetHeading = chassis.getHeadingLockRadian(); //不知道什么意思，应该会改用update
             if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
                 robotStatus = ROBOT_STATUS.SHOOTING;
             }
