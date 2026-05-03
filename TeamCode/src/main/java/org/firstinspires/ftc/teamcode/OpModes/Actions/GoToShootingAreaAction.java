@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 public class GoToShootingAreaAction implements Action {
     private final Chassis chassis;
     private final Sweeper sweeper;
-    private boolean started = false;
 
     public GoToShootingAreaAction(Chassis chassis, Sweeper sweeper) {
         this.chassis = chassis;
@@ -23,13 +22,7 @@ public class GoToShootingAreaAction implements Action {
 
         sweeper.setStop();
         sweeper.update();
-
-        if (!started) {
-            chassis.GoToShootingArea();
-            started = true;
-        }
-
-        chassis.update();
+        chassis.GoToShootingArea();
 
         return !RobotPosition.getInstance().isAbleToShoot();
     }

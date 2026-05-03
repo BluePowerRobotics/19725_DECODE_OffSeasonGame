@@ -59,8 +59,7 @@ public class RobotPosition {
      */
     public boolean isFull(){
         double sensor_distance=sensorDistancemax.getDistance(DistanceUnit.MM);
-
-        if (sensor_distance <= maxdistance & sensor_distance>=wrongdistance) {
+        if (sensor_distance <= maxdistance && sensor_distance>=wrongdistance) {  //瞪大你的眼睛好好看看，这条件成立的了吗？20>=30?
             return true;
         }
         else{
@@ -74,7 +73,7 @@ public class RobotPosition {
     public boolean isEmpty(){
         double sensor_distance=sensorDistancemin.getDistance(DistanceUnit.MM);
 
-        if (sensor_distance >= mindistance & sensor_distance>=wrongdistance) {
+        if (sensor_distance >= mindistance && sensor_distance>=wrongdistance) {
             return true;
         }
         else{
@@ -141,6 +140,7 @@ public class RobotPosition {
     public double getTheta(){ return currentPose.heading.toDouble();    }
     public double getVx(){return  currentVelocity2d.linearVel.x;}
     public double getVy(){return  currentVelocity2d.linearVel.y;}
+    public MecanumDrive getDrive(){return drive;}
     public double getOmega(){return currentVelocity2d.angVel;}
     public boolean isAbleToShoot(){return ableToShoot;}
 

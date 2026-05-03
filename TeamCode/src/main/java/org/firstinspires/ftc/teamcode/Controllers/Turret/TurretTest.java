@@ -16,7 +16,7 @@ public class TurretTest extends LinearOpMode {
     public int targetTagId;
     boolean InitStarted = false;
     boolean shouldShoot = false;
-    boolean shouldAim = false;
+    boolean shouldAim = true;
     
     @Override
     public void runOpMode() {
@@ -59,16 +59,8 @@ public class TurretTest extends LinearOpMode {
             // 每帧调用 update 方法
             turret.update(shouldAim,shouldShoot,targetTagId);
             
-            // 获取当前角度
-            Object[] aimResult = turret.aim(targetTagId);
-            boolean isTargetFound = (boolean) aimResult[0];
-            double currentRoll = (double) aimResult[1];
-            double currentYaw = (double) aimResult[2];
-            
             // 显示信息
             telemetry.addData("Status", "Running");
-            telemetry.addData("Roll", currentRoll);
-            telemetry.addData("Yaw", currentYaw);
             telemetry.addData("Should Shoot", shouldShoot);
             telemetry.update();
         }

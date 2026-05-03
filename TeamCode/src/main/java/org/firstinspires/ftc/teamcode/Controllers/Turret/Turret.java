@@ -170,7 +170,7 @@ public class Turret {
 
     public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {
         shooter.update();
-
+        turretDegreeController.update();
         if (shouldAim) {
             Object[] aimResult = aim(targetTagId);
             boolean isTargetFound = (boolean) aimResult[0];

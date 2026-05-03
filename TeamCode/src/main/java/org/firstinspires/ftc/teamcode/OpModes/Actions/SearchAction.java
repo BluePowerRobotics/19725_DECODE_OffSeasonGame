@@ -43,8 +43,6 @@ public class SearchAction implements Action {
             chassis.SlowTurning(DEFAULT_OMEGA);
         }
 
-        chassis.update();
-
         return !RobotPosition.getInstance().isFull();
     }
 }

@@ -31,7 +31,6 @@ public class AutoAction extends LinearOpMode {
     private Chassis chassis;
     private Turret turret;
     private Tracker tracker;
-    private RobotPosition robotPosition;
     private Sweeper sweeper;
     private double WanderSpeed=1.0;
     private int targetTagId;
@@ -65,10 +64,9 @@ public class AutoAction extends LinearOpMode {
             initStarted = true;
         }
 
-        robotPosition = RobotPosition.RobotPositioninit(hardwareMap, new Pose2d(0, 0, 0));
         ActionRunner actionRunner = new ActionRunner();
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-        chassis = new Chassis(drive, WanderSpeed, actionRunner);
+        Pose2d startPose = new Pose2d(0, 0, 0);
+        chassis = new Chassis(hardwareMap, startPose, telemetry, WanderSpeed, actionRunner, true);
 
         turret = new Turret(hardwareMap, telemetry, 1.0, 0.0, 0.5);
 
@@ -82,20 +80,20 @@ public class AutoAction extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            robotPosition.update();
+            RobotPosition.getInstance().update();
             actionRunner.update();
+            if(!actionRunner.isBusy()) {
+                if (RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot()) {
+                    actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
+                }
 
-            if (robotPosition.isFull() && !robotPosition.isAbleToShoot()) {
-                actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
-            }
+                if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
+                    actionRunner.add(new ShootAction(turret, targetTagId, sweeper));
+                }
 
-            if (robotPosition.isAbleToShoot()) {
-                chassis.stop();
-                actionRunner.add(new ShootAction(turret, targetTagId, sweeper));
-            }
-
-            if (robotPosition.isEmpty()) {
-                actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+                if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
+                    actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+                }
             }
         }
 

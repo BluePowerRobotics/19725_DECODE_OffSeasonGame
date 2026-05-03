@@ -27,7 +27,7 @@ public class Chassis{
     double WanderSpeed;
 
     public Chassis(HardwareMap hardwareMap, Pose2d pose, Telemetry telemetry, double WanderSpeed, ActionRunner actionRunner, boolean RunningToPose) {
-        this.drive = new MecanumDrive(hardwareMap, pose);
+        this.drive = RobotPosition.getInstance().getDrive();
         this.WanderSpeed = WanderSpeed;
         this.actionRunner = actionRunner;
         this.RunningToPose = RunningToPose;
@@ -82,12 +82,7 @@ public class Chassis{
         GoTo(targetTheta);
     }
     public void SlowTurning(double omega){
-        if(!actionRunner.isBusy()){
-            drive.setDrivePowers(new PoseVelocity2d(
-                    new Vector2d(0,0),
-                    omega));
-        }
-
+        drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), omega));
     }
     public void update(double Kx, double Ky, double Komega){
         if(!actionRunner.isBusy()){

@@ -18,7 +18,7 @@ public class ActionRunner {
      * 添加一个要执行的 Action（串行队列）。
      */
     public void add(Action action) {
-        if (action != null) {
+        if (action != null && !pendingActions.contains(action)) {
             pendingActions.add(action);
         }
     }
