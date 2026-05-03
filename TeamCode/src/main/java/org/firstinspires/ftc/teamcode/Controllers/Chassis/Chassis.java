@@ -101,9 +101,9 @@ public class Chassis{
                 drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vx,vy), omega));
             }
             else{
-                Point2D AbsVel=Point2D.rotate(new Point2D(vx, vy),RobotPosition.getInstance().getTheta());
+                Point2D RelVel=Point2D.rotate(new Point2D(vx, vy),-RobotPosition.getInstance().getTheta());
                 drive.setDrivePowers(new PoseVelocity2d(
-                        new Vector2d(AbsVel.getX(),AbsVel.getY()),
+                        new Vector2d(RelVel.getX(),RelVel.getY()),
                         omega));
             }
         }
