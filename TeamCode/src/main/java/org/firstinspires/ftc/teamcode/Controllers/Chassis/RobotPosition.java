@@ -9,38 +9,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RoadRunner.Localizer;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
-import org.firstinspires.ftc.teamcode.utility.Point2D;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 public class RobotPosition {
-    private static final ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(-72, 12),
-        new Point2D(-72, -12),
-        new Point2D(-60, 0)
-    );
-
-    private static final ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
-        new Point2D(0, 0),
-        new Point2D(72, 72),
-        new Point2D(72, -72)
-    );
-
-    private static final ConvexPolygon BoundingBox = new ConvexPolygon(
-        //小车碰撞框顶点的相对坐标，可以调整顶点数量，如有需要可以留一点余量
-        new Point2D(20, 20),
-        new Point2D(-20, 20),
-        new Point2D(-20, -20),
-        new Point2D(20, -20)
-    );
-
-    public ConvexPolygon getShootingAreaLeft(){
-        return SHOOTING_AREA_LEFT;
-    }
-    public ConvexPolygon getShootingAreaRight(){
-        return SHOOTING_AREA_RIGHT;
-    }
-    public ConvexPolygon getBoundingBox(){
-        return BoundingBox;
-    }
+    private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
+    private static final ConvexPolygon SHOOTING_AREA_RIGHT = HypParams.SHOOTING_AREA_RIGHT;
+    private static final ConvexPolygon BoundingBox = HypParams.BoundingBox;
 
     static MecanumDrive drive;
     HardwareMap hardwareMap;

@@ -65,14 +65,14 @@ public class AutoAction extends LinearOpMode {
         }
 
         ActionRunner actionRunner = new ActionRunner();
-        Pose2d startPose = new Pose2d(0, 0, 0);
-        chassis = new Chassis(hardwareMap, startPose, telemetry, WanderSpeed, actionRunner, true);
+        chassis = new Chassis(hardwareMap, teamColor == TEAM_COLOR.RED ?
+            Chassis.TEAM_COLOR.RED : Chassis.TEAM_COLOR.BLUE, actionRunner, telemetry);
 
-        turret = new Turret(hardwareMap, telemetry, 1.0, 0.0, 0.5);
+        turret = new Turret(hardwareMap, telemetry);
 
         sweeper = new Sweeper(hardwareMap, telemetry);
 
-        tracker = new Tracker(hardwareMap, 0.15, 3, 5);
+        tracker = new Tracker(hardwareMap);
         tracker.start();
 
         waitForStart();

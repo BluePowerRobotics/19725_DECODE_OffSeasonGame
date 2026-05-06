@@ -3,39 +3,28 @@ package org.firstinspires.ftc.teamcode.Controllers.Limelight;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.Controllers.Limelight.projection.Projector;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 import java.util.*;
 
-/**
- * 目标追踪器，用于跟踪和管理视觉检测到的目标
- * 实现了目标聚类、延迟确认、稳定坐标计算和最优目标选择功能
- */
 @Config
 public class Tracker {
-    private Detector detector;              // 视觉检测器，用于获取目标中心点
-    private Projector projector = new Projector(1.887, 0.2);  // 坐标投影器，将像素坐标转换为世界坐标
-    private List<Target> targets;           // 已确认的目标列表
-    private List<CandidateTarget> candidateTargets;  // 候选目标列表，尚未达到确认帧数
-    private int nextTargetId;               // 下一个目标ID
-    private static int nextMemberId;        // 下一个成员ID（静态变量，全局唯一）
-    private Map<Target, Integer> removalPending;  // 待移除的目标及其计数
-    //参数写在类里面，可热调参的形式，便于集中管理和调试
-    public static double distanceThreshold;// 聚类距离阈值，用于判断检测是否属于同一目标
-    public static int confirmationFrames;// 目标确认所需的连续帧数
-    public static int removalFrames;// 目标移除所需的连续缺失帧数
+    private Detector detector;
+    private Projector projector = new Projector(HypParams.Limelight_h, HypParams.Limelight_m0);
+    private List<Target> targets;
+    private List<CandidateTarget> candidateTargets;
+    private int nextTargetId;
+    private static int nextMemberId;
+    private Map<Target, Integer> removalPending;
+    public static double distanceThreshold = HypParams.distanceThreshold;
+    public static int confirmationFrames = HypParams.confirmationFrames;
+    public static int removalFrames = HypParams.removalFrames;
 
-    /**
-     * 构造函数
-     * @param hardwareMap 硬件映射，用于初始化检测器
-     */
-    public Tracker(HardwareMap hardwareMap, double distanceThreshold, int confirmationFrames, int removalFrames) {
+    public Tracker(HardwareMap hardwareMap) {
         this.detector = new Detector(hardwareMap);
         if (detector == null) {
             throw new RuntimeException("Detector initialization failed");
         }
-        this.distanceThreshold = distanceThreshold;
-        this.confirmationFrames = confirmationFrames;
-        this.removalFrames = removalFrames;
         this.targets = new ArrayList<>();
         this.candidateTargets = new ArrayList<>();
         this.nextTargetId = 0;

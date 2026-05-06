@@ -90,7 +90,7 @@ public class OffseasonDECODE extends LinearOpMode {
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, start, telemetry, WanderSpeed, actionRunner, RunningToPose);
+        chassis = new Chassis(hardwareMap, Chassis.TEAM_COLOR.RED, actionRunner, telemetry);
         ledController = new BlinkinLedController(hardwareMap);
     }
     void inputRobotStatus(){

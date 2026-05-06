@@ -38,9 +38,7 @@ public class TurretTest extends LinearOpMode {
             }
         }
         // 初始化 Turret
-        turret = new Turret(hardwareMap, telemetry,1.0,0.0,0);
-        
-        turret.set(100, 50); // 设置速度转换参数 k 和 b
+        turret = new Turret(hardwareMap, telemetry);
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Delta H", turret.getDeltaH());

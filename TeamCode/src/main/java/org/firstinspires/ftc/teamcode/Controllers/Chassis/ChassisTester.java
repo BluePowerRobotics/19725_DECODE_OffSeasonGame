@@ -22,7 +22,7 @@ public class ChassisTester extends LinearOpMode {
     @Override
     public void runOpMode()throws InterruptedException{
         ActionRunner actionRunner = new ActionRunner();
-        Chassis chassis=new Chassis(hardwareMap, new Pose2d(new Vector2d(0,0),0), telemetry, 0.5, actionRunner, true);
+        Chassis chassis=new Chassis(hardwareMap, Chassis.TEAM_COLOR.RED, actionRunner, telemetry);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while (opModeIsActive()){

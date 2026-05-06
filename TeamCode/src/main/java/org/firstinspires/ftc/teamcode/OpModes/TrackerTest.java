@@ -15,7 +15,7 @@ public class TrackerTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // 初始化Tracker
-        tracker = new Tracker(hardwareMap, 0.3, 3, 10);
+        tracker = new Tracker(hardwareMap);
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Instructions", "Press play to start tracking targets");

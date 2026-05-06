@@ -3,36 +3,43 @@
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
 
 @Config
-public class Chassis{
-    private static final ConvexPolygon SHOOTING_AREA_LEFT = RobotPosition.getInstance().getShootingAreaLeft();
-    private static final ConvexPolygon SHOOTING_AREA_RIGHT = RobotPosition.getInstance().getShootingAreaRight();
-    private static final ConvexPolygon BoundingBox = RobotPosition.getInstance().getBoundingBox();
-    public double maxV=0.5; // 最大线速度 (m/s)
-    public double maxOmega=Math.PI*1/2; // 最大角速度 (rad/s)
-    private Telemetry telemetry;
+public class Chassis {
+    public enum TEAM_COLOR {
+        RED, BLUE
+    }
+
+    private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
+    private static final ConvexPolygon SHOOTING_AREA_RIGHT = HypParams.SHOOTING_AREA_RIGHT;
+    private static final ConvexPolygon BOUNDING_BOX = HypParams.BoundingBox;
+
+    private final double maxV = HypParams.maxV;
+    private final double maxOmega = HypParams.maxOmega;
+    private final double WanderSpeed = HypParams.WanderSpeed;
+
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
-    private boolean RunningToPose = false;
-    double WanderSpeed;
+    private boolean RunningToPose = HypParams.InitialRunningToPose;
+    private final Telemetry telemetry;
 
-    public Chassis(HardwareMap hardwareMap, Pose2d pose, Telemetry telemetry, double WanderSpeed, ActionRunner actionRunner, boolean RunningToPose) {
+    public Chassis(HardwareMap hardwareMap, TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         this.drive = RobotPosition.getInstance().getDrive();
-        this.WanderSpeed = WanderSpeed;
         this.actionRunner = actionRunner;
-        this.RunningToPose = RunningToPose;
-        this.telemetry=telemetry;
-        RobotPosition.RobotPositioninit(hardwareMap, pose);
+        this.telemetry = telemetry;
+
+        Pose2d startPose = (teamColor == TEAM_COLOR.RED) ?
+            HypParams.startPoseRed : HypParams.startPoseBlue;
+        RobotPosition.RobotPositioninit(hardwareMap, startPose);
     }
 
     public void setMode(boolean RunningToPose){
@@ -43,7 +50,7 @@ public class Chassis{
         RunningToPose = !RunningToPose;
     }
     public ConvexPolygon getBoundingBox(){
-        return BoundingBox;
+        return BOUNDING_BOX;
     }
     public void stop(){
         drive.setDrivePowers(new PoseVelocity2d(
@@ -103,11 +110,11 @@ public class Chassis{
             }
         }
     }
-    public void telemetry(){
+        public void telemetry(){
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
-        telemetry.addData("Use No Head Mode",RunningToPose);
+        telemetry.addData("Use No Head Mode",useNoHeadMode);
         telemetry.addData("Vx",RobotPosition.getInstance().getVx());
         telemetry.addData("Vy",RobotPosition.getInstance().getVy());
         telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));

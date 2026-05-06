@@ -8,50 +8,41 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.RK4.AutoSelect;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 
 import java.util.List;
 
 public class Turret {
-    // 核心组件
-    public Shooter shooter;                   // 发射系统
+    public Shooter shooter;
     Telemetry telemetry;
-    private TurretDegreeController turretDegreeController; // 炮台旋转控制器
-    private AprilTagProcessor aprilTag;         // AprilTag处理器
-    private VisionPortal visionPortal;          // 视觉门户
-    //tagID已经被yyc改成外部传入了，这里没删干净
+    private TurretDegreeController turretDegreeController;
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
 
-    // 状态变量
-    private double roll;                        // 绕z轴角（水平旋转角）
-    private double yaw;                         // 绕y轴角（仰角）
-    private double k;                           // 速度转换参数k
-    private double b;                           // 速度转换参数b
-    private double delta_H;                      // 炮口与目标的高度差
+    private double roll;
+    private double yaw;
+    private double k;
+    private double b;
+    private double delta_H;
 
-    // 发射机构状态
-    private static final double SERVO_REST_POSITION = 0.0;    // 伺服电机休息位置
-    private static final double SERVO_LAUNCH_POSITION = 0.5;  // 伺服电机发射位置
+    private static final double SERVO_REST_POSITION = 0.0;
+    private static final double SERVO_LAUNCH_POSITION = 0.5;
+    private static final double APRILTAG_ANGLE_TOLERANCE = 0.5;
 
-    // 常量
-    private static final double APRILTAG_ANGLE_TOLERANCE = 0.5;      // AprilTag瞄准容差（度）
-
-    // 构造函数
-    public Turret(HardwareMap hardwareMap, Telemetry telemetry, double k,double b,double delta_H) {
+    public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
         yaw = 0.0;
-        this.k = k;
-        this.b = b;
-        this.delta_H = delta_H;
+        this.k = HypParams.shooterK;
+        this.b = HypParams.shooterB;
+        this.delta_H = HypParams.deltaH;
 
-        // 初始化发射系统
         shooter = new Shooter(hardwareMap, telemetry);
-        this.telemetry=telemetry;
+        this.telemetry = telemetry;
 
-        // 初始化炮台旋转控制器
-        turretDegreeController = new TurretDegreeController(hardwareMap,telemetry);
+        turretDegreeController = new TurretDegreeController(hardwareMap, telemetry);
 
         initAprilTag(hardwareMap);
-
     }
 
     /**
