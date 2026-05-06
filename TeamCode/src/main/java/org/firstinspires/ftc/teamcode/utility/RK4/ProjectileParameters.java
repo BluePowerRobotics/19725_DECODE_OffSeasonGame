@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utility.RK4;
 
+import org.firstinspires.ftc.teamcode.utility.HypParams;
+
 public class ProjectileParameters {
     public double v0;
     public double kx;
@@ -14,7 +16,7 @@ public class ProjectileParameters {
         this.v0 = 10.0;
         this.kx = 0.015;
         this.ky = 0.0;
-        this.m = 0.1;
+        this.m = HypParams.ballMass;
         this.g = 9.81;
         this.deltaH = 0.5;
         this.thetaMin = Math.toRadians(45);

@@ -21,7 +21,6 @@ public class Chassis {
 
     private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
     private static final ConvexPolygon SHOOTING_AREA_RIGHT = HypParams.SHOOTING_AREA_RIGHT;
-    private static final ConvexPolygon BOUNDING_BOX = HypParams.BoundingBox;
 
     private final double maxV = HypParams.maxV;
     private final double maxOmega = HypParams.maxOmega;
@@ -49,9 +48,6 @@ public class Chassis {
     public void exchangeMode(){
         RunningToPose = !RunningToPose;
     }
-    public ConvexPolygon getBoundingBox(){
-        return BOUNDING_BOX;
-    }
     public void stop(){
         drive.setDrivePowers(new PoseVelocity2d(
                 new Vector2d(0,0),
@@ -75,7 +71,7 @@ public class Chassis {
             RobotPosition.getInstance().getY()
         );
 
-        if (SHOOTING_AREA_LEFT.Contains(currentPos) || SHOOTING_AREA_RIGHT.Contains(currentPos)) {
+        if (RobotPosition.getInstance().isAbleToShoot()) {
             stop();
             return;
         }
@@ -114,7 +110,7 @@ public class Chassis {
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
-        telemetry.addData("Use No Head Mode",useNoHeadMode);
+        telemetry.addData("RunningToPose", RunningToPose);
         telemetry.addData("Vx",RobotPosition.getInstance().getVx());
         telemetry.addData("Vy",RobotPosition.getInstance().getVy());
         telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));

@@ -26,15 +26,11 @@ public class Turret {
     private double b;
     private double delta_H;
 
-    private static final double SERVO_REST_POSITION = 0.0;
-    private static final double SERVO_LAUNCH_POSITION = 0.5;
-    private static final double APRILTAG_ANGLE_TOLERANCE = 0.5;
-
     public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
         yaw = 0.0;
-        this.k = HypParams.shooterK;
-        this.b = HypParams.shooterB;
+        this.k = 1.0;
+        this.b = 0.0;
         this.delta_H = HypParams.deltaH;
 
         shooter = new Shooter(hardwareMap, telemetry);
