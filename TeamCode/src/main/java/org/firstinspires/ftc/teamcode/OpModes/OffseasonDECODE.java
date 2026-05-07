@@ -199,13 +199,13 @@ public class OffseasonDECODE extends LinearOpMode {
             }
         }
 
-        if(ReadyToShoot){
-            double currentHeading = 0;//todo 位置角度正确值设定
-            double targetHeading = chassis.getHeadingLockRadian(); //不知道什么意思，应该会改用update
-            if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
-                robotStatus = ROBOT_STATUS.SHOOTING;
-            }
-        }
+//        if(ReadyToShoot){
+//            double currentHeading = 0;//todo 位置角度正确值设定
+//            double targetHeading = chassis.getHeadingLockRadian(); //不知道什么意思，应该会改用update
+//            if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
+//                robotStatus = ROBOT_STATUS.SHOOTING;
+//            }
+//        }
     }
     void setStatus() {
         switch (robotStatus) {
