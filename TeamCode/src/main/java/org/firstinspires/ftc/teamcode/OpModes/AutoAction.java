@@ -3,20 +3,21 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToShootingAreaAction;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.ShootAction;
+import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Limelight.Tracker;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
-import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
+import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
+
+
 
 @Autonomous
 @Config
@@ -32,13 +33,11 @@ public class AutoAction extends LinearOpMode {
     private Turret turret;
     private Tracker tracker;
     private Sweeper sweeper;
-    private double WanderSpeed=1.0;
     private int targetTagId;
 
     @Override
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        WanderSpeed= 1.0;
         while (opModeInInit() || !initStarted) {
             if (gamepad1.a) {
                 teamColor = TEAM_COLOR.BLUE;
@@ -88,16 +87,18 @@ public class AutoAction extends LinearOpMode {
                 }
 
                 if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
-                    actionRunner.add(new ShootAction(turret, targetTagId, sweeper));
+                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
                 }
 
                 if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-                    actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+                    if(tracker.getBestTarget()!=null){
+                        actionRunner.add(new EatAction(chassis, tracker, sweeper));
+                    }
+                    else{
+                        actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+                    }
                 }
             }
         }
-
-        turret.close();
-        tracker.stop();
     }
 }

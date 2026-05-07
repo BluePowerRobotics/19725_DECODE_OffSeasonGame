@@ -23,7 +23,10 @@ public class GoToShootingAreaAction implements Action {
         sweeper.setStop();
         sweeper.update();
         chassis.GoToShootingArea();
-
-        return !RobotPosition.getInstance().isAbleToShoot();
+        if(RobotPosition.getInstance().isAbleToShoot()){
+            chassis.stop();
+            return false;
+        }
+        return true;
     }
 }
