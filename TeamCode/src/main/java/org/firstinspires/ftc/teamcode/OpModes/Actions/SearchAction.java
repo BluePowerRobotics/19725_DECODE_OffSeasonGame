@@ -54,14 +54,14 @@ public class SearchAction implements Action {
             if (teamColor == Chassis.TEAM_COLOR.BLUE) {
                 // 蓝队搜索轨迹
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
-                    .splineTo(new Vector2d(15, 50), 0.47)
+                    .splineTo(new Vector2d(15, 50), -Math.PI / 2)
                     .strafeTo(new Vector2d(60, 50))
                     .strafeTo(new Vector2d(15, 50))
                     .build();
             } else {
                 // 红队搜索轨迹
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
-                    .splineTo(new Vector2d(15, -50), -0.47)
+                    .splineTo(new Vector2d(15, -50), -Math.PI / 2)
                     .strafeTo(new Vector2d(60, -50))
                     .strafeTo(new Vector2d(15, -50))
                     .build();
