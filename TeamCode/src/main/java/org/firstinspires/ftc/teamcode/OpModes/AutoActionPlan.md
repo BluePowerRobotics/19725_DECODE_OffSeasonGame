@@ -86,22 +86,52 @@ tracker.start();
 | `!isEmpty() && isAbleToShoot()` | ShootAction | 有球且在射击区，执行射击 |
 | `isEmpty() \|\| (!isFull() && !isAbleToShoot())` | EatAction / SearchAction | 需要收集球 |
 
-### 3.3 搜索与吃球逻辑
+### 3.3 动作执行与状态跟踪
 
-当需要收集球时：
+使用 `lastActionType` 跟踪上一个执行的动作，实现有序的状态转换：
 
 ```java
-if(tracker.getBestTarget() != null){
-    actionRunner.add(new EatAction(chassis, tracker, sweeper));
-} else {
-    actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+private String lastActionType = "";
+
+if(!actionRunner.isBusy()) {
+    // 优先级1: EatAction 完成后直接进入 GoToShootingAreaAction
+    if (lastActionType.equals("Eat")) {
+        actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
+        lastActionType = "GoToShootingArea";
+    }
+    // 优先级2: 满仓但不在射击区
+    else if (RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot()) {
+        actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
+        lastActionType = "GoToShootingArea";
+    }
+
+    // 优先级3: 有球且在射击区
+    if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
+        actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
+        lastActionType = "Shoot";
+    }
+
+    // 优先级4: 空仓或不满仓且不在射击区
+    if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
+        if(tracker.getBestTarget() != null){
+            actionRunner.add(new EatAction(chassis, tracker, sweeper));
+            lastActionType = "Eat";
+        } else {
+            actionRunner.add(new SearchAction(chassis, tracker, sweeper, teamColor));
+            lastActionType = "Search";
+        }
+    }
 }
 ```
 
+### 3.4 状态转换流程
+
 | 条件 | 动作 | 说明 |
 |------|------|------|
-| `tracker.getBestTarget() != null` | EatAction | 检测到目标球，移动过去收集 |
-| `tracker.getBestTarget() == null` | SearchAction | 未检测到目标，执行搜索轨迹 |
+| `lastActionType == "Eat"` | GoToShootingAreaAction | 吃球完成后直接去射击区 |
+| `isFull() && !isAbleToShoot()` | GoToShootingAreaAction | 球仓已满但不在射击区 |
+| `!isEmpty() && isAbleToShoot()` | ShootAction | 有球且在射击区，执行射击 |
+| `isEmpty() \|\| (!isFull() && !isAbleToShoot())` | EatAction / SearchAction | 需要收集球 |
 
 ## 四、动作详解
 
@@ -130,24 +160,42 @@ if(tracker.getBestTarget() != null){
 ```java
 public boolean run(TelemetryPacket packet) {
     tracker.update();
-    
+
     // 如果检测到目标，提前中止轨迹
     if (tracker.getBestTarget() != null) {
         sweeper.setStop();
         return false;  // 提前中止，让 ActionRunner 调度 EatAction
     }
-    
+
+    // 根据队伍颜色选择搜索轨迹
+    if (teamColor == Chassis.TEAM_COLOR.BLUE) {
+        // 蓝队：下方搜索轨迹
+        trajectoryAction = drive.actionBuilder(currentPose)
+            .splineTo(new Vector2d(-15, -48), -Math.PI / 2)
+            .lineTo(new Vector2d(-57, -48))
+            .lineTo(new Vector2d(-15, -48))
+            .build();
+    } else {
+        // 红队：上方搜索轨迹
+        trajectoryAction = drive.actionBuilder(currentPose)
+            .splineTo(new Vector2d(-15, 48), -Math.PI / 2)
+            .lineTo(new Vector2d(-57, 48))
+            .lineTo(new Vector2d(-15, 48))
+            .build();
+    }
+
     // 执行搜索轨迹
     sweeper.setEat();
     // ... 沿预定轨迹移动
 }
 ```
 
-**搜索轨迹**：
-1. `lineToX(24)` - 向前走 24 英寸
-2. `splineTo(new Vector2d(48, 24), 0°)` - 弧线走到 (48,24)，航向 0°
-3. `strafeTo(new Vector2d(48, 48))` - 侧向移动到 (48,48)
-4. `turn(180°)` - 原地调头
+**搜索轨迹（按队伍颜色）**：
+
+| 队伍颜色 | Y坐标 | 搜索路径 |
+|----------|-------|----------|
+| **蓝队 (BLUE)** | -48 | (-15,-48) → (-57,-48) → (-15,-48) |
+| **红队 (RED)** | +48 | (-15,48) → (-57,48) → (-15,48) |
 
 **提前中止机制**：在搜索过程中，如果 `tracker` 检测到目标球，立即停止轨迹，让 `ActionRunner` 切换到 `EatAction`。
 
