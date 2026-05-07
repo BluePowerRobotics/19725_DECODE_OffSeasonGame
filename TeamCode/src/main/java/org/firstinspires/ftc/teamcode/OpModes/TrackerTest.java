@@ -41,10 +41,10 @@ public class TrackerTest extends LinearOpMode {
                 // 输出最优目标信息
                 telemetry.addData("Status", "Running");
                 if (bestTarget != null) {
-                    int activeMembers = bestTarget.getActiveMemberCount(tracker.confirmationFrames);
                     double distance = bestTarget.getDistanceToCamera();
                     telemetry.addData("Best Target", "ID: " + bestTarget.id);
-                    telemetry.addData("Best Target", "Balls: " + activeMembers);
+                    telemetry.addData("Best Target", "Color: " + bestTarget.color);
+                    telemetry.addData("Best Target", "Frames: " + bestTarget.consecutiveFrames);
                     telemetry.addData("Best Target", "Coord: (%.2f, %.2f)", bestTarget.centerX, bestTarget.centerY);
                     telemetry.addData("Best Target", "Distance: %.2f m", distance);
                 } else {
@@ -58,9 +58,9 @@ public class TrackerTest extends LinearOpMode {
                 for (Tracker.Target target : allTargets) {
                     if (target == bestTarget) continue; // 跳过已经显示的最优目标
                     
-                    int activeMembers = target.getActiveMemberCount(tracker.confirmationFrames);
                     double distance = target.getDistanceToCamera();
-                    telemetry.addData("Target " + target.id, "Balls: " + activeMembers);
+                    telemetry.addData("Target " + target.id, "Color: " + target.color);
+                    telemetry.addData("Target " + target.id, "Frames: " + target.consecutiveFrames);
                     telemetry.addData("Target " + target.id, "Coord: (%.2f, %.2f)", target.centerX, target.centerY);
                     telemetry.addData("Target " + target.id, "Distance: %.2f m", distance);
                 }

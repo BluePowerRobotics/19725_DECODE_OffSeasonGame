@@ -40,7 +40,7 @@ public class SearchAction implements Action {
             double targetTheta = Math.atan2(bestTarget.centerY, bestTarget.centerX);
             chassis.GoTo(targetTheta);
         } else {
-            chassis.SlowTurning(DEFAULT_OMEGA);
+            chassis.Wander(DEFAULT_OMEGA);
         }
 
         return !RobotPosition.getInstance().isFull();

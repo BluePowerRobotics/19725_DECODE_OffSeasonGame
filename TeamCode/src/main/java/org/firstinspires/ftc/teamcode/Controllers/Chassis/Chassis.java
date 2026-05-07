@@ -84,7 +84,8 @@ public class Chassis {
 
         GoTo(targetTheta);
     }
-    public void SlowTurning(double omega){
+    public void Wander(double omega){
+        //todo:实现全场预设轨迹搜索
         drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0,0), omega));
     }
     public void update(double Kx, double Ky, double Komega){
