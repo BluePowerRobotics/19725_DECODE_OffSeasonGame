@@ -34,6 +34,7 @@ public class AutoAction extends LinearOpMode {
     private Tracker tracker;
     private Sweeper sweeper;
     private int targetTagId;
+    private String lastActionType;
 
     @Override
     public void runOpMode() {
@@ -82,20 +83,24 @@ public class AutoAction extends LinearOpMode {
             RobotPosition.getInstance().update();
             actionRunner.update();
             if(!actionRunner.isBusy()) {
-                if (RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot()) {
+                // 如果上一个动作是 EatAction，直接进入 GoToShootingAreaAction
+                if ((lastActionType.equals("Eat")&&!RobotPosition.getInstance().isEmpty() && !RobotPosition.getInstance().isAbleToShoot())||(RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
                     actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
+                    lastActionType = "GoToShootingArea";
                 }
-
-                if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
+                else if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
                     actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
+                    lastActionType = "Shoot";
                 }
-
-                if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
+                else if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
                     if(tracker.getBestTarget()!=null){
                         actionRunner.add(new EatAction(chassis, tracker, sweeper));
+                        lastActionType = "Eat";
                     }
                     else{
-                        actionRunner.add(new SearchAction(chassis, tracker, sweeper));
+                        actionRunner.add(new SearchAction(chassis, tracker, sweeper, 
+                            teamColor == TEAM_COLOR.RED ? Chassis.TEAM_COLOR.RED : Chassis.TEAM_COLOR.BLUE));
+                        lastActionType = "Search";
                     }
                 }
             }

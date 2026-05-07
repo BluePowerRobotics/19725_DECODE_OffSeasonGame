@@ -79,12 +79,21 @@ public class Chassis {
         Point2D VecToLeft = SHOOTING_AREA_LEFT.NearestVectorFrom(currentPos);
         Point2D VecToRight = SHOOTING_AREA_RIGHT.NearestVectorFrom(currentPos);
 
-        Point2D nearestVector = (VecToLeft.getDistance() < VecToRight.getDistance()) ? VecToLeft : VecToRight;
+        Point2D nearestVector = (HypParams.ToLeft) ? VecToLeft : VecToRight;
         double targetTheta = nearestVector.getRadian()-RobotPosition.getInstance().getTheta();
 
         GoTo(targetTheta);
     }
 
+    public void HeadTo(double Theta){
+        double targetTheta = Theta - RobotPosition.getInstance().getTheta();
+        double k = maxOmega / (Math.PI / 2);
+        double omega = targetTheta * k;
+        //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试
+        drive.setDrivePowers(new PoseVelocity2d(
+                new Vector2d(0,0),
+                omega));
+    }
     public void update(double Kx, double Ky, double Komega){
         if(!actionRunner.isBusy()){
             double vx = Kx * maxV;

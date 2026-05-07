@@ -39,7 +39,10 @@ public class EatAction implements Action {
             double targetTheta = Math.atan2(bestTarget.centerY, bestTarget.centerX);
             chassis.GoTo(targetTheta);
         } else {
-            return false;
+            chassis.HeadTo(0);
+            if(Math.abs(RobotPosition.getInstance().getTheta())<0.1){
+                return false;
+            }
         }
 
         return !RobotPosition.getInstance().isFull();

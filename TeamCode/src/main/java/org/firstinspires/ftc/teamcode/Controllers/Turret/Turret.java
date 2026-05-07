@@ -148,11 +148,13 @@ public class Turret {
             if(shooter.setTargetSpeed(speed)){
                 telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
                 telemetry.update();
-                //shooter.launch(); //launch()要把3个球射完
-                //为什么把扳机控制删了？
-                //你们有真的有扳机吗？？？？
+                launch(); 
             }
         }
+    }
+
+    public void launch() {
+        //todo: 一次射一个球
     }
 
     public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {

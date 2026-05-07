@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode.OpModes.Actions;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.Actions;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
@@ -15,13 +17,15 @@ public class SearchAction implements Action {
     private final Chassis chassis;
     private final Tracker tracker;
     private final Sweeper sweeper;
+    private final Chassis.TEAM_COLOR teamColor;
     private Action trajectoryAction;
     private boolean trajectoryStarted;
 
-    public SearchAction(Chassis chassis, Tracker tracker, Sweeper sweeper) {
+    public SearchAction(Chassis chassis, Tracker tracker, Sweeper sweeper, Chassis.TEAM_COLOR teamColor) {
         this.chassis = chassis;
         this.tracker = tracker;
         this.sweeper = sweeper;
+        this.teamColor = teamColor;
         this.trajectoryStarted = false;
     }
 
@@ -46,8 +50,22 @@ public class SearchAction implements Action {
         if (!trajectoryStarted) {
             Pose2d currentPose = RobotPosition.getInstance().getPose2d();
             
-            trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose).build();
-            //todo: 构造轨迹
+            // 根据队伍颜色选择不同的搜索轨迹
+            if (teamColor == Chassis.TEAM_COLOR.BLUE) {
+                // 蓝队搜索轨迹
+                trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
+                    .splineTo(new Vector2d(15, 50), -Math.PI / 2)
+                    .strafeTo(new Vector2d(60, 50))
+                    .strafeTo(new Vector2d(15, 50))
+                    .build();
+            } else {
+                // 红队搜索轨迹
+                trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
+                    .splineTo(new Vector2d(15, -50), -Math.PI / 2)
+                    .strafeTo(new Vector2d(60, -50))
+                    .strafeTo(new Vector2d(15, -50))
+                    .build();
+            }
             
             trajectoryStarted = true;
         }

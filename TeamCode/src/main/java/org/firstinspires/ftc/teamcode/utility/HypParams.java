@@ -23,9 +23,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(-72, 12),
-        new Point2D(-72, -12),
-        new Point2D(-60, 0)
+        new Point2D(72, 24),
+        new Point2D(72, -24),
+        new Point2D(-48, 0)
     );
 
     /**
@@ -34,10 +34,11 @@ public class HypParams {
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
         new Point2D(0, 0),
-        new Point2D(72, 72),
-        new Point2D(72, -72)
+        new Point2D(-72, 72),
+        new Point2D(-72, -72)
     );
-
+    //是否去小三角
+    public static boolean ToLeft=true;
     /**
      * 炮口与目标的高度差（单位：米）
      * 用于RK4弹道计算，即发射点与目标点之间的垂直距离
