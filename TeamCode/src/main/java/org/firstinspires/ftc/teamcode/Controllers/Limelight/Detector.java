@@ -79,6 +79,18 @@ public class Detector {
      * 输出所有检测对象的全部信息
      * @return 所有检测对象的详细信息，每行一个对象
      */
+    public boolean hasTarget(){
+        LLResult result = limelight.getLatestResult();
+        return result != null && result.isValid();
+    }
+    public double bearing(){
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            //逆时针为正
+            return -result.getTx(); //可能有问题，记得实验
+        }
+        return 0.0;
+    }
     public List<String> PrintAll() {
         List<String> allInfo = new ArrayList<>();
         LLResult result = limelight.getLatestResult();

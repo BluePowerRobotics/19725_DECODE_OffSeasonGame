@@ -35,8 +35,7 @@ public class SearchAction implements Action {
         tracker.update();
 
         // 如果检测到目标，提前中止轨迹，准备去吃球
-        Tracker.Target bestTarget = tracker.getBestTarget();
-        if (bestTarget != null) {
+        if (tracker.getHasTarget()) {
             sweeper.setStop();
             sweeper.update();
             return false;  // 提前中止

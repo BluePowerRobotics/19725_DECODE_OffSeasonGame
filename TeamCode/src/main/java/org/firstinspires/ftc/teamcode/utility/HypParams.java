@@ -100,10 +100,9 @@ public class HypParams {
     public static double ballMass = 0.06;
 
     /**
-     * 目标聚类距离阈值（单位：米）
-     * 用于判断两个检测点是否属于同一个目标
+     * 目标角度每帧变化范围（单位：弧度）
      */
-    public static double distanceThreshold = 0.15;
+    public static double BearingThreshold = 0.15;
 
     /**
      * 目标确认所需的连续帧数
@@ -116,4 +115,10 @@ public class HypParams {
      * 一个已确认的目标需要连续缺失这么多帧才会被移除
      */
     public static int removalFrames = 5;
+
+    /**
+     * 低通滤波系数
+     * 用于Tracker中对目标角度的滤波处理，值越小滤波越平滑
+     */
+    public static double FilterAlpha = 0.2;
 }

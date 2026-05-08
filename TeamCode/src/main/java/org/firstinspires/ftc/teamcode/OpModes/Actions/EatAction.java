@@ -33,10 +33,9 @@ public class EatAction implements Action {
         sweeper.update();
 
         tracker.update();
-        Tracker.Target bestTarget = tracker.getBestTarget();
 
-        if (bestTarget != null) {
-            double targetTheta = Math.atan2(bestTarget.centerY, bestTarget.centerX);
+        if (tracker.getHasTarget()) {
+            double targetTheta = tracker.getTargetTheta();
             chassis.GoTo(targetTheta);
         } else {
             chassis.HeadTo(0);
