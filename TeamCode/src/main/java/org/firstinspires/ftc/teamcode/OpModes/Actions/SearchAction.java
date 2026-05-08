@@ -51,19 +51,21 @@ public class SearchAction implements Action {
             
             // 根据队伍颜色选择不同的搜索轨迹
             if (teamColor == Chassis.TEAM_COLOR.BLUE) {
-                // 蓝队搜索轨迹
+                // 蓝队搜索轨迹：转向0° → 平移至 y=-50 → 前进至 x=-10 → 后退至 x=-60
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
-                    .splineTo(new Vector2d(15, 50), -Math.PI / 2)
-                    .strafeTo(new Vector2d(60, 50))
-                    .strafeTo(new Vector2d(15, 50))
+                    .turn(0)
+                    .strafeTo(new Vector2d(currentPose.position.x, -50))
+                    .strafeTo(new Vector2d(-10, -50))
+                    .strafeTo(new Vector2d(-60, -50))
                     .build();
             } else {
-                // 红队搜索轨迹
+                // 红队搜索轨迹：转向0° → 平移至 y=50 → 前进至 x=-10 → 后退至 x=-60
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
-                    .splineTo(new Vector2d(15, -50), -Math.PI / 2)
-                    .strafeTo(new Vector2d(60, -50))
-                    .strafeTo(new Vector2d(15, -50))
-                    .build();
+                    .turn(0)
+                    .strafeTo(new Vector2d(currentPose.position.x, 50))
+                    .strafeTo(new Vector2d(-10, 50))
+                    .strafeTo(new Vector2d(-60, 50))
+                    .build();   
             }
             
             trajectoryStarted = true;

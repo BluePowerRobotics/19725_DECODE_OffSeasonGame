@@ -12,6 +12,9 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
+import org.firstinspires.ftc.teamcode.utility.MathSolver;
+
+
 
 @Config
 public class Chassis {
@@ -86,7 +89,7 @@ public class Chassis {
     }
 
     public void HeadTo(double Theta){
-        double targetTheta = Theta - RobotPosition.getInstance().getTheta();
+        double targetTheta = MathSolver.normalizeAngle(Theta - RobotPosition.getInstance().getTheta());
         double k = maxOmega / (Math.PI / 2);
         double omega = targetTheta * k;
         //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试

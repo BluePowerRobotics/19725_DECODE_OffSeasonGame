@@ -10,6 +10,8 @@ public class Tracker {
     private double filteredTheta = 0.0;
     private static final double FilterAlpha = HypParams.FilterAlpha;
     private int stableFrames = 0;
+    private int appearanceFrames = 0;
+    private int disappearanceFrames = 0;
 
     public Tracker(HardwareMap hardwareMap) {
         this.detector = new Detector(hardwareMap);
@@ -28,29 +30,43 @@ public class Tracker {
         double currentBearing = Math.toRadians(detector.bearing());
 
         if (currentHasTarget) {
-            if (!hasTarget) {
-                hasTarget = true;
-                targetTheta = currentBearing;
-                filteredTheta = currentBearing;
-                stableFrames = 0;
-            } else {
-                double delta = currentBearing - filteredTheta;
-                if (Math.abs(delta) > HypParams.BearingThreshold) {
-                    stableFrames++;
-                    if (stableFrames >= HypParams.confirmationFrames) {
-                        targetTheta = filteredTheta;
-                        stableFrames = 0;
-                    }
-                } else {
+            appearanceFrames++;
+            disappearanceFrames = 0;
+
+            if (appearanceFrames >= HypParams.confirmationFrames) {
+                if (!hasTarget) {
+                    hasTarget = true;
+                    targetTheta = currentBearing;
+                    filteredTheta = currentBearing;
                     stableFrames = 0;
-                    filteredTheta = FilterAlpha * currentBearing + (1 - FilterAlpha) * filteredTheta;
+                } else {
+                    double delta = currentBearing - filteredTheta;
+                    if (Math.abs(delta) > HypParams.BearingThreshold) {
+                        stableFrames++;
+                        if (stableFrames >= HypParams.confirmationFrames) {
+                            filteredTheta = currentBearing;
+                            targetTheta = currentBearing;
+                            stableFrames = 0;
+                        }
+                    } else {
+                        stableFrames = 0;
+                        filteredTheta = FilterAlpha * currentBearing + (1 - FilterAlpha) * filteredTheta;
+                        targetTheta = filteredTheta;
+                    }
                 }
             }
         } else {
-            hasTarget = false;
+            disappearanceFrames++;
+            appearanceFrames = 0;
+
+            if (disappearanceFrames >= HypParams.removalFrames) {
+                hasTarget = false;
+            }
         }
     }
-
+    public void printAll(){
+        detector.PrintAll();
+    }
     public boolean getHasTarget() {
         return hasTarget;
     }

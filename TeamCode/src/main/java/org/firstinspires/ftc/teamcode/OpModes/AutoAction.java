@@ -93,7 +93,7 @@ public class AutoAction extends LinearOpMode {
                     lastActionType = "Shoot";
                 }
                 else if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-                    if(tracker.getBestTarget()!=null){
+                    if(tracker.getHasTarget()){
                         actionRunner.add(new EatAction(chassis, tracker, sweeper));
                         lastActionType = "Eat";
                     }

@@ -23,8 +23,8 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(72, 24),
-        new Point2D(72, -24),
+        new Point2D(-72, 24),
+        new Point2D(-72, -24),
         new Point2D(-48, 0)
     );
 
@@ -34,8 +34,8 @@ public class HypParams {
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
         new Point2D(0, 0),
-        new Point2D(-72, 72),
-        new Point2D(-72, -72)
+        new Point2D(72, 72),
+        new Point2D(72, -72)
     );
     //是否去小三角
     public static boolean ToLeft=true;
@@ -102,7 +102,7 @@ public class HypParams {
     /**
      * 目标角度每帧变化范围（单位：弧度）
      */
-    public static double BearingThreshold = 0.15;
+    public static double BearingThreshold = 0.35; //limelight横向视场角的约一半
 
     /**
      * 目标确认所需的连续帧数
