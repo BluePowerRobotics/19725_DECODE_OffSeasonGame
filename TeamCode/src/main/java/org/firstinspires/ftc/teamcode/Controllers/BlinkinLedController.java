@@ -1,4 +1,5 @@
-package org.firstinspires.ftc.teamcode.Controllers;
+/*
+package org.firstinspires.ftc.teamcode.rubbishbin;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -38,7 +39,7 @@ public class BlinkinLedController {
     /**
      * Compatibility method: set pattern using the raw RevBlinkinLedDriver.BlinkinPattern.
      * Also attempts to update the currentPreset if a matching LedPreset exists.
-     */
+
     public void setColor(RevBlinkinLedDriver.BlinkinPattern COLOR) {
         blinkinLedDriver.setPattern(COLOR);
         // try to map back to a LedPreset when possible
@@ -54,7 +55,7 @@ public class BlinkinLedController {
 
     /**
      * Set by enum preset
-     */
+
     public void setPreset(LedPreset preset) {
         this.currentPreset = preset;
         blinkinLedDriver.setPattern(preset.getPattern());
@@ -95,5 +96,6 @@ public class BlinkinLedController {
             LIGHT_CHASE_RED LI_BLUEGHT_CHASE LIGHT_CHASE_GOLD
     其他效果：CONFETTI FIREWORKS CPMETTI_SHOT FIRE_LARGE
             FIRE_MEDIUM FIRE_SMALL CANDLE FILLER SHOT_RED SHOT_BLUE
-    */
+
 }
+*/

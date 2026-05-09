@@ -9,18 +9,12 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Controllers.BlinkinLedController;
+//import org.firstinspires.ftc.teamcode.rubbishbin.BlinkinLedController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
-import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
-import org.firstinspires.ftc.teamcode.utility.Point2D;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
@@ -60,7 +54,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public Sweeper sweeper; // 清扫器控制器实例
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
-    public BlinkinLedController ledController; // LED控制器实例
+    //public BlinkinLedController ledController; // LED控制器实例
     //    AprilTagDetector aprilTagDetector;
     public static int tmpSpeed = 700;
     //暂时关闭发射时的速度限制
@@ -91,7 +85,7 @@ public class OffseasonDECODE extends LinearOpMode {
         shooter = new Shooter(hardwareMap, telemetry);
         ActionRunner actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, Chassis.TEAM_COLOR.RED, actionRunner, telemetry);
-        ledController = new BlinkinLedController(hardwareMap);
+        //ledController = new BlinkinLedController(hardwareMap);
     }
     void inputRobotStatus(){
 //        if(gamepad1.dpadRightWasPressed()){
@@ -212,7 +206,7 @@ public class OffseasonDECODE extends LinearOpMode {
             case EATING:
                 sweeperStatus = SWEEPER_STATUS.EAT;
                 shooterStatus = SHOOTER_STATUS.STOP;
-                ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
+                //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
                 break;
             case WAITING:
                 //boolean AprilTagStatus = !Double.isNaN(aprilTagDetector.getPose().pose.position.x);
@@ -225,7 +219,7 @@ public class OffseasonDECODE extends LinearOpMode {
 ////                    else{
 ////                        ledController.showRedTeam();
 ////                    }
-                    ledController.showRedTeam();
+                    //ledController.showRedTeam();
                 }
                 else{
 ////                    if(AprilTagStatus){
@@ -234,7 +228,7 @@ public class OffseasonDECODE extends LinearOpMode {
 ////                    else{
 ////                        ledController.showBlueTeam();
 ////                    }
-                    ledController.showBlueTeam();
+                    //ledController.showBlueTeam();
                 }
                 break;
             case SHOOTING:
@@ -273,10 +267,10 @@ public class OffseasonDECODE extends LinearOpMode {
                     break;
             }
             if(teamColor == TEAM_COLOR.BLUE){
-                ledController.showBlueTeam();
+                //ledController.showBlueTeam();
             }
             if(teamColor == TEAM_COLOR.RED){
-                ledController.showRedTeam();
+                //ledController.showRedTeam();
             }
 //            if(teamColor == TEAM_COLOR.BLUE){
 //                chassis.resetNoHeadModeStartError(-Math.PI/2);

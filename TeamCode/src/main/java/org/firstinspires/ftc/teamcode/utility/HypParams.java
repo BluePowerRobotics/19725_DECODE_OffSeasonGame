@@ -74,7 +74,11 @@ public class HypParams {
      * 机器人在自动搜索状态下的移动速度
      */
     public static double WanderSpeed = 1.0;
-
+    /*
+        * 最大小球偏移角（单位：弧度）
+        * 可以根据limelight的视场角和实际情况调整
+     */
+    public static double MaxBearing=Math.toRadians(25);
     /**
      * Limelight摄像头安装高度（单位：米）
      * 即Projector中的h参数，用于目标坐标计算

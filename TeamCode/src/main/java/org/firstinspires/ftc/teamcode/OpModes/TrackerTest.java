@@ -33,7 +33,7 @@ public class TrackerTest extends LinearOpMode {
                 telemetry.addData("Has Target", tracker.getHasTarget());
                 telemetry.addData("Target Theta", "%.4f rad (%.2f deg)",
                         tracker.getTargetTheta(), Math.toDegrees(tracker.getTargetTheta()));
-                tracker.printAll();
+                tracker.printAll(telemetry);
                 telemetry.update();
             }
         }

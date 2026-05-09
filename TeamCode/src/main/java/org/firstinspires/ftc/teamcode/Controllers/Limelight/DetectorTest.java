@@ -12,20 +12,19 @@ public class DetectorTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化Detector
         detector = new Detector(hardwareMap);
-        
+
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Instructions", "Press play to start detecting purple and green objects");
         telemetry.update();
         
         waitForStart();
-        
+
         while (opModeIsActive()) {
-            if (gamepad1.aWasPressed()){
+            if (gamepad1.aWasPressed()||gamepad2.aWasPressed()){
                 detector.start();
 
-            } else if (gamepad1.bWasPressed()) {
+            } else if (gamepad1.bWasPressed()||gamepad2.bWasPressed()) {
                 detector.stop();
-
             }
             // 检测purple对象
             double[][] purpleCenters = detector.get_center("purple");

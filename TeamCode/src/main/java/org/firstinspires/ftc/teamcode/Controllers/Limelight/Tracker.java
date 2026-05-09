@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.Controllers.Limelight;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 public class Tracker {
@@ -64,8 +66,14 @@ public class Tracker {
             }
         }
     }
-    public void printAll(){
-        detector.PrintAll();
+    public void printAll(Telemetry telemetry){
+        java.util.List<String> allObjectsInfo = detector.PrintAll();
+        telemetry.addData("All Objects", "Count: " + (allObjectsInfo.size() > 0 && allObjectsInfo.get(0).equals("No valid Limelight results") ? 0 : allObjectsInfo.size()));
+        for (String info : allObjectsInfo) {
+            telemetry.addData("Object", info);
+        }
+
+        telemetry.update();
     }
     public boolean getHasTarget() {
         return hasTarget;

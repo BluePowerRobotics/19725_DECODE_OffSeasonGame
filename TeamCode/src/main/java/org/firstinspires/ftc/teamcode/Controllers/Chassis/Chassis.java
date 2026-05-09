@@ -60,7 +60,7 @@ public class Chassis {
         //前进的同时转向
         double vx = Math.cos(targetTheta) * WanderSpeed;
         double vy = Math.sin(targetTheta) * WanderSpeed;
-        double k = maxOmega / (Math.PI / 2);
+        double k = maxOmega / HypParams.MaxBearing;
         double omega = targetTheta * k;
         //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试
         drive.setDrivePowers(new PoseVelocity2d(
