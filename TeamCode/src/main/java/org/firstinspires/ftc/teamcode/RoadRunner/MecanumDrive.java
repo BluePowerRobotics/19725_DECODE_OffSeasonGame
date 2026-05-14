@@ -78,7 +78,7 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
         // 驱动模型参数
-        public double inPerTick = 1; // 每个编码器 tick 对应的英寸数
+        public double inPerTick = 0.001999; // 每个编码器 tick 对应的英寸数
         public double lateralInPerTick = inPerTick; // 横向移动每个 tick 对应的英寸数
         public double trackWidthTicks = 0; // 轮距（编码器 tick 单位）
 
@@ -376,7 +376,7 @@ public final class MecanumDrive {
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         // 初始化定位器
-        localizer = new DriveLocalizer(pose);
+        localizer =  new WriteInstantlyLocalizer(hardwareMap, PARAMS.inPerTick, pose);
 
         // 记录参数
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
