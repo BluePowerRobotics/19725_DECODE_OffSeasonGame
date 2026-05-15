@@ -33,6 +33,7 @@ public class Chassis {
     private final ActionRunner actionRunner;
     private boolean RunningToPose = HypParams.InitialRunningToPose;
     private final Telemetry telemetry;
+    private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
     public Chassis(HardwareMap hardwareMap, TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         this.drive = RobotPosition.getInstance().getDrive();
@@ -98,6 +99,9 @@ public class Chassis {
                 omega));
     }
     public void update(double Kx, double Ky, double Komega){
+        lastKx = Kx;
+        lastKy = Ky;
+        lastKomega = Komega;
         if(!actionRunner.isBusy()){
             double vx = Kx * maxV;
             double vy = Ky * maxV;
@@ -116,18 +120,21 @@ public class Chassis {
             }
         }
     }
-        public void telemetry(){
+    public void telemetry(){
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
         telemetry.addData("RunningToPose", RunningToPose);
-        telemetry.addData("Vx",RobotPosition.getInstance().getVx());
-        telemetry.addData("Vy",RobotPosition.getInstance().getVy());
-        telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));
+        //telemetry.addData("Vx",RobotPosition.getInstance().getVx());
+        //telemetry.addData("Vy",RobotPosition.getInstance().getVy());
+        //telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));
         telemetry.addData("lfV",drive.leftFront.getVelocity());
         telemetry.addData("rfV",drive.rightFront.getVelocity());
         telemetry.addData("lbV",drive.leftBack.getVelocity());
         telemetry.addData("rbV",drive.rightBack.getVelocity());
+        telemetry.addData("LeftStickX", lastKx);
+        telemetry.addData("LeftStickY", lastKy);
+        telemetry.addData("RightStickX", lastKomega);
 
     }
 }

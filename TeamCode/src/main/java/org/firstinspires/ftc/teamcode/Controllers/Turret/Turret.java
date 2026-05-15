@@ -174,6 +174,19 @@ public class Turret {
         }
     }
 
+    public void update(double roll, double yaw, double speed, boolean shouldShoot,int targetTagId) {
+        shooter.update();
+        turretDegreeController.update();
+        turretDegreeController.rotateTo(roll, yaw);
+        if (shouldShoot) {
+            if(shooter.setTargetSpeed(speed)){
+                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
+                telemetry.update();
+                launch(); 
+            }
+        }
+    }
+
 
     public void stop() {
         turretDegreeController.stop();

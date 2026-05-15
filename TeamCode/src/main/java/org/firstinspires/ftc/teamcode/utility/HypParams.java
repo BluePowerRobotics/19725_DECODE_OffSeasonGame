@@ -73,7 +73,7 @@ public class HypParams {
      * 自动模式下游走速度（单位：米/秒）
      * 机器人在自动搜索状态下的移动速度
      */
-    public static double WanderSpeed = 1.0;
+    public static double WanderSpeed = 0.2;
     /*
         * 最大小球偏移角（单位：弧度）
         * 可以根据limelight的视场角和实际情况调整
@@ -112,13 +112,13 @@ public class HypParams {
      * 目标确认所需的连续帧数
      * 一个候选目标需要连续出现这么多帧才能被确认为有效目标
      */
-    public static int confirmationFrames = 3;
+    public static int confirmationFrames = 10;
 
     /**
      * 目标移除所需的连续缺失帧数
      * 一个已确认的目标需要连续缺失这么多帧才会被移除
      */
-    public static int removalFrames = 5;
+    public static int removalFrames = 30;
 
     /**
      * 低通滤波系数

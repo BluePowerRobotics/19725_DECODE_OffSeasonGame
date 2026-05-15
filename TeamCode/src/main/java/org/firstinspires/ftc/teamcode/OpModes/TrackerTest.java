@@ -17,19 +17,25 @@ public class TrackerTest extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Instructions", "Press play to start tracking targets");
         telemetry.update();
-
+        String status="Ready";
         waitForStart();
 
-        tracker.start();
-
         while (opModeIsActive()) {
+            if (gamepad1.aWasPressed()||gamepad2.aWasPressed()){
+                tracker.start();
+                status="Running";
+
+            } else if (gamepad1.bWasPressed()||gamepad2.bWasPressed()) {
+                tracker.stop();
+                status="Ready2";
+            }
             tracker.update();
 
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
                 lastUpdateTime = currentTime;
 
-                telemetry.addData("Status", "Running");
+                telemetry.addData("Status", status);
                 telemetry.addData("Has Target", tracker.getHasTarget());
                 telemetry.addData("Target Theta", "%.4f rad (%.2f deg)",
                         tracker.getTargetTheta(), Math.toDegrees(tracker.getTargetTheta()));
