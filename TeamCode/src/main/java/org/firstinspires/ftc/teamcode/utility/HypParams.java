@@ -24,9 +24,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(-72, 24),
-        new Point2D(-72, -24),
-        new Point2D(-48, 0)
+        new Point2D(72, 24),
+        new Point2D(72, -24),
+        new Point2D(48, 0)
     );
 
     /**
@@ -35,8 +35,8 @@ public class HypParams {
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
         new Point2D(0, 0),
-        new Point2D(72, 72),
-        new Point2D(72, -72)
+        new Point2D(-72, 72),
+        new Point2D(-72, -72)
     );
     //是否去小三角
     public static boolean ToLeft=true;
