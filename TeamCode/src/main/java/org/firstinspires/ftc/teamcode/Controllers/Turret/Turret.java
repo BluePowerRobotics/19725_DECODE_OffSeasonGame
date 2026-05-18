@@ -174,7 +174,7 @@ public class Turret {
         }
     }
 
-    public void update(double roll, double yaw, double speed, boolean shouldShoot,int targetTagId) {
+    public void update(double roll, double yaw, int speed, boolean shouldShoot,int targetTagId) {
         shooter.update();
         turretDegreeController.update();
         turretDegreeController.rotateTo(roll, yaw);
