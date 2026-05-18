@@ -24,6 +24,7 @@ public class OffseasonDECODE extends LinearOpMode {
         EATING,
         WAITING,
         SHOOTING,
+        STOP
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
@@ -31,11 +32,11 @@ public class OffseasonDECODE extends LinearOpMode {
         RED,BLUE
     }
     TEAM_COLOR teamColor;
-    public enum TRIGGER_STATUS {
-        OPEN,
-        CLOSE
-    }
-    TRIGGER_STATUS triggerStatus = TRIGGER_STATUS.CLOSE;
+//    public enum TRIGGER_STATUS {
+//        OPEN,
+//        CLOSE
+//    }
+//    TRIGGER_STATUS triggerStatus = TRIGGER_STATUS.CLOSE;
 
 
     public enum SWEEPER_STATUS {
@@ -45,11 +46,11 @@ public class OffseasonDECODE extends LinearOpMode {
         STOP
     }
     SWEEPER_STATUS sweeperStatus = SWEEPER_STATUS.STOP;
-    public enum SHOOTER_STATUS {
+    public enum TURRET_STATUS {
         SHOOTING,
         STOP
     }
-    SHOOTER_STATUS shooterStatus = SHOOTER_STATUS.STOP;
+    TURRET_STATUS turretStatus = TURRET_STATUS.STOP;
     public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
     public Sweeper sweeper; // 清扫器控制器实例
     public Shooter shooter; // 发射器控制器实例
@@ -205,35 +206,23 @@ public class OffseasonDECODE extends LinearOpMode {
         switch (robotStatus) {
             case EATING:
                 sweeperStatus = SWEEPER_STATUS.EAT;
-                shooterStatus = SHOOTER_STATUS.STOP;
+                turretStatus = TURRET_STATUS.STOP;
                 //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
                 break;
             case WAITING:
                 //boolean AprilTagStatus = !Double.isNaN(aprilTagDetector.getPose().pose.position.x);
                 sweeperStatus = SWEEPER_STATUS.STOP;
-                shooterStatus = SHOOTER_STATUS.STOP;
+                turretStatus = TURRET_STATUS.STOP;
                 if (teamColor == TEAM_COLOR.RED) {
-////                    if(AprilTagStatus){
-////                        ledController.setColor(LedPreset.HEARTBEAT_RED.getPattern());
-////                    }
-////                    else{
-////                        ledController.showRedTeam();
-////                    }
                     //ledController.showRedTeam();
                 }
                 else{
-////                    if(AprilTagStatus){
-////                        ledController.setColor(LedPreset.HEARTBEAT_BLUE.getPattern());
-////                    }
-////                    else{
-////                        ledController.showBlueTeam();
-////                    }
                     //ledController.showBlueTeam();
                 }
                 break;
             case SHOOTING:
                 //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-                shooterStatus = SHOOTER_STATUS.SHOOTING;
+                turretStatus = TURRET_STATUS.SHOOTING;
                 //sweeper和trigger状态由shooter条件决定，在shoot()中
                 break;
 
@@ -249,6 +238,7 @@ public class OffseasonDECODE extends LinearOpMode {
     boolean InitStarted=false;
     @Override
     public void runOpMode() throws InterruptedException {
+        Init();
         //留下更改一些参数的后门(??
         while(opModeInInit()||!InitStarted) {
             if (gamepad1.a) {
@@ -266,12 +256,12 @@ public class OffseasonDECODE extends LinearOpMode {
                     targetTagId = 24;
                     break;
             }
-            if(teamColor == TEAM_COLOR.BLUE){
-                //ledController.showBlueTeam();
-            }
-            if(teamColor == TEAM_COLOR.RED){
-                //ledController.showRedTeam();
-            }
+//            if(teamColor == TEAM_COLOR.BLUE){
+//                //ledController.showBlueTeam();
+//            }
+//            if(teamColor == TEAM_COLOR.RED){
+//                //ledController.showRedTeam();
+//            }
 //            if(teamColor == TEAM_COLOR.BLUE){
 //                chassis.resetNoHeadModeStartError(-Math.PI/2);
 //            }
@@ -287,7 +277,6 @@ public class OffseasonDECODE extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            Init();
             inputRobotStatus();
             setStatus();
         }

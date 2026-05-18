@@ -76,7 +76,7 @@ public class TurretTest extends LinearOpMode {
             boolean shouldShoot = gamepad1.aWasPressed();
             
             // 更新炮塔状态
-            turret.update(roll, yaw, speed, shouldShoot, 0);
+            turret.update(roll, yaw, speed, shouldShoot, 20);
             
             // 实时显示当前参数
             telemetry.addData("Status", "Running");

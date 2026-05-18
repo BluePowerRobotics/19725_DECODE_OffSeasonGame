@@ -186,6 +186,7 @@ public class Turret {
             }
         }
     }
+    //只用到标定，主程序不用。
 
 
     public void stop() {
