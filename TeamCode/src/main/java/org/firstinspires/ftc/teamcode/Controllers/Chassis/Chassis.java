@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
@@ -18,10 +19,6 @@ import org.firstinspires.ftc.teamcode.utility.MathSolver;
 
 @Config
 public class Chassis {
-    public enum TEAM_COLOR {
-        RED, BLUE
-    }
-
     private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
     private static final ConvexPolygon SHOOTING_AREA_RIGHT = HypParams.SHOOTING_AREA_RIGHT;
 
@@ -35,12 +32,12 @@ public class Chassis {
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
-    public Chassis(HardwareMap hardwareMap,  TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+    public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         this.drive = RobotPosition.getInstance().getDrive();
         this.actionRunner = actionRunner;
         this.telemetry = telemetry;
 
-        Pose2d startPose = (teamColor == TEAM_COLOR.RED) ?
+        Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
             HypParams.startPoseRed : HypParams.startPoseBlue;
         RobotPosition.RobotPositioninit(hardwareMap, startPose);
     }

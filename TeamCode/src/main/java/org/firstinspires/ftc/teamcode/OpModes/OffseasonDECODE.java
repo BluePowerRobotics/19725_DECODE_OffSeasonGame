@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
@@ -11,9 +12,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 //import org.firstinspires.ftc.teamcode.rubbishbin.BlinkinLedController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
+import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
+import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 
 @Config
@@ -23,8 +26,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public enum ROBOT_STATUS{
         EATING,
         WAITING,
-        SHOOTING,
-        STOP
+        SHOOTING
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
@@ -56,24 +58,9 @@ public class OffseasonDECODE extends LinearOpMode {
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
     //public BlinkinLedController ledController; // LED控制器实例
-    //    AprilTagDetector aprilTagDetector;
-    public static int tmpSpeed = 700;
-    //暂时关闭发射时的速度限制
-    public static int OpenSweeperSpeedThreshold = 1000;
-    //
-//    public double targetSpeed = ShooterAction.speed35_55;
-    public static double AdditionK = 0.01;
-    //targetSpeed乘上Kspeed才是真实速度，修正发射速度
-    double Kspeed = 1;
-    boolean directControl=false;
-    int currentPosition = 0;
-    //修正角度偏差（从读取的底层修改）
-    //todo 让degreeOffset生效 @gyw
-    public double degreeOffset = 0;
-    public static double startShootingHeading = Math.PI / 2;
     public boolean ReadyToShoot = false;
-    public double WanderSpeed = 0.5;
-    public Boolean RunningToPose = true;
+    public boolean shouldAim = false;
+    public boolean shouldShoot = false;
 
     void Init(){
 
@@ -85,54 +72,15 @@ public class OffseasonDECODE extends LinearOpMode {
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, Chassis.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
         //ledController = new BlinkinLedController(hardwareMap);
     }
     void inputRobotStatus(){
-//        if(gamepad1.dpadRightWasPressed()){
-//            KtoleranceHeading += 0.5;
-//        }
-//        if(gamepad1.dpadLeftWasPressed()){
-//            if (teamColor == TEAM_COLOR.RED) {
-//                targetSpeed = SolveShootPoint.solveShootSpeed(SolveShootPoint.solveREDShootDistance(pose));
-//            }
-//            if (teamColor == TEAM_COLOR.BLUE) {
-//                targetSpeed = SolveShootPoint.solveShootSpeed(SolveShootPoint.solveBLUEShootDistance(pose));
-//            }
-//        }
-//
-////        if(gamepad1.dpadUpWasPressed()){
-////            if(teamColor == TEAM_COLOR.BLUE){
-////                chassis.resetPosition(BlueResetPose);
-////            }
-////            if(teamColor == TEAM_COLOR.RED){
-////                chassis.resetPosition(RedResetPose);
-////            }
-////        }
         if(gamepad1.xWasPressed()){
             robotStatus = ROBOT_STATUS.WAITING;
             chassis.exchangeMode();
         }
-//        if(gamepad2.bWasPressed()){
-//            targetSpeed = tmpSpeed;
-//        }
-//
-//
-//        //二操的修正功能
-//        if(gamepad2.dpadLeftWasPressed()){
-//            degreeOffset -= AdditionDegree;
-//            chassis.robotPosition.mecanumDrive.localizer.setPose(new Pose2d(chassis.robotPosition.getData().getPose2d().position, chassis.robotPosition.getData().headingRadian + Math.toRadians(-AdditionDegree)));
-//        }
-//        if(gamepad2.dpadRightWasPressed()){
-//            degreeOffset += AdditionDegree;
-//            chassis.robotPosition.mecanumDrive.localizer.setPose(new Pose2d(chassis.robotPosition.getData().getPose2d().position, chassis.robotPosition.getData().headingRadian + Math.toRadians(AdditionDegree)));
-//        }
-//        if(gamepad2.dpadDownWasPressed()){
-//            Kspeed -= AdditionK;
-//        }
-//        if(gamepad2.dpadUpWasPressed()){
-//            Kspeed += AdditionK;
-//        }
+
         if(gamepad2.yWasPressed()  ){
             robotStatus = ROBOT_STATUS.SHOOTING;
         }
@@ -158,27 +106,6 @@ public class OffseasonDECODE extends LinearOpMode {
             ReadyToShoot = false;
             robotStatus = ROBOT_STATUS.EATING;
         }
-//        else if((gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed()) && robotStatus != ROBOT_STATUS.CLIMBING){
-//            ReadyToShoot = false;
-//            if(robotStatus == ROBOT_STATUS.OUTPUTTING){
-//                robotStatus = ROBOT_STATUS.WAITING;
-//            }
-//            else{
-//                robotStatus = ROBOT_STATUS.OUTPUTTING;
-//            }
-//        }
-
-//        if(gamepad1.right_trigger > 0.6){
-//            double heading = 0;
-//            if (teamColor == TEAM_COLOR.RED) {
-//                heading = SolveEatPoint.solveREDEatHeading(pose);
-//            }
-//            if (teamColor == TEAM_COLOR.BLUE) {
-//                heading = SolveEatPoint.solveBLUEEatHeading(pose);
-//            }
-//            //todo
-//            chassis.setHeadingLockRadian(heading);
-//        }
 
 //        todo: 发射部分
         if(gamepad1.yWasPressed()){
@@ -194,13 +121,6 @@ public class OffseasonDECODE extends LinearOpMode {
             }
         }
 
-//        if(ReadyToShoot){
-//            double currentHeading = 0;//todo 位置角度正确值设定
-//            double targetHeading = chassis.getHeadingLockRadian(); //不知道什么意思，应该会改用update
-//            if(Math.abs(currentHeading - targetHeading) < startShootingHeading){
-//                robotStatus = ROBOT_STATUS.SHOOTING;
-//            }
-//        }
     }
     void setStatus() {
         switch (robotStatus) {
@@ -229,12 +149,43 @@ public class OffseasonDECODE extends LinearOpMode {
 
         }
     }
+    void chassis(){
+        chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+        if(gamepad1.xWasReleased())chassis.exchangeMode();
+        lastNanoTime=System.nanoTime();
+        chassis.telemetry();
+        telemetry.update();
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.fieldOverlay().setStroke("#3F51B5");
+        Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+    }
+    void sweeper(){
+        switch (sweeperStatus){
+            case EAT:
+                sweeper.setEat();
+            case GIVE_ARTIFACT:
+                sweeper.setGiveArtifact();
+            case OUTPUT:
+                sweeper.setOutput();
+            case STOP:
+                sweeper.setStop();
+        }
+    }
+    void turret(){
+
+        // 更新炮塔状态
+        turret.update(shouldAim,shouldShoot, 20);
+    }
+    void update(){
+        sweeper.update();
+        telemetry.update();
+    }
+    void telemetry(){
+        sweeper.setTelemetry();
+    }
     public static int targetTagId;
-    long lastSetTimeMS=0;
-    boolean showSpeedColor=false;
     public static double time=1.2;
-    public static double time_2=0.3;
-    public static int IntervalMS=1;
     boolean InitStarted=false;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -279,6 +230,11 @@ public class OffseasonDECODE extends LinearOpMode {
         while (opModeIsActive()) {
             inputRobotStatus();
             setStatus();
+            chassis();
+            turret();
+            sweeper();
+            update();
+            telemetry();
         }
     }
 }
