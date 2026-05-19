@@ -80,21 +80,10 @@ public class HypParams {
         * 可以根据limelight的视场角和实际情况调整
      */
     public static double MaxBearing=Math.toRadians(25);
-    /**
-     * Limelight摄像头安装高度（单位：米）
-     * 即Projector中的h参数，用于目标坐标计算
-     */
-    public static double Limelight_h = 0.0;
-
-    /**
-     * Limelight摄像头水平偏移量（单位：米）
-     * 即Projector中的m0参数，用于目标坐标计算
-     */
-    public static double Limelight_m0 = 0.0;
 
     /**
      * 初始操控模式标志
-     * true表示使用"有头模式"（场心地坐标系），false表示使用"无头模式"（机器人坐标系）
+     * false表示使用"有头模式"（场心地坐标系），true表示使用"无头模式"（机器人坐标系）
      */
     public static boolean InitialRunningToPose = true;
 
