@@ -92,7 +92,6 @@ public class Turret {
         boolean isTargetFound = false;
         AprilTagDetection targetDetection = null;
 
-
         for (AprilTagDetection detection : detections) {
             if (detection.id == targetTagId) {
                 targetDetection = detection;
@@ -107,14 +106,25 @@ public class Turret {
         if (isTargetFound && targetDetection != null) {
             double bearing = targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
-            //TODO check +-
             targetRoll = this.roll + bearing;
-            //TODO ???
             targetYaw = this.yaw + elevation;
         } else {
-            //TODO check logic
-            targetRoll = this.roll + 90;
-            targetYaw = this.yaw;
+            double[] goalPos = HypParams.getGoalPosition(targetTagId);
+            if (goalPos != null) {
+                double robotX = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getX();
+                double robotY = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getY();
+                double robotTheta = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getTheta();
+                
+                double dx = goalPos[0] - robotX;
+                double dy = goalPos[1] - robotY;
+                
+                double angleToGoal = Math.atan2(dy, dx);
+                targetRoll = Math.toDegrees(angleToGoal - robotTheta);
+                targetYaw = Math.toDegrees(Math.atan2(delta_H, Math.hypot(dx, dy)));
+            } else {
+                targetRoll = this.roll + 90;
+                targetYaw = this.yaw;
+            }
         }
         //先这样写，但可能apriltag的实际位置低于球门，yaw要加一个常量
         rotate_to(targetRoll, targetYaw);
@@ -174,7 +184,7 @@ public class Turret {
         }
     }
 
-    public void update(double roll, double yaw, int speed, boolean shouldShoot,int targetTagId) {
+    public void update(double roll, double yaw, int speed, boolean shouldShoot) {
         shooter.update();
         turretDegreeController.update();
         turretDegreeController.rotateTo(roll, yaw);

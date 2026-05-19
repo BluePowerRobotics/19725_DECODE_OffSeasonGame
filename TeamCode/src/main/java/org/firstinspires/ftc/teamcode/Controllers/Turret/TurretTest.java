@@ -10,7 +10,7 @@ public class TurretTest extends LinearOpMode {
     // 手动控制参数
     private double roll = 0.0;      // 水平旋转角（度）
     private double yaw = 0.0;       // 仰角（度）
-    private int speed = 3000;       // 飞轮转速
+    private int speed = 600;       // 飞轮功率
     
     // 步长设置
     private static final double YAW_STEP = 5.0;        // 仰角步长（度）
@@ -76,7 +76,7 @@ public class TurretTest extends LinearOpMode {
             boolean shouldShoot = gamepad1.aWasPressed();
             
             // 更新炮塔状态
-            turret.update(roll, yaw, speed, shouldShoot, 20);
+            turret.update(roll, yaw, speed, shouldShoot);
             
             // 实时显示当前参数
             telemetry.addData("Status", "Running");

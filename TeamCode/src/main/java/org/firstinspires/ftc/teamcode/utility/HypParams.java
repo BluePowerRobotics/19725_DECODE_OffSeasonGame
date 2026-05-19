@@ -126,4 +126,36 @@ public class HypParams {
      * 用于Tracker中对目标角度的滤波处理，值越小滤波越平滑
      */
     public static double FilterAlpha = 0.2;
+
+    /**
+     * 球满时与距离传感器的距离（单位：cm）
+     * 传感器检测到小于此值时认为球已满
+     */
+    public static double maxdistance = 20;
+
+    /**
+     * 球空时与距离传感器的距离（单位：cm）
+     * 传感器检测到大于此值时认为球已空
+     */
+    public static double mindistance = 50;
+
+    /**
+     * 距离传感器异常阈值（单位：cm）
+     * 传感器在小于此距离时读数不稳定，需要过滤
+     */
+    public static double wrongdistance = 30;
+
+    /**
+     * 根据 AprilTag ID 获取球门位置
+     * @param id AprilTag ID
+     * @return {x, y} 坐标数组，如果找不到返回 null
+     */
+    public static double[] getGoalPosition(int id) {
+        if (id==20) {
+            return new double[]{-72, -72};
+        }else if (id==24){
+            return new double[]{-72, 72};
+        }
+        return null;
+    }
 }

@@ -22,9 +22,9 @@ public class RobotPosition {
     Localizer localizer;
     public DistanceSensor sensorDistancemax;
     public DistanceSensor sensorDistancemin;
-    public static double maxdistance=20;//此变量代表球满时与传感器的距离：最大值
-    public static double mindistance=50;//此变量代表球空时与传感器的距离：最小值
-    public static double wrongdistance=30;//那个b传感器，在3cm以内搁那乱转，神经病，写这个变量避免一下这种愚蠢行为。
+    public static double maxdistance=HypParams.maxdistance;//此变量代表球满时与传感器的距离：最大值
+    public static double mindistance=HypParams.mindistance;//此变量代表球空时与传感器的距离：最小值
+    public static double wrongdistance=HypParams.wrongdistance;//那个b传感器，在3cm以内搁那乱转，神经病，写这个变量避免一下这种愚蠢行为。
 
     public boolean ableToShoot = false;
     //todo :调整距离
