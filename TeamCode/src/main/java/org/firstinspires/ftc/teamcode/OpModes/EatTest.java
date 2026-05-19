@@ -14,7 +14,7 @@ public class EatTest extends LinearOpMode {
     private Tracker tracker;
     private Sweeper sweeper;
     private ActionRunner actionRunner;
-    // 38
+    
     @Override
     public void runOpMode() {
         // 初始化组件
