@@ -127,8 +127,8 @@ public class Shooter {
     public double getSpeedL(){return shooterL.getVelocity();}
     public double getSpeedR(){return shooterR.getVelocity();}
     public void setTelemetry(){
-        telemetry.addData("Shooter PowerL", getPowerL());
-        telemetry.addData("Shooter PowerR", getPowerR());
+        telemetry.addData("Shooter PowerL*1000", getPowerL()*1000);
+        telemetry.addData("Shooter PowerR*1000", getPowerR()*1000);
         telemetry.addData("Shooter Target Speed", this.targetVelocity);
         telemetry.addData("Shooter VelocityL", getSpeedL());
         telemetry.addData("Shooter VelocityR", getSpeedR());

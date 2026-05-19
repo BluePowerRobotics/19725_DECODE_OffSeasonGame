@@ -191,15 +191,12 @@ public class OffseasonDECODE extends LinearOpMode {
 //        telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
 //        telemetry.addData("triggerSTATUS", triggerStatus.toString());
 //        telemetry.addData("Position(mm)",chassis.robotPosition.getData().getPosition(DistanceUnit.MM).toString());
-        telemetry.addData("SweeperSpeeed", sweeper.getPower());//或许是getVel()
-        telemetry.addData("SweeperPower * 1000", sweeper.getPower() * 1000);
         telemetry.addData("Heading", robotPosition.getPose2d());
 //        telemetry.addData("targetHeading",chassis.getHeadingLockRadian());
 //        telemetry.addData("Position(inch)", Point2D.rotate(robotPosition.getData().getPosition(DistanceUnit.INCH),teamColor==TEAM_COLOR.BLUE?Math.PI/2:-Math.PI/2).toString());
-        telemetry.addData("1-power * 1000", shooter.getPowerL() * 1000);
-        telemetry.addData("2-power * 1000", shooter.getPowerR() * 1000);
-        telemetry.addData("1-speed", shooter.getSpeedL());
-        telemetry.addData("2-speed", shooter.getSpeedR());
+        shooter.setTelemetry();
+        chassis.telemetry();
+        sweeper.setTelemetry();
         telemetry.addData("FPS",1000000000.0/(System.nanoTime()-lastNanoTime));
         telemetry.update();
         lastNanoTime=System.nanoTime();

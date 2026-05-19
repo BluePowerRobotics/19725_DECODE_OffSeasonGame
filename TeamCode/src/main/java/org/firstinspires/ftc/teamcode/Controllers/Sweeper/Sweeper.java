@@ -83,7 +83,7 @@ public class Sweeper {
     
     public void setTelemetry() {
         telemetry.addData("Sweeper Velocity", getVel());
-        telemetry.addData("Sweeper Power", getPower());
+        telemetry.addData("Sweeper Power*1000", getPower()*1000);
         telemetry.addData("Sweeper Current", getCurrent());
     }
 }
