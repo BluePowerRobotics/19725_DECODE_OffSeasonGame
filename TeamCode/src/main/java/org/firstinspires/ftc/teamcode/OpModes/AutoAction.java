@@ -66,7 +66,7 @@ public class AutoAction extends LinearOpMode {
 
         ActionRunner actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor == TEAM_COLOR.RED ?
-            Chassis.TEAM_COLOR.RED : Chassis.TEAM_COLOR.BLUE, actionRunner, telemetry);
+            OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE, actionRunner, telemetry);
 
         turret = new Turret(hardwareMap, telemetry);
 
@@ -99,7 +99,7 @@ public class AutoAction extends LinearOpMode {
                     }
                     else{
                         actionRunner.add(new SearchAction(chassis, tracker, sweeper, 
-                            teamColor == TEAM_COLOR.RED ? Chassis.TEAM_COLOR.RED : Chassis.TEAM_COLOR.BLUE));
+                            teamColor == TEAM_COLOR.RED ? OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE));
                         lastActionType = "Search";
                     }
                 }

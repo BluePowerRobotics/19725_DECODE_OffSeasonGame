@@ -29,7 +29,6 @@ public class ShootAction implements Action {
         sweeper.update();
         chassis.stop();
         turret.update(true, true, targetTagId);
-
         return !RobotPosition.getInstance().isEmpty();
     }
 }

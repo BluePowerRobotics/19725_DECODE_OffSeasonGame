@@ -11,17 +11,18 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Limelight.Tracker;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
+import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 
 public class SearchAction implements Action {
     private final Chassis chassis;
     private final Tracker tracker;
     private final Sweeper sweeper;
-    private final Chassis.TEAM_COLOR teamColor;
+    private final OffseasonDECODE.TEAM_COLOR teamColor;
     private Action trajectoryAction;
     private boolean trajectoryStarted;
 
-    public SearchAction(Chassis chassis, Tracker tracker, Sweeper sweeper, Chassis.TEAM_COLOR teamColor) {
+    public SearchAction(Chassis chassis, Tracker tracker, Sweeper sweeper, OffseasonDECODE.TEAM_COLOR teamColor) {
         this.chassis = chassis;
         this.tracker = tracker;
         this.sweeper = sweeper;
@@ -50,7 +51,7 @@ public class SearchAction implements Action {
             Pose2d currentPose = RobotPosition.getInstance().getPose2d();
             
             // 根据队伍颜色选择不同的搜索轨迹
-            if (teamColor == Chassis.TEAM_COLOR.BLUE) {
+            if (teamColor == OffseasonDECODE.TEAM_COLOR.BLUE) {
                 // 蓝队搜索轨迹：转向0° → 平移至 y=-50 → 前进至 x=-10 → 后退至 x=-60
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
                     .turn(Math.PI)

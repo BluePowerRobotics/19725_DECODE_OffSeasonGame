@@ -164,7 +164,11 @@ public class Turret {
     }
 
     public void launch() {
-        //todo: 一次射一个球
+        //todo: 打开闸门
+    }
+
+    public void reset(){
+        //todo: 关闭闸门
     }
 
     public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {
@@ -176,7 +180,10 @@ public class Turret {
             double targetRoll = (double) aimResult[1];
             double targetYaw = (double) aimResult[2];
 
-            if (shouldShoot && isTargetFound) {
+            if(!shouldShoot){
+                reset();
+            }
+            else if (isTargetFound) {
                 shoot(targetRoll, targetYaw);
             }
         } else if (shouldShoot) {
