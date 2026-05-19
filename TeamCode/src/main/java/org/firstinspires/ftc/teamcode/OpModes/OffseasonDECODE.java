@@ -11,13 +11,16 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 //import org.firstinspires.ftc.teamcode.rubbishbin.BlinkinLedController;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
+import org.firstinspires.ftc.teamcode.Controllers.InstanceTelemetry;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.Point2D;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
@@ -57,6 +60,8 @@ public class OffseasonDECODE extends LinearOpMode {
     public Sweeper sweeper; // 清扫器控制器实例
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
+    public ActionRunner actionRunner;//actionRunner控制器实例
+    public RobotPosition robotPosition;//定位控制器实例
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
     public boolean shouldAim = false;
@@ -65,13 +70,12 @@ public class OffseasonDECODE extends LinearOpMode {
     void Init(){
 
         //todo set team color
-        teamColor = TEAM_COLOR.RED;
-        Pose2d start= new Pose2d(new Vector2d(0,0),0); //根据场地和队伍颜色调整
+        teamColor = TEAM_COLOR.BLUE;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-//        telemetry = InstanceTelemetry.init(telemetry);
+        telemetry = InstanceTelemetry.init(telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
-        ActionRunner actionRunner = new ActionRunner();
+        actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
         //ledController = new BlinkinLedController(hardwareMap);
     }
@@ -109,16 +113,7 @@ public class OffseasonDECODE extends LinearOpMode {
 
 //        todo: 发射部分
         if(gamepad1.yWasPressed()){
-            ReadyToShoot = !ReadyToShoot;
-            if(ReadyToShoot){
-                double heading = 0;
-                if (teamColor == TEAM_COLOR.RED) {
-
-                }
-                if (teamColor == TEAM_COLOR.BLUE) {
-
-                }
-            }
+            shouldShoot = !shouldShoot;
         }
 
     }
@@ -133,12 +128,12 @@ public class OffseasonDECODE extends LinearOpMode {
                 //boolean AprilTagStatus = !Double.isNaN(aprilTagDetector.getPose().pose.position.x);
                 sweeperStatus = SWEEPER_STATUS.STOP;
                 turretStatus = TURRET_STATUS.STOP;
-                if (teamColor == TEAM_COLOR.RED) {
-                    //ledController.showRedTeam();
-                }
-                else{
-                    //ledController.showBlueTeam();
-                }
+//                if (teamColor == TEAM_COLOR.RED) {
+//                    //ledController.showRedTeam();
+//                }
+//                else{
+//                    //ledController.showBlueTeam();
+//                }
                 break;
             case SHOOTING:
                 //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
@@ -172,17 +167,42 @@ public class OffseasonDECODE extends LinearOpMode {
                 sweeper.setStop();
         }
     }
-    void turret(){
-
-        // 更新炮塔状态
-        turret.update(shouldAim,shouldShoot, 20);
-    }
+//    void turret(){
+//    }
     void update(){
         sweeper.update();
         telemetry.update();
+        // 更新炮塔状态
+        turret.update(shouldAim,shouldShoot, targetTagId);
     }
     void telemetry(){
         sweeper.setTelemetry();
+        telemetry.addData("READYTOSHOOT", ReadyToShoot);
+//        telemetry.addData("DIS", disSensor.getDis());
+//        telemetry.addData("RealTargetSpeed", targetSpeed * Kspeed);
+//        telemetry.addData("DegreeOffset", degreeOffset);
+//        telemetry.addData("NoHeadMode",chassis.getUseNoHeadMode()?"PlayerBased":"RoboticBased");
+        telemetry.addData("isBusy", actionRunner.isBusy());
+        telemetry.addData("TeamColor", teamColor);
+        telemetry.addData("RobotSTATUS", robotStatus.toString());
+//        telemetry.addData("NoHeadModeStartError:",chassis.noHeadModeStartError);
+//        telemetry.addData("RunMode",chassis.runningToPoint?"RUNNING_TO_POINT":"MANUAL");
+//        telemetry.addData("shooterSTATUS", shooterStatus.toString());
+//        telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
+//        telemetry.addData("triggerSTATUS", triggerStatus.toString());
+//        telemetry.addData("Position(mm)",chassis.robotPosition.getData().getPosition(DistanceUnit.MM).toString());
+        telemetry.addData("SweeperSpeeed", sweeper.getPower());//或许是getVel()
+        telemetry.addData("SweeperPower * 1000", sweeper.getPower() * 1000);
+        telemetry.addData("Heading", robotPosition.getPose2d());
+//        telemetry.addData("targetHeading",chassis.getHeadingLockRadian());
+//        telemetry.addData("Position(inch)", Point2D.rotate(robotPosition.getData().getPosition(DistanceUnit.INCH),teamColor==TEAM_COLOR.BLUE?Math.PI/2:-Math.PI/2).toString());
+        telemetry.addData("1-power * 1000", shooter.getPowerL() * 1000);
+        telemetry.addData("2-power * 1000", shooter.getPowerR() * 1000);
+        telemetry.addData("1-speed", shooter.getSpeedL());
+        telemetry.addData("2-speed", shooter.getSpeedR());
+        telemetry.addData("FPS",1000000000.0/(System.nanoTime()-lastNanoTime));
+        telemetry.update();
+        lastNanoTime=System.nanoTime();
     }
     public static int targetTagId;
     public static double time=1.2;
@@ -231,7 +251,6 @@ public class OffseasonDECODE extends LinearOpMode {
             inputRobotStatus();
             setStatus();
             chassis();
-            turret();
             sweeper();
             update();
             telemetry();
