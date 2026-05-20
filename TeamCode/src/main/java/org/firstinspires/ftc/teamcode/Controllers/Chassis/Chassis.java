@@ -87,13 +87,13 @@ public class Chassis {
     }
 
     public void HeadTo(double Theta){
-        double targetTheta = MathSolver.normalizeAngle(Theta - RobotPosition.getInstance().getTheta());
-        double k = maxOmega / (Math.PI / 2);
-        double omega = targetTheta * k;
-        //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试
+        double diff = Theta - RobotPosition.getInstance().getTheta();
+        double targetTheta = Math.atan2(Math.sin(diff), Math.cos(diff));
+        double k = maxOmega / Math.PI;
+        double omega = Math.max(-maxOmega, Math.min(maxOmega, targetTheta * k));
         drive.setDrivePowers(new PoseVelocity2d(
-                new Vector2d(0,0),
-                omega));
+            new Vector2d(0,0),
+            omega));
     }
     public void update(double Kx, double Ky, double Komega){
         lastKx = Kx;
