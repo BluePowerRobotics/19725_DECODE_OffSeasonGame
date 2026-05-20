@@ -62,6 +62,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public Turret turret; // 触发器控制器实例
     public ActionRunner actionRunner;//actionRunner控制器实例
     public RobotPosition robotPosition;//定位控制器实例
+    public TelemetryPacket packet = new TelemetryPacket();
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
     public boolean shouldAim = false;
@@ -83,20 +84,20 @@ public class OffseasonDECODE extends LinearOpMode {
         if(gamepad1.xWasPressed()){
             robotStatus = ROBOT_STATUS.WAITING;
             chassis.exchangeMode();
-        }
+        }//为什么要用xWasReleased?
 
         if(gamepad2.yWasPressed()  ){
             robotStatus = ROBOT_STATUS.SHOOTING;
         }
 
         if(gamepad1.aWasPressed() || gamepad2.aWasPressed()){
-            ReadyToShoot = false;
+            shouldShoot = false;
             robotStatus = ROBOT_STATUS.WAITING;
         }
 
         //一操 二操切换 二操可强制开启
         if(gamepad2.leftBumperWasPressed()){
-            ReadyToShoot = false;
+            shouldShoot = false;
             if(robotStatus == ROBOT_STATUS.EATING){
                 robotStatus = ROBOT_STATUS.WAITING;
             }
@@ -105,13 +106,13 @@ public class OffseasonDECODE extends LinearOpMode {
             }
 
         }
-
+        //吸球部分
         if(gamepad1.leftBumperWasPressed()){
-            ReadyToShoot = false;
+            shouldShoot = false;
             robotStatus = ROBOT_STATUS.EATING;
         }
 
-//        todo: 发射部分
+        //发射部分
         if(gamepad1.yWasPressed()){
             shouldShoot = !shouldShoot;
         }
@@ -145,12 +146,6 @@ public class OffseasonDECODE extends LinearOpMode {
         }
     }
     void chassis(){
-        chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
-        if(gamepad1.xWasReleased())chassis.exchangeMode();
-        lastNanoTime=System.nanoTime();
-        chassis.telemetry();
-        telemetry.update();
-        TelemetryPacket packet = new TelemetryPacket();
         packet.fieldOverlay().setStroke("#3F51B5");
         Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
@@ -167,13 +162,20 @@ public class OffseasonDECODE extends LinearOpMode {
                 sweeper.setStop();
         }
     }
-//    void turret(){
-//    }
+    void turret(){
+        switch (turretStatus){
+            case SHOOTING:
+                shouldShoot = true;
+            case STOP:
+                shouldShoot = false;
+        }
+    }
     void update(){
-        sweeper.update();
-        telemetry.update();
+        chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
         // 更新炮塔状态
         turret.update(shouldAim,shouldShoot, targetTagId);
+        sweeper.update();
+        telemetry.update();
     }
     void telemetry(){
         sweeper.setTelemetry();
