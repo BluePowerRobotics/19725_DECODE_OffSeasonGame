@@ -44,7 +44,11 @@ public class HypParams {
      * 炮口与目标的高度差（单位：米）
      * 用于RK4弹道计算，即发射点与目标点之间的垂直距离
      */
-    public static double deltaH = 0.5;
+    public static double deltaH = 0.9;
+    /**
+     * AprilTag与炮口的高度差（单位：米）
+     */
+    public static double TagH=0.85;
 
     /**
      * 机器人最大线速度（单位：米/秒）

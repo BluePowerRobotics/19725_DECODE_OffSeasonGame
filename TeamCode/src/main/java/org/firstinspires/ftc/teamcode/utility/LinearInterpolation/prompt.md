@@ -1,0 +1,1 @@
+完成LinearInterpolator类负责预测yaw和飞轮speed。初始化时从data.csv导入数据，格式为yaw（只有有限个int取值），speed（连续int）和distance（double）。有一个predict函数，输入distance，在每个可行仰角下尝试：二分查找离这个distance最近的两组数据，线性预测功率，并记录两侧数据的speed之差，若一侧无数据则放弃该仰角；最终选择speed之差最小的仰角及该仰角下预测的结果，若无仰角满足返回null

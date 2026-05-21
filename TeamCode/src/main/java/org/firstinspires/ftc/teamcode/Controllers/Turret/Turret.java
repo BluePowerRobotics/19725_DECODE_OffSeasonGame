@@ -10,6 +10,8 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.RK4.AutoSelect;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
+import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
+import org.firstinspires.ftc.teamcode.utility.LinearInterpolation.LinearInterpolator;
 
 import java.util.List;
 
@@ -111,22 +113,21 @@ public class Turret {
         } else {
             double[] goalPos = HypParams.getGoalPosition(targetTagId);
             if (goalPos != null) {
-                double robotX = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getX();
-                double robotY = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getY();
-                double robotTheta = org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().getTheta();
+                double robotX = RobotPosition.getInstance().getX();
+                double robotY = RobotPosition.getInstance().getY();
+                double robotTheta = RobotPosition.getInstance().getTheta();
                 
                 double dx = goalPos[0] - robotX;
                 double dy = goalPos[1] - robotY;
                 
                 double angleToGoal = Math.atan2(dy, dx);
                 targetRoll = Math.toDegrees(angleToGoal - robotTheta);
-                targetYaw = Math.toDegrees(Math.atan2(delta_H, Math.hypot(dx, dy)));
+                targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(dx, dy)));
             } else {
                 targetRoll = this.roll + 90;
                 targetYaw = this.yaw;
             }
         }
-        //先这样写，但可能apriltag的实际位置低于球门，yaw要加一个常量
         rotate_to(targetRoll, targetYaw);
 
         double[] angles = get_angle();
@@ -141,8 +142,8 @@ public class Turret {
     public void shoot(double roll, double yaw) {
         double deltaH = delta_H;
         double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
-        double targetX = deltaH * cotYaw * Math.cos(Math.toRadians(roll));
-        double targetY = deltaH * cotYaw * Math.sin(Math.toRadians(roll));
+        double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(roll));
+        double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(roll));
 
         AutoSelect autoSelect = new AutoSelect();
         autoSelect.setDeltaH(deltaH);
@@ -152,11 +153,20 @@ public class Turret {
         double initialTheta = Math.toRadians(yaw);
         AutoSelect.AutoSelectResult result = autoSelect.Select(targetX, targetY, 0, 0, initialV0, initialTheta);
 
+        /* 线性插值
+        distance = Math.hypot(targetX, targetY);
+        PredictionResult predictionResult = LinearInterpolator.predict(distance);
+        if(shooter.setTargetSpeed(predictionResult.speed)&&turretDegreeController.rotateTo(roll, predictionResult.yaw)){
+            telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", predictionResult.yaw, roll, predictionResult.speed); 
+            telemetry.update();
+            launch(); 
+        }
+        */
         if (result.success) {
             double v0 = result.v0;
             int speed = (int) (k * v0 + b);
-            if(shooter.setTargetSpeed(speed)){
-                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
+            if(shooter.setTargetSpeed(speed)&&turretDegreeController.rotateTo(result.turretPhi, result.theta)){
+                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", result.theta, result.turretPhi, speed);
                 telemetry.update();
                 launch(); 
             }
@@ -190,12 +200,17 @@ public class Turret {
             shoot(roll, yaw);//注意逻辑：Turret.shoot传入的是目标位置对应的仰角，实际发射不使用传入的参数
         }
     }
-
-    public void update(boolean mustShoot ,int targetSpeed) {
-        if (mustShoot) {
-            shooter.setTargetSpeed(targetSpeed);
-        }
+    //重载输入统一
+    public void update(int speed, boolean shouldShoot) {
         shooter.update();
+        turretDegreeController.update();
+        if (shouldShoot) {
+            if(shooter.setTargetSpeed(speed)){
+                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
+                telemetry.update();
+                launch(); 
+            }
+        }
     }
 
     public void update(double roll, double yaw, int speed, boolean shouldShoot) {

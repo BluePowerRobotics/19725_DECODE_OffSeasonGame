@@ -182,7 +182,7 @@ public class TurretDegreeController {
         long now = System.currentTimeMillis();
         double dt = lastUpdateTime == 0 ? 0.02 : (now - lastUpdateTime) / 1000.0;
         lastUpdateTime = now;
-
+        //这里传进去的roll和yaw一定是原始定义，可能要转换才能输给舵机
         currentRoll = rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE;
         double outputVoltage = controller.calculate(targetRoll, currentRoll, dt, false);
         double power = voltageOut.getVoltageOutPower(outputVoltage);
