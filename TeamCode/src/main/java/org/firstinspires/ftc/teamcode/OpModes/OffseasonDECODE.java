@@ -209,7 +209,7 @@ public class OffseasonDECODE extends LinearOpMode {
                 } else {
                     targetSpeed = 0; // 默认速度或停止
                 }
-                turret.update(mustShoot,targetSpeed);
+                turret.update(targetSpeed,mustShoot);
         }
     }//或许不用写
     void update(){
