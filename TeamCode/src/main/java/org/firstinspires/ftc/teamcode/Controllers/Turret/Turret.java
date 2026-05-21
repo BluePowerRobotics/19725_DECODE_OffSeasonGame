@@ -191,6 +191,13 @@ public class Turret {
         }
     }
 
+    public void update(boolean mustShoot ,int targetSpeed) {
+        if (mustShoot) {
+            shooter.setTargetSpeed(targetSpeed);
+        }
+        shooter.update();
+    }
+
     public void update(double roll, double yaw, int speed, boolean shouldShoot) {
         shooter.update();
         turretDegreeController.update();
