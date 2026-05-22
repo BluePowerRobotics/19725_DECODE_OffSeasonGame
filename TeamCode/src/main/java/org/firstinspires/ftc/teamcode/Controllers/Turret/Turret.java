@@ -7,11 +7,10 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
-import org.firstinspires.ftc.teamcode.utility.RK4.AutoSelect;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
-import org.firstinspires.ftc.teamcode.utility.LinearInterpolation.LinearInterpolator;
+import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
 
 import java.util.List;
 
@@ -27,6 +26,7 @@ public class Turret {
     private double k;
     private double b;
     private double delta_H;
+    private BSTsolver bstSolver;
 
     public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
@@ -39,6 +39,7 @@ public class Turret {
         this.telemetry = telemetry;
 
         turretDegreeController = new TurretDegreeController(hardwareMap, telemetry);
+        bstSolver = new BSTsolver();
 
         initAprilTag(hardwareMap);
     }
@@ -144,36 +145,22 @@ public class Turret {
         double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
         double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(roll));
         double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(roll));
+        BSTsolver.Solution solution = bstSolver.predict(RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(), targetX, targetY);
+        if (solution.success) {
+            double targetRoll = Math.toDegrees(solution.roll);
+            double targetYaw = solution.yaw;
+            int targetSpeed = solution.speed;
 
-        AutoSelect autoSelect = new AutoSelect();
-        autoSelect.setDeltaH(deltaH);
-        /* 
-        double currentSpeed = shooter.getCurrentVelocity();
-        double initialV0 = (k != 0) ? (currentSpeed - b) / k : 8.0;
-        double initialTheta = Math.toRadians(yaw);
-        AutoSelect.AutoSelectResult result = autoSelect.Select(targetX, targetY, RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(), initialV0, initialTheta);
-        */
-        // 线性插值
-        LinearInterpolator linearInterpolator = new LinearInterpolator();
-        distance = Math.hypot(targetX, targetY);
-        PredictionResult predictionResult = LinearInterpolator.predict(distance);
-        if(shooter.setTargetSpeed(predictionResult.speed)&&turretDegreeController.rotateTo(roll, predictionResult.yaw)){
-            telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", predictionResult.yaw, roll, predictionResult.speed); 
-            telemetry.update();
-            launch(); 
-        }
-
-        /*
-        if (result.success) {
-            double v0 = result.v0;
-            int speed = (int) (k * v0 + b);
-            if(shooter.setTargetSpeed(speed)&&turretDegreeController.rotateTo(result.turretPhi, result.theta)){
-                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", result.theta, result.turretPhi, speed);
+            if (shooter.setTargetSpeed(targetSpeed) && turretDegreeController.rotateTo(targetRoll, targetYaw)) {
+                telemetry.addData("BST Shooting", "yaw= %.2f, roll= %.2f, speed= %d", targetYaw, targetRoll, targetSpeed);
                 telemetry.update();
-                launch(); 
+                launch();
             }
+        } else {
+            telemetry.addData("BST Error", solution.message);
+            telemetry.update();
         }
-        */
+        
     }
 
     public void shootByPosition(int targetTagId) {
@@ -182,21 +169,31 @@ public class Turret {
             double robotX = RobotPosition.getInstance().getX();
             double robotY = RobotPosition.getInstance().getY();
             double robotTheta = RobotPosition.getInstance().getTheta();
-            
+            double vx = RobotPosition.getInstance().getVx();
+            double vy = RobotPosition.getInstance().getVy();
+
             double dx = goalPos[0] - robotX;
             double dy = goalPos[1] - robotY;
-            
-            double angleToGoal = Math.atan2(dy, dx);
-            double targetRoll = Math.toDegrees(angleToGoal - robotTheta);
-            double distance = Math.hypot(dx, dy);
 
-            LinearInterpolator linearInterpolator = new LinearInterpolator();
-            LinearInterpolator.PredictionResult predictionResult = linearInterpolator.predict(distance);
-            if(shooter.setTargetSpeed(predictionResult.speed)&&turretDegreeController.rotateTo(targetRoll, predictionResult.yaw)){
-                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", predictionResult.yaw, targetRoll, predictionResult.speed); 
+            double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
+            double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
+
+            BSTsolver.Solution solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
+
+            if (solution.success) {
+                double targetRoll = Math.toDegrees(solution.roll);
+                double targetYaw = solution.yaw;
+                int targetSpeed = solution.speed;
+
+                if (shooter.setTargetSpeed(targetSpeed) && turretDegreeController.rotateTo(targetRoll, targetYaw)) {
+                    telemetry.addData("BST Shooting", "yaw= %.2f, roll= %.2f, speed= %d", targetYaw, targetRoll, targetSpeed);
+                    telemetry.update();
+                    launch();
+                }
+            } else {
+                telemetry.addData("BST Error", solution.message);
                 telemetry.update();
-                launch(); 
-            }   
+            }
         } else {
             throw new IllegalArgumentException("No goal position found for target ID");
         }

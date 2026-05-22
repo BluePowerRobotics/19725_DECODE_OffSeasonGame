@@ -42,7 +42,7 @@ public class BSTsolver {
         this.interpolator = interpolator;
     }
 
-    public Solution predict(double vx, double vy, double dx, double dy, double robotTheta) {
+    public Solution predict(double vx, double vy, double dx, double dy) {
         List<Integer> yaws = interpolator.getAvailableYaws();
         if (yaws.isEmpty()) {
             return new Solution("No yaw data available");
@@ -68,8 +68,7 @@ public class BSTsolver {
 
             double compensatedDx = dx - vx * solvedTime;
             double compensatedDy = dy - vy * solvedTime;
-            double absoluteAngle = Math.atan2(compensatedDy, compensatedDx);
-            double roll = normalizeAngle(absoluteAngle - robotTheta);
+            double roll = Math.atan2(compensatedDy, compensatedDx);
 
             double residual = Math.abs(computeF(solvedTime, vx, vy, dx, dy, yaw));
 
