@@ -147,13 +147,14 @@ public class Turret {
 
         AutoSelect autoSelect = new AutoSelect();
         autoSelect.setDeltaH(deltaH);
-
+        /* 
         double currentSpeed = shooter.getCurrentVelocity();
         double initialV0 = (k != 0) ? (currentSpeed - b) / k : 8.0;
         double initialTheta = Math.toRadians(yaw);
-        AutoSelect.AutoSelectResult result = autoSelect.Select(targetX, targetY, 0, 0, initialV0, initialTheta);
-
-        /* 线性插值
+        AutoSelect.AutoSelectResult result = autoSelect.Select(targetX, targetY, RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(), initialV0, initialTheta);
+        */
+        // 线性插值
+        LinearInterpolator linearInterpolator = new LinearInterpolator();
         distance = Math.hypot(targetX, targetY);
         PredictionResult predictionResult = LinearInterpolator.predict(distance);
         if(shooter.setTargetSpeed(predictionResult.speed)&&turretDegreeController.rotateTo(roll, predictionResult.yaw)){
@@ -161,7 +162,8 @@ public class Turret {
             telemetry.update();
             launch(); 
         }
-        */
+
+        /*
         if (result.success) {
             double v0 = result.v0;
             int speed = (int) (k * v0 + b);
@@ -170,6 +172,33 @@ public class Turret {
                 telemetry.update();
                 launch(); 
             }
+        }
+        */
+    }
+
+    public void shootByPosition(int targetTagId) {
+        double[] goalPos = HypParams.getGoalPosition(targetTagId);
+        if (goalPos != null) {
+            double robotX = RobotPosition.getInstance().getX();
+            double robotY = RobotPosition.getInstance().getY();
+            double robotTheta = RobotPosition.getInstance().getTheta();
+            
+            double dx = goalPos[0] - robotX;
+            double dy = goalPos[1] - robotY;
+            
+            double angleToGoal = Math.atan2(dy, dx);
+            double targetRoll = Math.toDegrees(angleToGoal - robotTheta);
+            double distance = Math.hypot(dx, dy);
+
+            LinearInterpolator linearInterpolator = new LinearInterpolator();
+            LinearInterpolator.PredictionResult predictionResult = linearInterpolator.predict(distance);
+            if(shooter.setTargetSpeed(predictionResult.speed)&&turretDegreeController.rotateTo(targetRoll, predictionResult.yaw)){
+                telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", predictionResult.yaw, targetRoll, predictionResult.speed); 
+                telemetry.update();
+                launch(); 
+            }   
+        } else {
+            throw new IllegalArgumentException("No goal position found for target ID");
         }
     }
 
@@ -197,7 +226,10 @@ public class Turret {
                 shoot(targetRoll, targetYaw);
             }
         } else if (shouldShoot) {
-            shoot(roll, yaw);//注意逻辑：Turret.shoot传入的是目标位置对应的仰角，实际发射不使用传入的参数
+            shootByPosition(targetTagId);
+            //不触发视觉实时瞄准（aim）时，仅根据位姿解算插值
+        } else {
+            reset();
         }
     }
     //重载输入统一
@@ -210,6 +242,8 @@ public class Turret {
                 telemetry.update();
                 launch(); 
             }
+        }else{
+            reset();
         }
     }
 
@@ -223,6 +257,8 @@ public class Turret {
                 telemetry.update();
                 launch(); 
             }
+        }else{
+            reset();
         }
     }
     //只用到标定，主程序不用。

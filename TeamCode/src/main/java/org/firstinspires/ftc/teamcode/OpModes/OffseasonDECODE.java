@@ -69,7 +69,8 @@ public class OffseasonDECODE extends LinearOpMode {
     public TelemetryPacket packet = new TelemetryPacket();
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
-    public boolean shouldAim = false;
+    public boolean shouldAim = false;//建议把这个分配给二操右扳机RT
+    //最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
     public boolean mustShoot = false;
     public boolean shouldShoot = false;
     public int targetSpeed = 0;
@@ -198,6 +199,7 @@ public class OffseasonDECODE extends LinearOpMode {
             case STOP:
                 shouldShoot = false;
             case MUSTSHOOTING:
+                //改成gamepad2吧，一操负责移动吸球二操负责发射
                 if (gamepad1.dpad_up) {
                     targetSpeed = 850; // 高速
                 } else if (gamepad1.dpad_right) {

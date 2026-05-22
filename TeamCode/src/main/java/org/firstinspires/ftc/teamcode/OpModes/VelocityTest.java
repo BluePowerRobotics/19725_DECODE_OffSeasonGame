@@ -30,7 +30,7 @@ public class VelocityTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化底盘
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, Chassis.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("State", currentState);
