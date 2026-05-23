@@ -32,8 +32,7 @@ public class OffseasonDECODE extends LinearOpMode {
         WAITING,
         SHOOTING,
         MUSTSHOOTING,
-        GIVE_ARTIFACT,
-        HANDSHOOTING
+        GIVE_ARTIFACT
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
@@ -76,6 +75,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public boolean mustShoot = false;
     public boolean shouldShoot = false;
     public boolean needshoot = false;
+    public static double turretmode = 0;//0为自动瞄准，1为定位的开环，2为手动瞄准
     public int targetSpeed = 0;
 
     void Init(){
@@ -145,9 +145,7 @@ public class OffseasonDECODE extends LinearOpMode {
 //        }
 
         if (gamepad2.xWasPressed()){
-            shouldShoot = false;
-            shouldAim = false;
-            robotStatus = ROBOT_STATUS.HANDSHOOTING;
+            turretmode = (turretmode + 1) % 3;
         }
 
     }
@@ -180,9 +178,6 @@ public class OffseasonDECODE extends LinearOpMode {
             case MUSTSHOOTING:
                 turretStatus = TURRET_STATUS.MUSTSHOOTING;
                 break;
-            case HANDSHOOTING:
-                turretStatus = TURRET_STATUS.HANDSHOOTING;
-                break;
 
 
         }
@@ -207,7 +202,22 @@ public class OffseasonDECODE extends LinearOpMode {
     void turret() {
         switch (turretStatus) {
             case SHOOTING:
-                shouldShoot = true;//这是什么情况？
+                if (turretmode == 0) {
+                    shouldAim = true;
+                    shouldShoot = true;
+                } else if (turretmode == 1) {
+                    shouldAim = false;
+                    shouldShoot = true;//这个我不太会写
+                } else if (turretmode == 2) {
+                    shouldAim = false;
+                    shouldShoot = false;
+                    targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
+                    if (gamepad2.yWasPressed()){
+                        needshoot = true;
+                    }
+                    turret.update(gamepad2.left_stick_x);
+                    turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
+                }
             case STOP:
                 shouldShoot = false;
             case MUSTSHOOTING:
@@ -224,15 +234,6 @@ public class OffseasonDECODE extends LinearOpMode {
                     targetSpeed = 0; // 默认速度或停止
                 }
                 turret.update(targetSpeed, mustShoot);
-            case HANDSHOOTING:
-                   targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
-                   if (gamepad2.yWasPressed()){
-                       needshoot = true;
-                   }else if (gamepad2.bWasPressed()){
-                       needshoot = false;
-                   }
-                   turret.update(gamepad2.left_stick_x);
-                   turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
         }
     }
     void update(){
