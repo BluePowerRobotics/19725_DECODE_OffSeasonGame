@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.VoltageOut;
  */
 public class TurretDegreeController {
 
-    private DcMotorEx rollMotor;
+    public DcMotorEx rollMotor;
     private Servo yawServo;
     private VoltageOut voltageOut;
     private PIDSVAController controller;

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -17,7 +20,7 @@ import java.util.List;
 public class Turret {
     public Shooter shooter;
     Telemetry telemetry;
-    private TurretDegreeController turretDegreeController;
+    public TurretDegreeController turretDegreeController;
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
@@ -242,6 +245,12 @@ public class Turret {
         }else{
             reset();
         }
+    }
+
+    public void update(double kx) {
+        shooter.update();
+        DcMotorEx rollMotor = turretDegreeController.rollMotor;
+        rollMotor.setPower(kx);
     }
 
     public void update(double roll, double yaw, int speed, boolean shouldShoot) {

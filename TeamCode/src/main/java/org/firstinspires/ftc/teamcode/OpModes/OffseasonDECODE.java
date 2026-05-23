@@ -32,7 +32,8 @@ public class OffseasonDECODE extends LinearOpMode {
         WAITING,
         SHOOTING,
         MUSTSHOOTING,
-        GIVE_ARTIFACT
+        GIVE_ARTIFACT,
+        HANDSHOOTING
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
@@ -57,7 +58,8 @@ public class OffseasonDECODE extends LinearOpMode {
     public enum TURRET_STATUS {
         SHOOTING,
         STOP,
-        MUSTSHOOTING
+        MUSTSHOOTING,
+        HANDSHOOTING
     }
     TURRET_STATUS turretStatus = TURRET_STATUS.STOP;
     public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
@@ -69,10 +71,11 @@ public class OffseasonDECODE extends LinearOpMode {
     public TelemetryPacket packet = new TelemetryPacket();
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
-    public boolean shouldAim = false;//建议把这个分配给二操右扳机RT
+    public boolean shouldAim = false;//建议把这个分配给二操右扳机RT//先不用扳机，两个都暂时都给
     //最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
     public boolean mustShoot = false;
     public boolean shouldShoot = false;
+    public boolean needshoot = false;
     public int targetSpeed = 0;
 
     void Init(){
@@ -136,9 +139,15 @@ public class OffseasonDECODE extends LinearOpMode {
             robotStatus = ROBOT_STATUS.MUSTSHOOTING;
         }
 
-        if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
+//        if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
+//            shouldShoot = false;
+//            robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
+//        }
+
+        if (gamepad2.xWasPressed()){
             shouldShoot = false;
-            robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
+            shouldAim = false;
+            robotStatus = ROBOT_STATUS.HANDSHOOTING;
         }
 
     }
@@ -171,6 +180,9 @@ public class OffseasonDECODE extends LinearOpMode {
             case MUSTSHOOTING:
                 turretStatus = TURRET_STATUS.MUSTSHOOTING;
                 break;
+            case HANDSHOOTING:
+                turretStatus = TURRET_STATUS.HANDSHOOTING;
+                break;
 
 
         }
@@ -192,28 +204,37 @@ public class OffseasonDECODE extends LinearOpMode {
                 sweeper.setStop();
         }
     }
-    void turret(){
-        switch (turretStatus){
+    void turret() {
+        switch (turretStatus) {
             case SHOOTING:
                 shouldShoot = true;//这是什么情况？
             case STOP:
                 shouldShoot = false;
             case MUSTSHOOTING:
-                //改成gamepad2吧，一操负责移动吸球二操负责发射
-                if (gamepad1.dpad_up) {
+                //改成gamepad2吧，一操负责移动吸球二操负责发射//已改
+                if (gamepad2.dpad_up) {
                     targetSpeed = 850; // 高速
-                } else if (gamepad1.dpad_right) {
+                } else if (gamepad2.dpad_right) {
                     targetSpeed = 760; // 中高速
-                } else if (gamepad1.dpad_down) {
+                } else if (gamepad2.dpad_down) {
                     targetSpeed = 650; // 中速
-                } else if (gamepad1.dpad_left) {
+                } else if (gamepad2.dpad_left) {
                     targetSpeed = 500; // 低速
                 } else {
                     targetSpeed = 0; // 默认速度或停止
                 }
-                turret.update(targetSpeed,mustShoot);
+                turret.update(targetSpeed, mustShoot);
+            case HANDSHOOTING:
+                   targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
+                   if (gamepad2.yWasPressed()){
+                       needshoot = true;
+                   }else if (gamepad2.bWasPressed()){
+                       needshoot = false;
+                   }
+                   turret.update(gamepad2.left_stick_x);
+                   turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
         }
-    }//或许不用写
+    }
     void update(){
         chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
         // 更新炮塔状态
