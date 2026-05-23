@@ -31,7 +31,6 @@ public class OffseasonDECODE extends LinearOpMode {
         OUTPUT,
         WAITING,
         SHOOTING,
-        MUSTSHOOTING,
         GIVE_ARTIFACT
     }
 
@@ -57,8 +56,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public enum TURRET_STATUS {
         SHOOTING,
         STOP,
-        MUSTSHOOTING,
-        HANDSHOOTING
+        IDLE
     }
     TURRET_STATUS turretStatus = TURRET_STATUS.STOP;
     public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
@@ -132,13 +130,6 @@ public class OffseasonDECODE extends LinearOpMode {
             robotStatus = ROBOT_STATUS.SHOOTING;
         }
 
-        if (gamepad1.startWasPressed() || gamepad2.startWasPressed()){
-            shouldShoot = false;
-            mustShoot = true;
-            shouldAim = false;
-            robotStatus = ROBOT_STATUS.MUSTSHOOTING;
-        }
-
 //        if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
 //            shouldShoot = false;
 //            robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
@@ -153,16 +144,17 @@ public class OffseasonDECODE extends LinearOpMode {
         switch (robotStatus) {
             case EATING:
                 sweeperStatus = SWEEPER_STATUS.EAT;
-                turretStatus = TURRET_STATUS.STOP;
+                turretStatus = TURRET_STATUS.IDLE;
                 //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
                 break;
             case OUTPUT:
                 sweeperStatus = SWEEPER_STATUS.OUTPUT;
+                turretStatus = TURRET_STATUS.IDLE;
                 break;
             case WAITING:
                 //boolean AprilTagStatus = !Double.isNaN(aprilTagDetector.getPose().pose.position.x);
                 sweeperStatus = SWEEPER_STATUS.STOP;
-                turretStatus = TURRET_STATUS.STOP;
+                turretStatus = TURRET_STATUS.IDLE;
 //                if (teamColor == TEAM_COLOR.RED) {
 //                    //ledController.showRedTeam();
 //                }
@@ -174,9 +166,6 @@ public class OffseasonDECODE extends LinearOpMode {
                 //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                 turretStatus = TURRET_STATUS.SHOOTING;
                 //sweeper和trigger状态由shooter条件决定，在shoot()中
-                break;
-            case MUSTSHOOTING:
-                turretStatus = TURRET_STATUS.MUSTSHOOTING;
                 break;
 
 
@@ -203,37 +192,42 @@ public class OffseasonDECODE extends LinearOpMode {
         switch (turretStatus) {
             case SHOOTING:
                 if (turretmode == 0) {
-                    shouldAim = true;
-                    shouldShoot = true;
+                    turret.update(true, true, targetTagId);
                 } else if (turretmode == 1) {
-                    shouldAim = false;
-                    shouldShoot = true;//这个我不太会写
+                    turret.update(false, true, targetTagId);
                 } else if (turretmode == 2) {
                     shouldAim = false;
                     shouldShoot = false;
-                    targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
+                    if (gamepad2.dpad_up) {
+                        targetSpeed = 850; // 高速
+                     } else if (gamepad2.dpad_right) {
+                        targetSpeed = 760; // 中高速
+                    } else if (gamepad2.dpad_down) {
+                        targetSpeed = 650; // 中速
+                    } else if (gamepad2.dpad_left) {
+                        targetSpeed = 500; // 低速
+                    } else {
+                        targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
+                    }
                     if (gamepad2.yWasPressed()){
                         needshoot = true;
                     }
                     turret.update(gamepad2.left_stick_x);
                     turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
                 }
+                break;
             case STOP:
-                shouldShoot = false;
-            case MUSTSHOOTING:
-                //改成gamepad2吧，一操负责移动吸球二操负责发射//已改
-                if (gamepad2.dpad_up) {
-                    targetSpeed = 850; // 高速
-                } else if (gamepad2.dpad_right) {
-                    targetSpeed = 760; // 中高速
-                } else if (gamepad2.dpad_down) {
-                    targetSpeed = 650; // 中速
-                } else if (gamepad2.dpad_left) {
-                    targetSpeed = 500; // 低速
-                } else {
-                    targetSpeed = 0; // 默认速度或停止
+                turret.update(false, false, targetTagId);
+                break;
+            case IDLE:
+                if (turretmode == 0) {
+                    turret.update(true, false, targetTagId);
+                } else if (turretmode == 1) {
+                    turret.update(false, false, targetTagId);
+                } else if (turretmode == 2) {
+                    turret.update(gamepad2.left_stick_x);
                 }
-                turret.update(targetSpeed, mustShoot);
+                break;
         }
     }
     void update(){
