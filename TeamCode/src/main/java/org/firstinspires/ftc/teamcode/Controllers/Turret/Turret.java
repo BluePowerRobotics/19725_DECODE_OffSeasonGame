@@ -224,6 +224,10 @@ public class Turret {
             }
             else if (isTargetFound) {
                 shoot(targetRoll, targetYaw);
+            }else{
+                shootByPosition(targetTagId); //tag不可用时自动降级
+                telemetry.addData("Warning", "Response unavailable, auto downgrading");
+                telemetry.update();
             }
         } else if (shouldShoot) {
             shootByPosition(targetTagId);
