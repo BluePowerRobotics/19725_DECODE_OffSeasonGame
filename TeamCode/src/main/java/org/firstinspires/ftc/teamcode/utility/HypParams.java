@@ -49,7 +49,10 @@ public class HypParams {
      * AprilTag与炮口的高度差（单位：米）
      */
     public static double TagH=0.85;
-
+    /**
+     * 相机与炮口的水平距离（单位：米）
+     */
+    public static double WebcamR = 0.1;
     /**
      * 机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度
