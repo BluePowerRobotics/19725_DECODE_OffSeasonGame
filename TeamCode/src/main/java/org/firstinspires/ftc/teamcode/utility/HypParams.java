@@ -54,6 +54,10 @@ public class HypParams {
      */
     public static double WebcamR = 0.1;
     /**
+     * 相机仰角（单位：度）
+     */
+    public static double WebcamTheta = 45;
+    /**
      * 机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度
      */

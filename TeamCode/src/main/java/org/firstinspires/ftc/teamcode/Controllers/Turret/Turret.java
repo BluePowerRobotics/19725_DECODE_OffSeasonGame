@@ -15,6 +15,11 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeCont
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import java.util.List;
 
 public class Turret {
@@ -57,8 +62,14 @@ public class Turret {
 
     // 初始化AprilTag处理器
     private void initAprilTag(HardwareMap hardwareMap) {
-        // 创建AprilTag处理器
+        // 定义摄像头位置和方向
+        // 位置：摄像头在机器人坐标系中的位置（这里假设在原点）
+        Position cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
+        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, HypParams.WebcamTheta, -90, 0);
+
+        // 创建AprilTag处理器并设置摄像头姿态
         aprilTag = new AprilTagProcessor.Builder()
+                .setCameraPose(cameraPosition, cameraOrientation)
                 .build();
 
         // 创建视觉门户
