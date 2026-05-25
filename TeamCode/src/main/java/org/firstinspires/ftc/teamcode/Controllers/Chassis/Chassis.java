@@ -33,13 +33,13 @@ public class Chassis {
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
     public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+        Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
+                HypParams.startPoseRed : HypParams.startPoseBlue;
+        RobotPosition.RobotPositioninit(hardwareMap, startPose);
         this.drive = RobotPosition.getInstance().getDrive();
         this.actionRunner = actionRunner;
         this.telemetry = telemetry;
 
-        Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
-            HypParams.startPoseRed : HypParams.startPoseBlue;
-        RobotPosition.RobotPositioninit(hardwareMap, startPose);
     }
 
     public void setMode(boolean RunningToPose){
