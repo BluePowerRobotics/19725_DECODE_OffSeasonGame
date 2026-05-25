@@ -126,6 +126,24 @@ public class Turret {
             targetRoll = this.roll + bearing;
             double distance = HypParams.TagH / Math.tan(Math.toRadians(elevation)) + HypParams.WebcamR;
             targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, distance));
+            if(targetRoll <= -180 || targetRoll >= 180) {
+                double[] goalPos = HypParams.getGoalPosition(targetTagId);
+                if (goalPos != null) {
+                    double robotX = RobotPosition.getInstance().getX();
+                    double robotY = RobotPosition.getInstance().getY();
+                    double robotTheta = RobotPosition.getInstance().getTheta();
+
+                    double dx = goalPos[0] - robotX;
+                    double dy = goalPos[1] - robotY;
+
+                    double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
+                    double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
+
+                    double theta = Math.atan2(relativeDy, relativeDx);
+                    targetRoll = Math.toDegrees(theta - robotTheta);
+                    targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
+                }
+            }
         } else {
             double[] goalPos = HypParams.getGoalPosition(targetTagId);
             if (goalPos != null) {
