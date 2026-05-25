@@ -124,7 +124,7 @@ public class Turret {
             double bearing = targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
             targetRoll = this.roll + bearing;
-            distance = HypParams.TagH / Math.tan(Math.toRadians(elevation)) + HypParams.WebcamR;
+            double distance = HypParams.TagH / Math.tan(Math.toRadians(elevation)) + HypParams.WebcamR;
             targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, distance));
         } else {
             double[] goalPos = HypParams.getGoalPosition(targetTagId);
