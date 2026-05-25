@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
+import org.firstinspires.ftc.teamcode.utility.MathSolver;
 import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
@@ -89,7 +90,7 @@ public class Turret {
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
             // 旋转成功后更新内部状态
-            this.roll = roll;
+            this.roll = MathSolver.wrapAngle(roll);
             this.yaw = yaw;
         }
         return success;
@@ -140,7 +141,7 @@ public class Turret {
                     double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                     double theta = Math.atan2(relativeDy, relativeDx);
-                    targetRoll = Math.toDegrees(theta - robotTheta);
+                    targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
                     targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
                 }
             }
@@ -158,7 +159,7 @@ public class Turret {
                 double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                 double theta = Math.atan2(relativeDy, relativeDx);
-                targetRoll = Math.toDegrees(theta - robotTheta);
+                targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
                 targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
             } else {
                 throw new IllegalArgumentException("Goal position not found for targetTagId: " + targetTagId);
@@ -169,12 +170,12 @@ public class Turret {
         double[] angles = get_angle();
         return new Object[]{isTargetFound, angles[0], angles[1]};
     }
-
+    /*
     public void set(double k, double b) {
         this.k = k;
         this.b = b;
     }
-
+    */
     public void shoot(double roll, double yaw) {
         double deltaH = delta_H;
         double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
