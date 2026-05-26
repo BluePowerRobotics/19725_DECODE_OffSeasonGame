@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
-
+@Config
 @TeleOp(name = "Processor Tester", group = "Test")
 
 public class ProcessorTest extends LinearOpMode {
@@ -65,6 +68,7 @@ public class ProcessorTest extends LinearOpMode {
     @Override
 
     public void runOpMode() {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         // 1. 初始化 AprilTag 处理器
         // 定义摄像头位置和方向
@@ -72,15 +76,17 @@ public class ProcessorTest extends LinearOpMode {
         // pitch=-45度：向上仰45度（0度指向上，-90度水平向前）
         // roll=-90度：绕光轴逆时针旋转90度
         Position cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
-        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, HypParams.WebcamTheta, -90, 0);
+        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, HypParams.WebcamTheta,
+                90, 0);
 
         aprilTag = new AprilTagProcessor.Builder()
-                .setCameraPose(cameraPosition, cameraOrientation)
+//                .setCameraPose(cameraPosition, cameraOrientation)
                 .build();
 
         // 2. 初始化 VisionPortal（需要硬件映射中的 "Webcam 1"）
         visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class, "Webcam 1"))
+                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class,
+                        "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
 

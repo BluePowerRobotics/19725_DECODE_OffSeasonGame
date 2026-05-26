@@ -27,8 +27,8 @@ public class ChassisTester extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while (opModeIsActive()){
-            chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
-            if(gamepad1.xWasReleased())chassis.exchangeMode();
+            chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            if(gamepad1.xWasReleased())chassis.exchangeFieldRelativeMode();
             lastNanoTime=System.nanoTime();
             chassis.telemetry();
             telemetry.update();

@@ -231,7 +231,7 @@ public class OffseasonDECODE extends LinearOpMode {
         }
     }
     void update(){
-        chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         // 更新炮塔状态
         turret.update(shouldAim,shouldShoot, targetTagId);
         sweeper.update();

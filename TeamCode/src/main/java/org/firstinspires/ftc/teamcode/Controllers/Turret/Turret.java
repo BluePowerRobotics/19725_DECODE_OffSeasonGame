@@ -90,7 +90,7 @@ public class Turret {
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
             // 旋转成功后更新内部状态
-            this.roll = MathSolver.wrapAngle(roll);
+            this.roll = MathSolver.normalizeAngle(roll);
             this.yaw = yaw;
         }
         return success;
@@ -141,7 +141,7 @@ public class Turret {
                     double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                     double theta = Math.atan2(relativeDy, relativeDx);
-                    targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
+                    targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta - robotTheta));
                     targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
                 }
             }
@@ -159,7 +159,7 @@ public class Turret {
                 double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                 double theta = Math.atan2(relativeDy, relativeDx);
-                targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
+                targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta - robotTheta));
                 targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
             } else {
                 throw new IllegalArgumentException("Goal position not found for targetTagId: " + targetTagId);
