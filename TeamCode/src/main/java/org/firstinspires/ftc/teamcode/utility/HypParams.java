@@ -58,16 +58,20 @@ public class HypParams {
      */
     public static double WebcamTheta = 45;
     /**
+    射程最远时所对仰角
+     */
+    public static double BestYaw = 50;
+    /**
      * 机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度
      */
-    public static double maxV = 0.5;
+    public static double maxV = 2;
 
     /**
      * 机器人最大角速度（单位：弧度/秒）
      * 底盘旋转时允许的最大角速度
      */
-    public static double maxOmega = Math.PI / 2;
+    public static double maxOmega = Math.PI;
 
     /**
      * 红队初始姿态（单位：英寸，弧度）
