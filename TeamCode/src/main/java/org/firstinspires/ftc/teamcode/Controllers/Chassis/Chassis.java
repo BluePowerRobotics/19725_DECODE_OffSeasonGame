@@ -29,6 +29,7 @@ public class Chassis {
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
     private boolean RunningToPose = HypParams.InitialRunningToPose;
+    private boolean useFieldRelative = false;
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
@@ -48,6 +49,12 @@ public class Chassis {
 
     public void exchangeMode(){
         RunningToPose = !RunningToPose;
+    }
+    public void exchangeFieldRelativeMode(){
+        useFieldRelative = !useFieldRelative;
+    }
+    public boolean getFieldRelativeMode(){
+        return useFieldRelative;
     }
     public void stop(){
         drive.setDrivePowers(new PoseVelocity2d(
@@ -102,18 +109,15 @@ public class Chassis {
         if(!actionRunner.isBusy()){
             double vx = Kx * maxV;
             double vy = Ky * maxV;
-            //原来的controller是这样实现的，但如果各方向maxV相同应当是下面这个写法
-            //double vx = Kx / Math.hypot(Kx, Ky) * maxV;
-            //double vy = Ky / Math.hypot(Kx, Ky)* maxV;
             double omega = Komega * maxOmega;
-            if(RunningToPose){
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vx,vy), omega));
+            if(useFieldRelative){
+                double theta = RobotPosition.getInstance().getTheta();
+                double vxField = vx * Math.cos(theta) - vy * Math.sin(theta);
+                double vyField = vx * Math.sin(theta) + vy * Math.cos(theta);
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vyField, -vxField), omega));
             }
             else{
-                Point2D RelVel=Point2D.rotate(new Point2D(vx, vy),-RobotPosition.getInstance().getTheta());
-                drive.setDrivePowers(new PoseVelocity2d(
-                        new Vector2d(RelVel.getX(),RelVel.getY()),
-                        omega));
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vy, -vx), omega));
             }
         }
     }
@@ -122,6 +126,12 @@ public class Chassis {
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
         telemetry.addData("RunningToPose", RunningToPose);
+        telemetry.addData("FieldRelative", useFieldRelative);
+        telemetry.addData("lfP",drive.leftFront.getPower());
+        telemetry.addData("rfP",drive.rightFront.getPower());
+        telemetry.addData("lbP",drive.leftBack.getPower());
+        telemetry.addData("rbP",drive.rightBack.getPower());
+
         //telemetry.addData("Vx",RobotPosition.getInstance().getVx());
         //telemetry.addData("Vy",RobotPosition.getInstance().getVy());
         //telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));
