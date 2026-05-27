@@ -75,8 +75,7 @@ public class ProcessorTest extends LinearOpMode {
 
         // 2. 初始化 VisionPortal（需要硬件映射中的 "Webcam 1"）
         visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class,
-                        "Webcam 1"))
+                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class, "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
 
