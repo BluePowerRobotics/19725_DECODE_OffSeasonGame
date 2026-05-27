@@ -162,4 +162,22 @@ public class HypParams {
         }
         return null;
     }
+
+    /**
+     * 红队吃球位姿列表（单位：英寸，弧度）
+     * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
+     */
+    public static Pose2d[] EatPosesRed = {
+        new Pose2d(10, 20, Math.toRadians(90)),
+        new Pose2d(20, 20, Math.toRadians(90))
+    };
+
+    /**
+     * 蓝队吃球位姿列表（单位：英寸，弧度）
+     * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
+     */
+    public static Pose2d[] EatPosesBlue = {
+        new Pose2d(10, -20, Math.toRadians(-90)),
+        new Pose2d(20, -20, Math.toRadians(-90))
+    };
 }

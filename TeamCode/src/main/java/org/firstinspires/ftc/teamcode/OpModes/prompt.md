@@ -1,1 +1,2 @@
-编写opmode测试apriltagprocessor类的功能，实时在telemtry输出apriltag的识别结果，包括每个识别到的tag的id和偏移角度，并提供用手柄方向键调节参数的方法：gamepad1上下键调节Decimation(步长0.1)，左右键调节White Balance（步长100）；gamepad2上下键调节Exposure（步长5），左右键调节Gain（步长5）；若调节的同时按住右扳机则步长减半；实时在telemtry上显示当前参数
+完成GoToEatPose类，修改AutoAction类自动逻辑如下：设定一个EatPose列表，包含若干个吃球位姿，存储在HypParams中；在AutoAction中存储一个boolean列表，用于记录是否已到达每个吃球位姿；开始后，当满足SearchAction的条件时，若列表中仍有未到达的吃球位姿，则先移动到该位姿（使用GoToEatPoseAction实现），到达后检查视野内是否有球，若有则执行EatAction，若无则前往下一个EatPose，同时将该位姿的到达状态记录为已到达；若列表中没有未到达的吃球位姿，则按原来逻辑执行SearchAction
+   

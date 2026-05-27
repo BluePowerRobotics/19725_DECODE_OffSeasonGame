@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToEatPose;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToShootingAreaAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.ShootAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
@@ -16,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 
 
@@ -35,6 +38,8 @@ public class AutoAction extends LinearOpMode {
     private Sweeper sweeper;
     private int targetTagId;
     private String lastActionType;
+    private boolean[] eatPoseReached;
+    private int currentEatPoseIndex;
 
     @Override
     public void runOpMode() {
@@ -75,6 +80,10 @@ public class AutoAction extends LinearOpMode {
         tracker = new Tracker(hardwareMap);
         tracker.start();
 
+        Pose2d[] eatPoses = (teamColor == TEAM_COLOR.RED) ? HypParams.EatPosesRed : HypParams.EatPosesBlue;
+        eatPoseReached = new boolean[eatPoses.length];
+        currentEatPoseIndex = 0;
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -93,14 +102,56 @@ public class AutoAction extends LinearOpMode {
                     lastActionType = "Shoot";
                 }
                 else if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-                    if(tracker.getHasTarget()){
-                        actionRunner.add(new EatAction(chassis, tracker, sweeper));
-                        lastActionType = "Eat";
+                    // 检查是否有未到达的吃球位姿
+                    boolean hasUnreachedPose = false;
+                    for (int i = 0; i < eatPoseReached.length; i++) {
+                        if (!eatPoseReached[i]) {
+                            hasUnreachedPose = true;
+                            break;
+                        }
                     }
-                    else{
-                        actionRunner.add(new SearchAction(chassis, tracker, sweeper, 
-                            teamColor == TEAM_COLOR.RED ? OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE));
-                        lastActionType = "Search";
+
+                    if (hasUnreachedPose) {
+                        // 有未到达的吃球位姿，先移动到该位姿
+                        if (lastActionType.equals("GoToEatPose")) {
+                            // 已经到达吃球位姿，检查视野内是否有球
+                            if (tracker.getHasTarget()) {
+                                actionRunner.add(new EatAction(chassis, tracker, sweeper));
+                                lastActionType = "Eat";
+                            } else {
+                                // 没有球，前往下一个未到达的吃球位姿
+                                eatPoseReached[currentEatPoseIndex] = true;
+                                for (int i = 0; i < eatPoseReached.length; i++) {
+                                    if (!eatPoseReached[i]) {
+                                        currentEatPoseIndex = i;
+                                        break;
+                                    }
+                                }
+                                actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+                                lastActionType = "GoToEatPose";
+                            }
+                        } else {
+                            // 前往第一个未到达的吃球位姿
+                            for (int i = 0; i < eatPoseReached.length; i++) {
+                                if (!eatPoseReached[i]) {
+                                    currentEatPoseIndex = i;
+                                    break;
+                                }
+                            }
+                            actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+                            lastActionType = "GoToEatPose";
+                        }
+                    } else {
+                        // 所有吃球位姿都已到达，执行原来的 SearchAction
+                        if(tracker.getHasTarget()){
+                            actionRunner.add(new EatAction(chassis, tracker, sweeper));
+                            lastActionType = "Eat";
+                        }
+                        else{
+                            actionRunner.add(new SearchAction(chassis, tracker, sweeper,
+                                teamColor == TEAM_COLOR.RED ? OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE));
+                            lastActionType = "Search";
+                        }
                     }
                 }
             }
