@@ -118,10 +118,9 @@ public class Turret {
 
         if (isTargetFound && targetDetection != null) {
             double bearing = targetDetection.ftcPose.bearing;
-            double elevation = targetDetection.ftcPose.elevation + HypParams.WebcamTheta;
+            double elevation = targetDetection.ftcPose.elevation;
             targetRoll = this.roll + bearing;
-            double distance = HypParams.TagH / Math.tan(Math.toRadians(elevation)) + HypParams.WebcamR;
-            targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, distance));
+            targetYaw = this.yaw + elevation;
             if(targetRoll <= -180 || targetRoll >= 180) {
                 double[] goalPos = HypParams.getGoalPosition(targetTagId);
                 if (goalPos != null) {
@@ -160,8 +159,8 @@ public class Turret {
                 throw new IllegalArgumentException("Goal position not found for targetTagId: " + targetTagId);
             }
         }
-        rotate_to(targetRoll, HypParams.BestYaw);
-        return new Object[]{isTargetFound, targetRoll, targetYaw};
+        rotate_to(targetRoll, targetYaw);
+        return new Object[]{isTargetFound, targetRoll, targetYaw-HypParams.WebcamTheta};
     }
     /*
     public void set(double k, double b) {
