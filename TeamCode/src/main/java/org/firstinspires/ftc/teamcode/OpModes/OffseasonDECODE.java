@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import static org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.RobotPositioninit;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -30,8 +32,7 @@ public class OffseasonDECODE extends LinearOpMode {
         EATING,
         OUTPUT,
         WAITING,
-        SHOOTING,
-        GIVE_ARTIFACT
+        SHOOTING
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
@@ -70,7 +71,6 @@ public class OffseasonDECODE extends LinearOpMode {
     public boolean ReadyToShoot = false;
     public boolean shouldAim = false;//建议把这个分配给二操右扳机RT//先不用扳机，两个都暂时都给
     //最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
-    public boolean mustShoot = false;
     public boolean shouldShoot = false;
     public boolean needshoot = false;
     public static double turretmode = 0;//0为自动瞄准，1为定位的开环，2为手动瞄准
@@ -84,6 +84,7 @@ public class OffseasonDECODE extends LinearOpMode {
         telemetry = InstanceTelemetry.init(telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
+        turret = new Turret(hardwareMap, telemetry);
         actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
         //ledController = new BlinkinLedController(hardwareMap);
@@ -180,12 +181,16 @@ public class OffseasonDECODE extends LinearOpMode {
         switch (sweeperStatus){
             case EAT:
                 sweeper.setEat();
+                break;
             case GIVE_ARTIFACT:
                 sweeper.setGiveArtifact();
+                break;
             case OUTPUT:
                 sweeper.setOutput();
+                break;
             case STOP:
                 sweeper.setStop();
+                break;
         }
     }
     void turret() {
@@ -212,7 +217,7 @@ public class OffseasonDECODE extends LinearOpMode {
                     if (gamepad2.yWasPressed()){
                         needshoot = true;
                     }
-                    turret.update(gamepad2.left_stick_x);
+//                    turret.update(gamepad2.left_stick_x);
                     turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
                 }
                 break;
@@ -231,7 +236,7 @@ public class OffseasonDECODE extends LinearOpMode {
         }
     }
     void update(){
-        chassis.update(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         // 更新炮塔状态
         turret.update(shouldAim,shouldShoot, targetTagId);
         sweeper.update();

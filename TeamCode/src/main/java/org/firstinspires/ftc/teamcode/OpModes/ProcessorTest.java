@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
-
+@Config
 @TeleOp(name = "Processor Tester", group = "Test")
 
 public class ProcessorTest extends LinearOpMode {
@@ -65,13 +68,15 @@ public class ProcessorTest extends LinearOpMode {
     @Override
 
     public void runOpMode() {
-
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        
         aprilTag = new AprilTagProcessor.Builder()
                 .build();
 
         // 2. 初始化 VisionPortal（需要硬件映射中的 "Webcam 1"）
         visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class, "Webcam 1"))
+                .setCamera(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class,
+                        "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
 
