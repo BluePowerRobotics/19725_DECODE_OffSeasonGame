@@ -37,6 +37,8 @@ public class Turret {
     private double delta_H;
     private BSTsolver bstSolver;
 
+    private boolean shooting = false;
+
     public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
         yaw = 0.0;
@@ -63,14 +65,7 @@ public class Turret {
 
     // 初始化AprilTag处理器
     private void initAprilTag(HardwareMap hardwareMap) {
-        // 定义摄像头位置和方向
-        // 位置：摄像头在机器人坐标系中的位置（这里假设在原点）
-        Position cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
-        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, HypParams.WebcamTheta, -90, 0);
-
-        // 创建AprilTag处理器并设置摄像头姿态
         aprilTag = new AprilTagProcessor.Builder()
-                .setCameraPose(cameraPosition, cameraOrientation)
                 .build();
 
         // 创建视觉门户
@@ -90,7 +85,7 @@ public class Turret {
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
             // 旋转成功后更新内部状态
-            this.roll = MathSolver.wrapAngle(roll);
+            this.roll = MathSolver.normalizeAngle(roll);
             this.yaw = yaw;
         }
         return success;
@@ -123,7 +118,7 @@ public class Turret {
 
         if (isTargetFound && targetDetection != null) {
             double bearing = targetDetection.ftcPose.bearing;
-            double elevation = targetDetection.ftcPose.elevation;
+            double elevation = targetDetection.ftcPose.elevation + HypParams.WebcamTheta;
             targetRoll = this.roll + bearing;
             double distance = HypParams.TagH / Math.tan(Math.toRadians(elevation)) + HypParams.WebcamR;
             targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, distance));
@@ -141,7 +136,7 @@ public class Turret {
                     double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                     double theta = Math.atan2(relativeDy, relativeDx);
-                    targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
+                    targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta - robotTheta));
                     targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
                 }
             }
@@ -159,16 +154,14 @@ public class Turret {
                 double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                 double theta = Math.atan2(relativeDy, relativeDx);
-                targetRoll = MathSolver.wrapAngle(Math.toDegrees(theta - robotTheta));
+                targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta - robotTheta));
                 targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
             } else {
                 throw new IllegalArgumentException("Goal position not found for targetTagId: " + targetTagId);
             }
         }
-        rotate_to(targetRoll, targetYaw);
-
-        double[] angles = get_angle();
-        return new Object[]{isTargetFound, angles[0], angles[1]};
+        rotate_to(targetRoll, HypParams.BestYaw);
+        return new Object[]{isTargetFound, targetRoll, targetYaw};
     }
     /*
     public void set(double k, double b) {
@@ -177,6 +170,7 @@ public class Turret {
     }
     */
     public void shoot(double roll, double yaw) {
+        shooting = true;
         double deltaH = delta_H;
         double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
         double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(roll));
@@ -200,6 +194,7 @@ public class Turret {
     }
 
     public void shootByPosition(int targetTagId) {
+        shooting = true;
         double[] goalPos = HypParams.getGoalPosition(targetTagId);
         if (goalPos != null) {
             double robotX = RobotPosition.getInstance().getX();
@@ -246,7 +241,7 @@ public class Turret {
     public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {
         shooter.update();
         turretDegreeController.update();
-        if (shouldAim) {
+        if (shouldAim && !shooting) {
             Object[] aimResult = aim(targetTagId);
             boolean isTargetFound = (boolean) aimResult[0];
             double targetRoll = (double) aimResult[1];

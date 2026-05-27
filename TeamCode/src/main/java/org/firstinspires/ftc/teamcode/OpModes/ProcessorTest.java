@@ -66,16 +66,7 @@ public class ProcessorTest extends LinearOpMode {
 
     public void runOpMode() {
 
-        // 1. 初始化 AprilTag 处理器
-        // 定义摄像头位置和方向
-        // yaw=-90度：摄像头指向机器人前方
-        // pitch=-45度：向上仰45度（0度指向上，-90度水平向前）
-        // roll=-90度：绕光轴逆时针旋转90度
-        Position cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
-        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, HypParams.WebcamTheta, -90, 0);
-
         aprilTag = new AprilTagProcessor.Builder()
-                .setCameraPose(cameraPosition, cameraOrientation)
                 .build();
 
         // 2. 初始化 VisionPortal（需要硬件映射中的 "Webcam 1"）
