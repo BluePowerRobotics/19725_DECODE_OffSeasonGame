@@ -25,8 +25,6 @@ public class Turret {
 
     private double roll;
     private double yaw;
-    private double k;
-    private double b;
     private BSTsolver bstSolver;
 
     private boolean shooting = false;
@@ -35,12 +33,18 @@ public class Turret {
     private long lastLaunchTime = 0;
     private static final long SPEED_WAIT_TIMEOUT_MS = 500;
     private static final long LAUNCH_COOLDOWN_MS = 300;
+    private static final long AIM_TIMEOUT_MS = 2000;
+
+    private enum ShootPhase { IDLE, ACCELERATING, AIMING }
+    private ShootPhase shootPhase = ShootPhase.IDLE;
+    private boolean useVisionForAiming = true;
+    private double finalAimRoll;
+    private double finalAimYaw;
+    private int currentTargetTagId;
 
     public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
         yaw = 0.0;
-        this.k = 1.0;
-        this.b = 0.0;
 
         shooter = new Shooter(hardwareMap, telemetry);
         this.telemetry = telemetry;
@@ -51,12 +55,10 @@ public class Turret {
         initAprilTag(hardwareMap);
     }
 
-    // 初始化AprilTag处理器
     private void initAprilTag(HardwareMap hardwareMap) {
         aprilTag = new AprilTagProcessor.Builder()
                 .build();
 
-        // 创建视觉门户
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
         builder.addProcessor(aprilTag);
@@ -72,7 +74,6 @@ public class Turret {
     public boolean rotate_to(double roll, double yaw){
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
-            // 旋转成功后更新内部状态
             this.roll = MathSolver.normalizeAngle(roll);
             this.yaw = yaw;
         }
@@ -86,18 +87,25 @@ public class Turret {
         return new double[]{roll, yaw};
     }
 
-    public Object[] aim(int targetTagId) {
+    /**
+     * 统一瞄准接口
+     * @param allowVision true=优先视觉(检测不到自动降级为定位), false=纯定位
+     * @return Object[]{isTargetFound, targetRoll, targetYaw-WebcamTheta}
+     */
+    public Object[] aim(boolean allowVision) {
         get_angle();
 
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean isTargetFound = false;
         AprilTagDetection targetDetection = null;
 
-        for (AprilTagDetection detection : detections) {
-            if (detection.id == targetTagId) {
-                targetDetection = detection;
-                isTargetFound = true;
-                break;
+        if (allowVision) {
+            for (AprilTagDetection detection : detections) {
+                if (detection.id == currentTargetTagId) {
+                    targetDetection = detection;
+                    isTargetFound = true;
+                    break;
+                }
             }
         }
 
@@ -109,158 +117,154 @@ public class Turret {
             double elevation = targetDetection.ftcPose.elevation;
             targetRoll = this.roll + bearing;
             targetYaw = this.yaw + elevation;
-            if(targetRoll <= -180 || targetRoll >= 180) {
-                double[] goalPos = HypParams.getGoalPosition(targetTagId);
-                if (goalPos != null) {
-                    double robotX = RobotPosition.getInstance().getX();
-                    double robotY = RobotPosition.getInstance().getY();
-                    double robotTheta = RobotPosition.getInstance().getTheta();
-
-                    double dx = goalPos[0] - robotX;
-                    double dy = goalPos[1] - robotY;
-
-                    double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
-                    double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
-
-                    double theta = Math.atan2(relativeDy, relativeDx);
-                    targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta));
-                    targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
-                }
+            if (targetRoll <= -180 || targetRoll >= 180) {
+                isTargetFound = false;
             }
-        } else {
-            double[] goalPos = HypParams.getGoalPosition(targetTagId);
+        }
+
+        if (!isTargetFound) {
+            double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
             if (goalPos != null) {
                 double robotX = RobotPosition.getInstance().getX();
                 double robotY = RobotPosition.getInstance().getY();
                 double robotTheta = RobotPosition.getInstance().getTheta();
-                
+
                 double dx = goalPos[0] - robotX;
                 double dy = goalPos[1] - robotY;
-                
+
                 double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
                 double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                 double theta = Math.atan2(relativeDy, relativeDx);
                 targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta));
-                targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy)));
+                targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy))) + HypParams.WebcamTheta;
             } else {
-                throw new IllegalArgumentException("Goal position not found for targetTagId: " + targetTagId);
+                throw new IllegalArgumentException("Goal position not found for targetTagId: " + currentTargetTagId);
             }
         }
+
         rotate_to(targetRoll, targetYaw);
-        return new Object[]{isTargetFound, targetRoll, targetYaw-HypParams.WebcamTheta};
-    }
-    /*
-    public void set(double k, double b) {
-        this.k = k;
-        this.b = b;
-    }
-    */
-    public void shoot(double roll, double yaw) {
-        shooting = true;
-        double cotYaw = 1.0 / Math.tan(Math.toRadians(yaw));
-        double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(roll));
-        double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(roll));
-        BSTsolver.Solution solution = bstSolver.predict(RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(), targetX, targetY);
-        if (solution.success) {
-            double targetRoll = Math.toDegrees(solution.roll);
-            double targetYaw = solution.yaw;
-            int targetSpeed = solution.speed;
-
-            shooter.setTargetVelocity(targetSpeed);
-            turretDegreeController.rotateTo(targetRoll, targetYaw);
-            waitingForSpeed = true;
-            speedWaitStartTime = System.currentTimeMillis();
-            telemetry.addData("BST Shooting", "yaw= %.2f, roll= %.2f, speed= %d", targetYaw, targetRoll, targetSpeed);
-            telemetry.update();
-        } else {
-            telemetry.addData("BST Error", solution.message);
-            telemetry.update();
-        }
+        return new Object[]{isTargetFound, targetRoll, targetYaw - HypParams.WebcamTheta};
     }
 
-    public void shootByPosition(int targetTagId) {
-        shooting = true;
-        double[] goalPos = HypParams.getGoalPosition(targetTagId);
-        if (goalPos != null) {
-            double robotX = RobotPosition.getInstance().getX();
-            double robotY = RobotPosition.getInstance().getY();
-            double robotTheta = RobotPosition.getInstance().getTheta();
-            double vx = RobotPosition.getInstance().getVx();
-            double vy = RobotPosition.getInstance().getVy();
-
-            double dx = goalPos[0] - robotX;
-            double dy = goalPos[1] - robotY;
-
-            double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
-            double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
-
-            BSTsolver.Solution solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
-
-            if (solution.success) {
-                double targetRoll = Math.toDegrees(solution.roll);
-                double targetYaw = solution.yaw;
-                int targetSpeed = solution.speed;
-
-                shooter.setTargetVelocity(targetSpeed);
-                turretDegreeController.rotateTo(targetRoll, targetYaw);
-                waitingForSpeed = true;
-                speedWaitStartTime = System.currentTimeMillis();
-                telemetry.addData("BST Shooting", "yaw= %.2f, roll= %.2f, speed= %d", targetYaw, targetRoll, targetSpeed);
-                telemetry.update();
-            } else {
-                telemetry.addData("BST Error", solution.message);
-                telemetry.update();
-            }
-        } else {
-            throw new IllegalArgumentException("No goal position found for target ID");
-        }
-    }
-
-    private void checkSpeedAndLaunch(boolean shouldAim, int targetTagId) {
-        if (!waitingForSpeed) return;
-
-        // 等待期间每帧重新计算瞄准角度和弹道，补偿机器人运动
-        //潜在误差：speed没有实时更新，但否则pid可能收敛不了，以后再想办法
-        if (shouldAim && targetTagId >= 0) {
-            Object[] aimResult = aim(targetTagId);
-            double aimRoll = (double) aimResult[1];
-            double aimYaw = (double) aimResult[2];
-            double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-            double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
-            double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
-            BSTsolver.Solution solution = bstSolver.predict(
-                RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                targetX, targetY);
-            if (solution.success) {
-                turretDegreeController.rotateTo(Math.toDegrees(solution.roll), solution.yaw);
-            }
-        } else if (targetTagId >= 0) {
-            double[] goalPos = HypParams.getGoalPosition(targetTagId);
-            if (goalPos != null) {
-                double robotX = RobotPosition.getInstance().getX();
-                double robotY = RobotPosition.getInstance().getY();
-                double robotTheta = RobotPosition.getInstance().getTheta();
-                double vx = RobotPosition.getInstance().getVx();
-                double vy = RobotPosition.getInstance().getVy();
-                double dx = goalPos[0] - robotX;
-                double dy = goalPos[1] - robotY;
-                double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
-                double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
-                BSTsolver.Solution solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
-                if (solution.success) {
-                    turretDegreeController.rotateTo(Math.toDegrees(solution.roll), solution.yaw);
+    /**
+     * 统一射击管理接口（状态机驱动）
+     * IDLE → 第一次BST解算初速度 → ACCELERATING → 达速后第二次BST解算roll/yaw → AIMING → 旋转到位 → launch
+     * @param allowVision true=视觉瞄准, false=定位瞄准
+     */
+    public void shoot(boolean allowVision) {
+        switch (shootPhase) {
+            case IDLE: {
+                useVisionForAiming = allowVision;
+                BSTsolver.Solution solution;
+                if (allowVision) {
+                    Object[] aimResult = aim(true);
+                    double aimRoll = (double) aimResult[1];
+                    double aimYaw = (double) aimResult[2];
+                    double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
+                    double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
+                    double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
+                    solution = bstSolver.predict(
+                        RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
+                        targetX, targetY);
+                } else {
+                    double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
+                    if (goalPos != null) {
+                        double robotX = RobotPosition.getInstance().getX();
+                        double robotY = RobotPosition.getInstance().getY();
+                        double robotTheta = RobotPosition.getInstance().getTheta();
+                        double vx = RobotPosition.getInstance().getVx();
+                        double vy = RobotPosition.getInstance().getVy();
+                        double dx = goalPos[0] - robotX;
+                        double dy = goalPos[1] - robotY;
+                        double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
+                        double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
+                        solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
+                    } else {
+                        telemetry.addData("BST Error", "No goal position for tag %d", currentTargetTagId);
+                        telemetry.update();
+                        break;
+                    }
                 }
+                if (solution.success) {
+                    shooting = true;
+                    shootPhase = ShootPhase.ACCELERATING;
+                    shooter.setTargetVelocity(solution.speed);
+                    waitingForSpeed = true;
+                    speedWaitStartTime = System.currentTimeMillis();
+                    telemetry.addData("BST Init", "speed=%d", solution.speed);
+                    telemetry.update();
+                } else {
+                    telemetry.addData("BST Error", solution.message);
+                    telemetry.update();
+                }
+                break;
             }
-        }
 
-        if (shooter.reachedVelocity() && turretDegreeController.reachedTarget()) {
-            launch();
-            waitingForSpeed = false;
-        } else if (System.currentTimeMillis() - speedWaitStartTime > SPEED_WAIT_TIMEOUT_MS) {
-            waitingForSpeed = false;
-            telemetry.addData("Shooter", "Speed wait timeout");
-            telemetry.update();
+            case ACCELERATING: {
+                aim(useVisionForAiming);
+                if (shooter.reachedVelocity()) {
+                    shootPhase = ShootPhase.AIMING;
+                    speedWaitStartTime = System.currentTimeMillis();
+
+                    BSTsolver.Solution solution;
+                    if (useVisionForAiming) {
+                        Object[] aimResult = aim(true);
+                        double aimRoll = (double) aimResult[1];
+                        double aimYaw = (double) aimResult[2];
+                        double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
+                        double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
+                        double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
+                        solution = bstSolver.predict(
+                            RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
+                            targetX, targetY);
+                    } else {
+                        double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
+                        double robotX = RobotPosition.getInstance().getX();
+                        double robotY = RobotPosition.getInstance().getY();
+                        double robotTheta = RobotPosition.getInstance().getTheta();
+                        double vx = RobotPosition.getInstance().getVx();
+                        double vy = RobotPosition.getInstance().getVy();
+                        double dx = goalPos[0] - robotX;
+                        double dy = goalPos[1] - robotY;
+                        double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
+                        double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
+                        solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
+                    }
+                    if (solution.success) {
+                        finalAimRoll = Math.toDegrees(solution.roll);
+                        finalAimYaw = solution.yaw;
+                        turretDegreeController.rotateTo(finalAimRoll, finalAimYaw);
+                        telemetry.addData("BST Final", "roll=%.2f yaw=%.2f", finalAimRoll, finalAimYaw);
+                    }
+                    telemetry.addData("Shooter", "Speed reached, turret aiming");
+                    telemetry.update();
+                } else if (System.currentTimeMillis() - speedWaitStartTime > SPEED_WAIT_TIMEOUT_MS) {
+                    shootPhase = ShootPhase.IDLE;
+                    shooting = false;
+                    waitingForSpeed = false;
+                    telemetry.addData("Shooter", "Speed wait timeout");
+                    telemetry.update();
+                }
+                break;
+            }
+
+            case AIMING: {
+                if (turretDegreeController.reachedTarget()) {
+                    launch();
+                    shootPhase = ShootPhase.IDLE;
+                    waitingForSpeed = false;
+                    telemetry.addData("Shooter", "Launched");
+                    telemetry.update();
+                } else if (System.currentTimeMillis() - speedWaitStartTime > AIM_TIMEOUT_MS) {
+                    launch();
+                    shootPhase = ShootPhase.IDLE;
+                    waitingForSpeed = false;
+                    telemetry.addData("Shooter", "Aim timeout, force launch");
+                    telemetry.update();
+                }
+                break;
+            }
         }
     }
 
@@ -273,44 +277,31 @@ public class Turret {
         //todo: 关闭闸门
         shooting = false;
         waitingForSpeed = false;
+        shootPhase = ShootPhase.IDLE;
     }
 
-    public void update(boolean shouldAim, boolean shouldShoot,int targetTagId) {
+    public void update(boolean AllowVision, boolean shouldShoot, int targetTagId) {
+        this.currentTargetTagId = targetTagId;
         shooter.update();
         turretDegreeController.update();
+
+        if (shootPhase != ShootPhase.IDLE) {
+            shoot(useVisionForAiming);
+            return;
+        }
 
         if (shooting && !waitingForSpeed && System.currentTimeMillis() - lastLaunchTime > LAUNCH_COOLDOWN_MS) {
             shooting = false;
         }
 
-        if (waitingForSpeed) {
-            checkSpeedAndLaunch(shouldAim, targetTagId);
-            return;
-        }
-
-        if (shouldAim && !shooting) {
-            Object[] aimResult = aim(targetTagId);
-            boolean isTargetFound = (boolean) aimResult[0];
-            double targetRoll = (double) aimResult[1];
-            double targetYaw = (double) aimResult[2];
-
-            if(!shouldShoot){
-                reset();
-            }
-            else if (isTargetFound) {
-                shoot(targetRoll, targetYaw);
-            }else{
-                shootByPosition(targetTagId);
-                telemetry.addData("Warning", "Response unavailable, auto downgrading");
-                telemetry.update();
-            }
-        } else if (shouldShoot && !shooting) {
-            shootByPosition(targetTagId);
-        } else if (!shouldShoot) {
+        if (shouldShoot) {
+            shoot(AllowVision);
+        } else {
             reset();
+            aim(AllowVision);
         }
     }
-    //重载输入统一
+
     public void update(int speed, boolean shouldShoot) {
         shooter.update();
         turretDegreeController.update();
@@ -375,8 +366,6 @@ public class Turret {
             reset();
         }
     }
-    //只用到标定，主程序不用。
-
 
     public void stop() {
         turretDegreeController.stop();

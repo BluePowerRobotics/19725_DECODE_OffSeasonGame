@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.utility.LinearInterpolation.LinearInterpol
 import java.util.List;
 
 public class BSTsolver {
-
+    //单位：英寸
     public static class Solution {
         public final double roll;
         public final int yaw;

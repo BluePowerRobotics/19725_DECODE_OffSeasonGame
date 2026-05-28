@@ -133,19 +133,19 @@ public class HypParams {
     public static double FilterAlpha = 0.3;
 
     /**
-     * todo:球满时与距离传感器的距离（单位：cm）
+     * todo:球满时与距离传感器的距离（单位：mm）
      * 传感器检测到小于此值时认为球已满
      */
     public static double maxdistance = 20;
 
     /**
-     * todo:球空时与距离传感器的距离（单位：cm）
+     * todo:球空时与距离传感器的距离（单位：mm）
      * 传感器检测到大于此值时认为球已空
      */
     public static double mindistance = 50;
 
     /**
-     * todo:距离传感器异常阈值（单位：cm）
+     * todo:距离传感器异常阈值（单位：mmm）
      * 传感器在小于此距离时读数不稳定，需要过滤
      */
     public static double wrongdistance = 10;
