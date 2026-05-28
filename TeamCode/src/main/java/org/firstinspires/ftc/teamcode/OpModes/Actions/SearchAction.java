@@ -63,7 +63,7 @@ public class SearchAction implements Action {
                 // 红队搜索轨迹：转向0° → 平移至 y=50 → 前进至 x=-10 → 后退至 x=-60
                 trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
                     .turn(Math.PI)
-                    .strafeTo(new Vector2d(currentPose.position.x, -50))
+                    .strafeTo(new Vector2d(currentPose.position.x, 50))
                     .strafeTo(new Vector2d(10, 50))
                     .strafeTo(new Vector2d(60, 50))
                     .build();   

@@ -209,7 +209,7 @@ public class TurretDegreeController {
      */
     public boolean reachedTarget() {
         return Math.abs(rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE - targetRoll) <= ANGLE_TOLERANCE
-                //下面恒成立
+                //bug:下面恒成立
                 && Math.abs(currentYaw - targetYaw) <= ANGLE_TOLERANCE;
     }
 

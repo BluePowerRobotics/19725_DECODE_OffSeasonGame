@@ -66,6 +66,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public Turret turret; // 触发器控制器实例
     public ActionRunner actionRunner;//actionRunner控制器实例
     public RobotPosition robotPosition;//定位控制器实例
+    //bug:不是单例吗？
     public TelemetryPacket packet = new TelemetryPacket();
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
@@ -173,9 +174,7 @@ public class OffseasonDECODE extends LinearOpMode {
         }
     }
     void chassis(){
-        packet.fieldOverlay().setStroke("#3F51B5");
-        Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
     }
     void sweeper(){
         switch (sweeperStatus){
@@ -216,6 +215,7 @@ public class OffseasonDECODE extends LinearOpMode {
                     }
                     if (gamepad2.yWasPressed()){
                         needshoot = true;
+                        //重置？
                     }
 //                    turret.update(gamepad2.left_stick_x);
                     turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
@@ -235,15 +235,12 @@ public class OffseasonDECODE extends LinearOpMode {
                 break;
         }
     }
-    void update(){
-        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        // 更新炮塔状态
-        turret.update(shouldAim,shouldShoot, targetTagId);
-        sweeper.update();
-        telemetry.update();
-    }
+
     void telemetry(){
         sweeper.setTelemetry();
+        packet.fieldOverlay().setStroke("#3F51B5");
+        Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
         telemetry.addData("READYTOSHOOT", ReadyToShoot);
 //        telemetry.addData("DIS", disSensor.getDis());
 //        telemetry.addData("NoHeadMode",chassis.?"PlayerBased":"RoboticBased");
@@ -260,6 +257,7 @@ public class OffseasonDECODE extends LinearOpMode {
         sweeper.setTelemetry();
         telemetry.addData("FPS",1000000000.0/(System.nanoTime()-lastNanoTime));
         lastNanoTime=System.nanoTime();
+        telemetry.update();
     }
     public static int targetTagId;
     public static double time=1.2;
@@ -310,7 +308,6 @@ public class OffseasonDECODE extends LinearOpMode {
             chassis();
             turret();
             sweeper();
-            update();
             telemetry();
         }
     }

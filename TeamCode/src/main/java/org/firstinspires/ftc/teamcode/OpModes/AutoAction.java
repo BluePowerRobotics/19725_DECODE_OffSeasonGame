@@ -37,7 +37,7 @@ public class AutoAction extends LinearOpMode {
     private Tracker tracker;
     private Sweeper sweeper;
     private int targetTagId;
-    private String lastActionType;
+    private String lastActionType="Eat";
     private boolean[] eatPoseReached;
     private int currentEatPoseIndex;
 
@@ -114,21 +114,34 @@ public class AutoAction extends LinearOpMode {
                     if (hasUnreachedPose) {
                         // 有未到达的吃球位姿，先移动到该位姿
                         if (lastActionType.equals("GoToEatPose")) {
-                            // 已经到达吃球位姿，检查视野内是否有球
-                            if (tracker.getHasTarget()) {
-                                actionRunner.add(new EatAction(chassis, tracker, sweeper));
-                                lastActionType = "Eat";
-                            } else {
-                                // 没有球，前往下一个未到达的吃球位姿
-                                eatPoseReached[currentEatPoseIndex] = true;
-                                for (int i = 0; i < eatPoseReached.length; i++) {
-                                    if (!eatPoseReached[i]) {
-                                        currentEatPoseIndex = i;
-                                        break;
-                                    }
-                                }
-                                actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+                            // 检查是否真正到达目标位置
+                            Pose2d currentPose = RobotPosition.getInstance().getPose2d();
+                            Pose2d targetPose = eatPoses[currentEatPoseIndex];
+                            double distance = Math.hypot(
+                                currentPose.position.x - targetPose.position.x,
+                                currentPose.position.y - targetPose.position.y
+                            );
+                            // 如果距离大于阈值(5英寸)，重新执行GoToEatPose
+                            if (distance > 5.0) {
+                                actionRunner.add(new GoToEatPose(chassis, sweeper, targetPose));
                                 lastActionType = "GoToEatPose";
+                            } else {
+                                eatPoseReached[currentEatPoseIndex] = true;
+                                // 已经到达吃球位姿，检查视野内是否有球
+                                if (tracker.getHasTarget()) {
+                                    actionRunner.add(new EatAction(chassis, tracker, sweeper));
+                                    lastActionType = "Eat";
+                                } else {
+                                    // 没有球，前往下一个未到达的吃球位姿
+                                    for (int i = 0; i < eatPoseReached.length; i++) {
+                                        if (!eatPoseReached[i]) {
+                                            currentEatPoseIndex = i;
+                                            break;
+                                        }
+                                    }
+                                    actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+                                    lastActionType = "GoToEatPose";
+                                }
                             }
                         } else {
                             // 前往第一个未到达的吃球位姿

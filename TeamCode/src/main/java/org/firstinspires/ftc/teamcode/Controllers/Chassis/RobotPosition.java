@@ -101,7 +101,7 @@ public class RobotPosition {
             }
         }
         org.firstinspires.ftc.teamcode.utility.Point2D pose = new org.firstinspires.ftc.teamcode.utility.Point2D(instance.getX(), instance.getY());
-        ableToShoot = SHOOTING_AREA_LEFT.Contains(pose) || SHOOTING_AREA_RIGHT.Contains(pose); //基准点判断法
+        //ableToShoot = SHOOTING_AREA_LEFT.Contains(pose) || SHOOTING_AREA_RIGHT.Contains(pose); //基准点判断法
         ableToShoot = BoundingBox.inAbsolute(currentPose).IsIntersected(SHOOTING_AREA_LEFT) || BoundingBox.inAbsolute(currentPose).IsIntersected(SHOOTING_AREA_RIGHT); //碰撞框压线判断法
         return instance.currentPose;
 

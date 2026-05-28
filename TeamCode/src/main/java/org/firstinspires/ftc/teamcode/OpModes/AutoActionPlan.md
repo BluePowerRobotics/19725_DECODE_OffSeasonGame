@@ -34,6 +34,11 @@ turret = new Turret(hardwareMap, telemetry);
 sweeper = new Sweeper(hardwareMap, telemetry);
 tracker = new Tracker(hardwareMap);
 tracker.start();
+
+// 初始化吃球位姿访问状态
+Pose2d[] eatPoses = (teamColor == TEAM_COLOR.RED) ? HypParams.EatPosesRed : HypParams.EatPosesBlue;
+eatPoseReached = new boolean[eatPoses.length];
+currentEatPoseIndex = 0;
 ```
 
 | 组件 | 作用 |
@@ -43,39 +48,68 @@ tracker.start();
 | Turret | 炮塔控制，负责瞄准和发射 |
 | Sweeper | 清扫器，收集球 |
 | Tracker | 视觉追踪器，检测目标球 |
+| eatPoseReached | 记录每个吃球位姿是否已到达 |
+
+### 2.3 吃球位姿配置
+
+在 `HypParams` 中定义了红蓝两队的吃球位姿列表：
+
+```java
+// 红队吃球位姿列表
+public static Pose2d[] EatPosesRed = {
+    new Pose2d(0, 0, 0),
+    new Pose2d(10, -20, Math.toRadians(45)),
+    new Pose2d(20, -40, Math.toRadians(90))
+};
+
+// 蓝队吃球位姿列表
+public static Pose2d[] EatPosesBlue = {
+    new Pose2d(0, 0, 0),
+    new Pose2d(10, 20, Math.toRadians(-45)),
+    new Pose2d(20, 40, Math.toRadians(-90))
+};
+```
 
 ## 三、主循环逻辑
 
 ### 3.1 状态机流程图
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    AutoAction 主循环                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    while (opModeIsActive())             │    │
-│  │  ┌─────────────────────────────────────────────────┐    │    │
-│  │  │ RobotPosition.getInstance().update()            │    │    │
-│  │  │ actionRunner.update()                           │    │    │
-│  │  └─────────────────────────────────────────────────┘    │    │
-│  │                         ↓                                 │    │
-│  │              if (!actionRunner.isBusy())                   │    │
-│  │                         ↓                                 │    │
-│  │    ┌─────────────────┬─────────────────┬───────────────┐  │    │
-│  │    ↓                 ↓                 ↓               │  │    │
-│  │  [满仓 &&         [非空 &&          [空仓 ||           │  │    │
-│  │   不在射击区]      在射击区]         (不满仓 &&        │  │    │
-│  │                        │            不在射击区)]       │  │    │
-│  │                        ↓                 ↓               │  │    │
-│  │            GoToShootingAreaAction    ┌──────┴──────┐    │  │    │
-│  │            ShootAction               ↓             ↓    │  │    │
-│  │                              [检测到目标]    [未检测到]    │  │    │
-│  │                                    ↓             ↓    │  │    │
-│  │                              EatAction      SearchAction│  │    │
-│  │                                                         │  │    │
-│  └─────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AutoAction 主循环                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    while (opModeIsActive())                         │    │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │    │
+│  │  │ RobotPosition.getInstance().update()                        │    │    │
+│  │  │ actionRunner.update()                                       │    │    │
+│  │  └─────────────────────────────────────────────────────────────┘    │    │
+│  │                           ↓                                         │    │
+│  │                if (!actionRunner.isBusy())                           │    │
+│  │                           ↓                                         │    │
+│  │    ┌─────────────────┬─────────────────┬─────────────────────────┐  │    │
+│  │    ↓                 ↓                 ↓                         │  │    │
+│  │  [满仓 &&         [非空 &&          [空仓 ||                     │  │    │
+│  │   不在射击区]      在射击区]         (不满仓 &&                   │  │    │
+│  │                          │           不在射击区)]                 │  │    │
+│  │                          ↓                 ↓                       │  │    │
+│  │     GoToShootingAreaAction    ┌─────────────────────────────┐    │  │    │
+│  │     ShootAction               ↓                           ↓    │  │    │
+│  │                    [有未到达的吃球位姿]            [所有位姿已到达]    │  │    │
+│  │                           ↓                           ↓    │  │    │
+│  │              ┌─────────────┴─────────────┐   ┌──────┴──────┐    │  │    │
+│  │              ↓                           ↓   ↓             ↓    │  │    │
+│  │      [刚到达吃球位姿]            [前往下一个]   [检测到目标]    [未检测到]    │  │    │
+│  │              ↓                           ↓   ↓             ↓    │  │    │
+│  │     ┌────────┴────────┐         GoToEatPose  EatAction  SearchAction│  │    │
+│  │     ↓                 ↓                                            │  │    │
+│  │  [视野内有球]    [视野内无球]                                        │  │    │
+│  │     ↓                 ↓                                            │  │    │
+│  │  EatAction     标记已到达，前往下一个                                 │  │    │
+│  │                                                                    │  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.2 状态转换条件
@@ -84,54 +118,60 @@ tracker.start();
 |------|------|------|
 | `isFull() && !isAbleToShoot()` | GoToShootingAreaAction | 球仓已满但不在射击区，需要移动到射击区 |
 | `!isEmpty() && isAbleToShoot()` | ShootAction | 有球且在射击区，执行射击 |
-| `isEmpty() \|\| (!isFull() && !isAbleToShoot())` | EatAction / SearchAction | 需要收集球 |
+| `isEmpty() \|\| (!isFull() && !isAbleToShoot())` | GoToEatPose / EatAction / SearchAction | 需要收集球 |
 
-### 3.3 动作执行与状态跟踪
-
-使用 `lastActionType` 跟踪上一个执行的动作，实现有序的状态转换：
+### 3.3 吃球位姿访问逻辑
 
 ```java
-private String lastActionType = "";
-
-if(!actionRunner.isBusy()) {
-    // 优先级1: EatAction 完成后直接进入 GoToShootingAreaAction
-    if (lastActionType.equals("Eat")) {
-        actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
-        lastActionType = "GoToShootingArea";
+// 检查是否有未到达的吃球位姿
+boolean hasUnreachedPose = false;
+for (int i = 0; i < eatPoseReached.length; i++) {
+    if (!eatPoseReached[i]) {
+        hasUnreachedPose = true;
+        break;
     }
-    // 优先级2: 满仓但不在射击区
-    else if (RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot()) {
-        actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
-        lastActionType = "GoToShootingArea";
-    }
+}
 
-    // 优先级3: 有球且在射击区
-    if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
-        actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-        lastActionType = "Shoot";
-    }
-
-    // 优先级4: 空仓或不满仓且不在射击区
-    if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-        if(tracker.getBestTarget() != null){
+if (hasUnreachedPose) {
+    if (lastActionType.equals("GoToEatPose")) {
+        // 已到达吃球位姿，检查视野内是否有球
+        if (tracker.getHasTarget()) {
             actionRunner.add(new EatAction(chassis, tracker, sweeper));
             lastActionType = "Eat";
         } else {
-            actionRunner.add(new SearchAction(chassis, tracker, sweeper, teamColor));
-            lastActionType = "Search";
+            // 没有球，标记当前位姿已到达，前往下一个
+            eatPoseReached[currentEatPoseIndex] = true;
+            for (int i = 0; i < eatPoseReached.length; i++) {
+                if (!eatPoseReached[i]) {
+                    currentEatPoseIndex = i;
+                    break;
+                }
+            }
+            actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+            lastActionType = "GoToEatPose";
         }
+    } else {
+        // 前往第一个未到达的吃球位姿
+        for (int i = 0; i < eatPoseReached.length; i++) {
+            if (!eatPoseReached[i]) {
+                currentEatPoseIndex = i;
+                break;
+            }
+        }
+        actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
+        lastActionType = "GoToEatPose";
+    }
+} else {
+    // 所有吃球位姿都已到达，执行原来的逻辑
+    if(tracker.getHasTarget()){
+        actionRunner.add(new EatAction(chassis, tracker, sweeper));
+        lastActionType = "Eat";
+    } else {
+        actionRunner.add(new SearchAction(chassis, tracker, sweeper, teamColor));
+        lastActionType = "Search";
     }
 }
 ```
-
-### 3.4 状态转换流程
-
-| 条件 | 动作 | 说明 |
-|------|------|------|
-| `lastActionType == "Eat"` | GoToShootingAreaAction | 吃球完成后直接去射击区 |
-| `isFull() && !isAbleToShoot()` | GoToShootingAreaAction | 球仓已满但不在射击区 |
-| `!isEmpty() && isAbleToShoot()` | ShootAction | 有球且在射击区，执行射击 |
-| `isEmpty() \|\| (!isFull() && !isAbleToShoot())` | EatAction / SearchAction | 需要收集球 |
 
 ## 四、动作详解
 
@@ -199,6 +239,45 @@ public boolean run(TelemetryPacket packet) {
 
 **提前中止机制**：在搜索过程中，如果 `tracker` 检测到目标球，立即停止轨迹，让 `ActionRunner` 切换到 `EatAction`。
 
+### 4.5 GoToEatPose（新增）
+
+移动到预设的吃球位姿：
+
+```java
+public class GoToEatPose implements Action {
+    private final Chassis chassis;
+    private final Sweeper sweeper;
+    private final Pose2d targetPose;
+    private Action trajectoryAction;
+    private boolean trajectoryStarted;
+
+    @Override
+    public boolean run(@NonNull TelemetryPacket packet) {
+        RobotPosition.getInstance().update();
+        sweeper.setStop();
+        sweeper.update();
+
+        if (!trajectoryStarted) {
+            Pose2d currentPose = RobotPosition.getInstance().getPose2d();
+            trajectoryAction = RobotPosition.getInstance().getDrive().actionBuilder(currentPose)
+                    .lineToSplineHeading(targetPose)
+                    .build();
+            trajectoryStarted = true;
+        }
+
+        if (trajectoryAction != null) {
+            boolean running = trajectoryAction.run(packet);
+            if (!running) {
+                trajectoryStarted = false;
+                trajectoryAction = null;
+                return false;  // 到达目标位姿
+            }
+        }
+        return true;
+    }
+}
+```
+
 ## 五、关键设计特点
 
 ### 5.1 动作队列机制
@@ -212,16 +291,25 @@ public boolean run(TelemetryPacket packet) {
 
 基于机器人状态（球仓状态、位置状态）决定下一步动作，实现智能决策。
 
-### 5.3 视觉反馈
+### 5.3 吃球位姿管理
+
+通过预设的吃球位姿列表和访问状态标记，实现有序的吃球路径规划：
+
+| 队伍颜色 | 吃球位姿列表 |
+|----------|-------------|
+| **红队** | `EatPosesRed` |
+| **蓝队** | `EatPosesBlue` |
+
+### 5.4 视觉反馈
 
 `Tracker` 实时更新目标检测状态，支持：
 - 目标颜色识别（紫色/绿色）
 - 低通滤波平滑
 - 距离得分排序
 
-### 5.4 动态切换
+### 5.5 动态切换
 
-`SearchAction` 支持中途切换到 `EatAction`，提高响应速度。
+`SearchAction` 和 `GoToEatPose` 支持中途切换到 `EatAction`，提高响应速度。
 
 ## 六、代码优化建议
 
@@ -231,7 +319,7 @@ public boolean run(TelemetryPacket packet) {
 
 ```java
 enum RobotState {
-    SEARCHING, EATING, GOING_TO_SHOOTING_AREA, SHOOTING
+    SEARCHING, EATING, GOING_TO_EAT_POSE, GOING_TO_SHOOTING_AREA, SHOOTING
 }
 ```
 
@@ -242,3 +330,7 @@ enum RobotState {
 ### 6.3 日志增强
 
 增加关键状态的日志输出，便于调试和问题定位。
+
+### 6.4 吃球位姿动态配置
+
+考虑将吃球位姿配置为可动态调整的参数，便于现场调试。
