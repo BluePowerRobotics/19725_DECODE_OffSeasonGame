@@ -45,11 +45,11 @@ public class HypParams {
      * todo:炮口与目标的高度差（单位：米）
      * 用于RK4弹道计算，即发射点与目标点之间的垂直距离
      */
-    public static double deltaH = 0.9;
+    //public static double deltaH = 0.9;
     /**
-     * todo:AprilTag与炮口的高度差（单位：米）
+     * todo:AprilTag与炮口的高度差（单位：英寸）
      */
-    public static double TagH=0.85;
+    public static double TagH= 33;
     /**
      * todo:相机与炮口的水平距离（单位：米）
      */
@@ -62,6 +62,10 @@ public class HypParams {
      * todo:射程最远时所对仰角
      */
     public static double BestYaw = 50;
+    /**
+     * todo:反转炮台水平电机时需要额外转过的角（单位：度）
+     */
+    public static double ReverseRollAngle = 2;
     /**
      * todo:机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度

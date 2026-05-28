@@ -74,7 +74,7 @@ public class Turret {
     public boolean rotate_to(double roll, double yaw){
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
-            this.roll = MathSolver.normalizeAngle(roll);
+            this.roll = ((roll % 360) + 540) % 360 - 180;
             this.yaw = yaw;
         }
         return success;
@@ -109,8 +109,8 @@ public class Turret {
             }
         }
 
-        double targetRoll;
-        double targetYaw;
+        double targetRoll = 0;
+        double targetYaw = 0;
 
         if (isTargetFound && targetDetection != null) {
             double bearing = targetDetection.ftcPose.bearing;
@@ -136,7 +136,7 @@ public class Turret {
                 double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
 
                 double theta = Math.atan2(relativeDy, relativeDx);
-                targetRoll = MathSolver.normalizeAngle(Math.toDegrees(theta));
+                targetRoll = Math.toDegrees(theta);
                 targetYaw = Math.toDegrees(Math.atan2(HypParams.TagH, Math.hypot(relativeDx, relativeDy))) + HypParams.WebcamTheta;
             } else {
                 throw new IllegalArgumentException("Goal position not found for targetTagId: " + currentTargetTagId);
@@ -277,6 +277,7 @@ public class Turret {
         //todo: 关闭闸门
         shooting = false;
         waitingForSpeed = false;
+        shooter.setTargetVelocity(0);
         shootPhase = ShootPhase.IDLE;
     }
 

@@ -113,8 +113,18 @@ public class RobotPosition {
     public double getX(){     return currentPose.position.x;    }
     public double getY(){   return currentPose.position.y;    }
     public double getTheta(){ return currentPose.heading.toDouble();    }
-    public double getVx(){return  currentVelocity2d.linearVel.x;}
-    public double getVy(){return  currentVelocity2d.linearVel.y;}
+    public double getVx(){
+        double vxField = currentVelocity2d.linearVel.x;
+        double vyField = currentVelocity2d.linearVel.y;
+        double theta = getTheta();
+        return vxField * Math.cos(theta) + vyField * Math.sin(theta);
+    }
+    public double getVy(){
+        double vxField = currentVelocity2d.linearVel.x;
+        double vyField = currentVelocity2d.linearVel.y;
+        double theta = getTheta();
+        return -vxField * Math.sin(theta) + vyField * Math.cos(theta);
+    }
     public MecanumDrive getDrive(){return drive;}
     public double getOmega(){return currentVelocity2d.angVel;}
     public boolean isAbleToShoot(){return ableToShoot;}

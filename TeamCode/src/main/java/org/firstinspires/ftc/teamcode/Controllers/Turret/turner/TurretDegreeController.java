@@ -8,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers.PIDSVAController;
 import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers.SlotConfig;
 import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.VoltageOut;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 /**
  * TurretDegreeController 类实现炮台旋转控制
@@ -32,6 +33,12 @@ public class TurretDegreeController {
     private double targetRoll = 0.0;
     private double targetYaw = 0.0;
     private long lastUpdateTime = 0;
+    
+    // 方向反转补偿相关变量
+    private double lastTargetRoll = 0.0;          // 上一次的目标角度，用于检测方向变化
+    private boolean isCompensating = false;       // 是否正在执行反转补偿
+    private double compensationTarget = 0.0;      // 补偿目标角度
+    private double originalTargetAfterCompensation = 0.0;  // 补偿完成后需要到达的原始目标
 
     public double kP = 1.0;
     public double kI = 0.0;
@@ -102,14 +109,51 @@ public class TurretDegreeController {
         targetRoll = 0.0;
         targetYaw = 0.0;
         yawServo.setPosition(YAW_SERVO_MIN);
+        
+        // 重置方向反转补偿状态
+        lastTargetRoll = 0.0;
+        isCompensating = false;
+        compensationTarget = 0.0;
+        originalTargetAfterCompensation = 0.0;
     }
 
     /**
      * 设置目标水平旋转角度
+     * 当检测到方向反转时，会先额外转动 ReverseRollAngle 角度使齿轮重新卡死
      * @param roll 目标角度(度)
      */
     public void setTargetRoll(double roll) {
-        this.targetRoll = normalizeAngle(roll);
+        double normalizedRoll = normalizeAngle(roll);
+        
+        // 如果正在执行补偿，先记录最终目标，等补偿完成后再执行
+        if (isCompensating) {
+            originalTargetAfterCompensation = normalizedRoll;
+            return;
+        }
+        
+        // 计算当前目标与上一次目标的差值（考虑角度归一化）
+        double delta = normalizedRoll - lastTargetRoll;
+        // 计算当前位置到新目标的方向
+        double currentDelta = normalizedRoll - normalizeAngle(currentRoll);
+        
+        // 检测方向反转：新目标与上一次目标的方向相反（差值超过90度视为方向改变）
+        // 且当前位置不在目标附近（避免在目标位置微调时误触发）
+        boolean directionReversed = Math.abs(delta) > 90.0 
+                && Math.abs(currentRoll - lastTargetRoll) > ANGLE_TOLERANCE * 2;
+        
+        if (directionReversed && HypParams.ReverseRollAngle > 0) {
+            // 触发反转补偿：先向新方向多转 ReverseRollAngle 角度
+            double compensationDirection = currentDelta > 0 ? 1 : -1;
+            compensationTarget = normalizedRoll + compensationDirection * HypParams.ReverseRollAngle;
+            compensationTarget = normalizeAngle(compensationTarget);
+            originalTargetAfterCompensation = normalizedRoll;
+            this.targetRoll = compensationTarget;
+            isCompensating = true;
+        } else {
+            this.targetRoll = normalizedRoll;
+        }
+        
+        lastTargetRoll = normalizedRoll;
     }
 
     /**
@@ -183,8 +227,21 @@ public class TurretDegreeController {
         long now = System.currentTimeMillis();
         double dt = lastUpdateTime == 0 ? 0.02 : (now - lastUpdateTime) / 1000.0;
         lastUpdateTime = now;
+        
         //这里传进去的roll和yaw一定是原始定义，可能要转换才能输给舵机
         currentRoll = rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE;
+        currentRoll = normalizeAngle(currentRoll);
+
+        // 检查反转补偿是否完成
+        if (isCompensating) {
+            double currentCompensationError = Math.abs(normalizeAngle(currentRoll - compensationTarget));
+            if (currentCompensationError <= ANGLE_TOLERANCE) {
+                // 补偿完成，切换到原始目标
+                targetRoll = originalTargetAfterCompensation;
+                isCompensating = false;
+            }
+        }
+        
         double outputVoltage = controller.calculate(targetRoll, currentRoll, dt, false);
         double power = voltageOut.getVoltageOutPower(outputVoltage);
         rollMotor.setPower(power);
@@ -201,6 +258,7 @@ public class TurretDegreeController {
             telemetry.addData("TargetYaw", targetYaw);
             telemetry.addData("CurrentYaw", currentYaw);
             telemetry.addData("RollPower", power);
+            telemetry.addData("IsCompensating", isCompensating);
         }
     }
 
@@ -209,8 +267,8 @@ public class TurretDegreeController {
      * @return 是否两个轴都已到达目标
      */
     public boolean reachedTarget() {
-        return Math.abs(rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE - targetRoll) <= ANGLE_TOLERANCE
-                //bug:下面恒成立
+        double currentNormalized = normalizeAngle(rollMotor.getCurrentPosition() / ROLL_TICKS_PER_DEGREE);
+        return Math.abs(currentNormalized - targetRoll) <= ANGLE_TOLERANCE
                 && Math.abs(currentYaw - targetYaw) <= ANGLE_TOLERANCE;
     }
 

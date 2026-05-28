@@ -3,9 +3,13 @@ package org.firstinspires.ftc.teamcode.Controllers.Turret;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
+
 @TeleOp(name = "TurretTest", group = "Tests")
 public class TurretTest extends LinearOpMode {
     private Turret turret;
+    private Sweeper sweeper;
     
     // 手动控制参数
     private double roll = 0.0;      // 水平旋转角（度）
@@ -30,10 +34,15 @@ public class TurretTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化炮塔
         turret = new Turret(hardwareMap, telemetry);
+        // 初始化扫球器
+        sweeper = new Sweeper(hardwareMap, telemetry);
+        // 设置扫球器持续吃球速度
+        sweeper.setEat();
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Instructions", "Left stick: adjust roll | D-pad: adjust yaw/speed");
         telemetry.addData("Instructions", "Right trigger: half step | A button: shoot");
+        telemetry.addData("Sweeper", "Running continuously");
         telemetry.update();
         
         waitForStart();
@@ -77,6 +86,8 @@ public class TurretTest extends LinearOpMode {
             
             // 更新炮塔状态
             turret.update(roll, yaw, speed, shouldShoot);
+            // 更新扫球器（持续运行）
+            sweeper.update();
             
             // 实时显示当前参数
             telemetry.addData("Status", "Running");
@@ -85,12 +96,16 @@ public class TurretTest extends LinearOpMode {
             telemetry.addData("Speed", "%d RPM", speed);
             telemetry.addData("Trigger", isTriggerPressed ? "Half Step" : "Full Step");
             telemetry.addData("Ready to Shoot", shouldShoot ? "Yes" : "No");
-            telemetry.addData("DeltaH", "%.2f m", turret.getDeltaH());
+            telemetry.addData("TagH", "%.2f m", HypParams.TagH);
+            telemetry.addData("Sweeper Velocity", sweeper.getVel());
+            telemetry.addData("Sweeper Current", sweeper.getCurrent());
             telemetry.update();
         }
         
-        // 停止炮塔
+        // 停止炮塔和扫球器
         turret.stop();
         turret.close();
+        sweeper.setStop();
+        sweeper.update();
     }
 }
