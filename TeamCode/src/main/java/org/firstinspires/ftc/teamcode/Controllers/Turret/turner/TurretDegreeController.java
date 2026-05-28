@@ -33,15 +33,15 @@ public class TurretDegreeController {
     private double targetYaw = 0.0;
     private long lastUpdateTime = 0;
 
-    public static double kP = 1.0;
-    public static double kI = 0.0;
-    public static double kD = 0.0;
-    public static double maxI = 1.0;
-    public static double kS = 0.0;
-    public static double kV = 0.0;
-    public static double kA = 0.0;
-    public static double outputMin = -14.0;
-    public static double outputMax = 14.0;
+    public double kP = 1.0;
+    public double kI = 0.0;
+    public double kD = 0.0;
+    public double maxI = 1.0;
+    public double kS = 0.0;
+    public double kV = 0.0;
+    public double kA = 0.0;
+    public double outputMin = -14.0;
+    public double outputMax = 14.0;
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
@@ -78,7 +78,7 @@ public class TurretDegreeController {
      * @param hardwareMap 硬件映射
      */
     public TurretDegreeController(HardwareMap hardwareMap,Telemetry telemetry1) {
-        this(hardwareMap, "rollMotor", "yawServo",telemetry1);
+        this(hardwareMap, "roll", "yaw",telemetry1);
     }
 
     /**
@@ -87,7 +87,7 @@ public class TurretDegreeController {
     private void initRollMotor() {
         rollMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rollMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        rollMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        rollMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         rollMotor.setDirection(DcMotorEx.Direction.FORWARD);
     }
 
@@ -96,6 +96,7 @@ public class TurretDegreeController {
      */
     public void resetAngles() {
         rollMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        rollMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         currentRoll = 0.0;
         currentYaw = 0.0;
         targetRoll = 0.0;
