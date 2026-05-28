@@ -85,7 +85,7 @@ public class MotorSVATuning extends LinearOpMode {
     /** 调优模式 */
     public static TuningMode tuningMode = TuningMode.MANUAL;
     /** kS评估的电压增量 */
-    public static double KS_VOLTAGE_INCREMENT = 0.001; 
+    public static double KS_VOLTAGE_INCREMENT = 1;
     /** 判定电机开始运动的速度阈值 */
     public static double KS_VELOCITY_THRESHOLD = 20; 
     /** 测试点数量 */
@@ -95,7 +95,7 @@ public class MotorSVATuning extends LinearOpMode {
     /** kA测试电压数组 */
     public static double[] kA_TestVoltages = new double[]{1, 2, 3, 4, 5, 6};
     /** 手动模式下的电压增量 */
-    public static double voltageIncrement = 0.01; 
+    public static double voltageIncrement = 1;
     /** 电机名称 */
     public static String motorName = "SVA"; 
 
@@ -269,8 +269,8 @@ public class MotorSVATuning extends LinearOpMode {
                     break;
             }
             // 设置电机功率
-            motor.setPower(voltageOut.getVoltageOutPower(outputVoltage));
-            followerMotor.setPower(voltageOut.getVoltageOutPower(outputVoltage)); // 同步跟随电机
+            motor.setPower(-voltageOut.getVoltageOutPower(outputVoltage));
+            followerMotor.setPower(-voltageOut.getVoltageOutPower(outputVoltage)); // 同步跟随电机
 
             // 输出遥测数据
             telemetry.addData("State", state);

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -15,11 +13,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeCont
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.utility.MathSolver;
 import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
@@ -174,7 +167,7 @@ public class Turret {
             double targetYaw = solution.yaw;
             int targetSpeed = solution.speed;
 
-            shooter.setTargetSpeed(targetSpeed);
+            shooter.setTargetVelocity(targetSpeed);
             turretDegreeController.rotateTo(targetRoll, targetYaw);
             waitingForSpeed = true;
             speedWaitStartTime = System.currentTimeMillis();
@@ -209,7 +202,7 @@ public class Turret {
                 double targetYaw = solution.yaw;
                 int targetSpeed = solution.speed;
 
-                shooter.setTargetSpeed(targetSpeed);
+                shooter.setTargetVelocity(targetSpeed);
                 turretDegreeController.rotateTo(targetRoll, targetYaw);
                 waitingForSpeed = true;
                 speedWaitStartTime = System.currentTimeMillis();
@@ -337,7 +330,7 @@ public class Turret {
         }
 
         if (shouldShoot) {
-            shooter.setTargetSpeed(speed);
+            shooter.setTargetVelocity(speed);
             waitingForSpeed = true;
             speedWaitStartTime = System.currentTimeMillis();
             telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
@@ -373,7 +366,7 @@ public class Turret {
         }
 
         if (shouldShoot) {
-            shooter.setTargetSpeed(speed);
+            shooter.setTargetVelocity(speed);
             waitingForSpeed = true;
             speedWaitStartTime = System.currentTimeMillis();
             telemetry.addData("Shooting", "yaw= %.2f, roll= %.2f, speed= %d", yaw, roll, speed);
