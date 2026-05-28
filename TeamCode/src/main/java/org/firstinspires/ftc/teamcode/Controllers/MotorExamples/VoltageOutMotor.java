@@ -26,9 +26,9 @@ public class VoltageOutMotor {
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */
-    public static double kS = 0.0;
+    public static double kS = 2.3;
     /** 速度系数 */
-    public static double kV = 0.0;
+    public static double kV = 0.0073;
     /** 加速度系数 */
     public static double kA = 0.0;
     /** 输出电压最小值 */
@@ -149,10 +149,10 @@ public class VoltageOutMotor {
         // 输出遥测数据
         this.currentPower=power;
         this.currentVelocity=motor.getVelocity();
-        telemetry.addData("TargetVelocity", targetVelocity);
-        telemetry.addData("CurrentVelocity", currentVelocity);
-        telemetry.addData("OutputVoltage", outputVoltage);
-        telemetry.addData("Power", power);
+//        telemetry.addData("TargetVelocity", targetVelocity);
+//        telemetry.addData("CurrentVelocity", currentVelocity);
+//        telemetry.addData("OutputVoltage", outputVoltage);
+//        telemetry.addData("Power", power);
     }
 
     public boolean reachedTarget(){

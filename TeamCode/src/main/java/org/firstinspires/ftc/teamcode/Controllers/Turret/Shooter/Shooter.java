@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,9 +22,9 @@ public class Shooter {
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */
-    public static double kS = 0.0;
+    public static double kS = 2.3;
     /** 速度系数 */
-    public static double kV = 0.0;
+    public static double kV = 0.0073;
     /** 加速度系数 */
     public static double kA = 0.0;
     /** 输出电压最小值 */
@@ -33,7 +34,7 @@ public class Shooter {
 
     public static double VelocityTolerance = 20;
     /** 电机实例 */
-    private final DcMotorEx shooterL;
+    public  final DcMotorEx shooterL;
     private final DcMotorEx shooterR;
     /** 电压输出控制器 */
     private final VoltageOut voltageOut;
@@ -84,8 +85,8 @@ public class Shooter {
         this.telemetry = telemetryrc;
 
     }
-    public boolean setTargetSpeed(int targetSpeed){
-        this.targetVelocity =targetSpeed;
+    public boolean setTargetVelocity(int targetVelocity){
+        this.targetVelocity =targetVelocity;
         return reachedVelocity();
     }
     public boolean reachedVelocity(){
