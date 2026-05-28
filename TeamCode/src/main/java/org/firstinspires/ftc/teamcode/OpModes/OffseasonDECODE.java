@@ -1,13 +1,9 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
-import static org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.RobotPositioninit;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -22,7 +18,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
-import org.firstinspires.ftc.teamcode.utility.Point2D;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
@@ -40,12 +35,6 @@ public class OffseasonDECODE extends LinearOpMode {
         RED,BLUE
     }
     TEAM_COLOR teamColor;
-//    public enum TRIGGER_STATUS {
-//        OPEN,
-//        CLOSE
-//    }
-//    TRIGGER_STATUS triggerStatus = TRIGGER_STATUS.CLOSE;
-
 
     public enum SWEEPER_STATUS {
         EAT,
@@ -65,8 +54,6 @@ public class OffseasonDECODE extends LinearOpMode {
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
     public ActionRunner actionRunner;//actionRunner控制器实例
-    public RobotPosition robotPosition;//定位控制器实例
-    //bug:不是单例吗？
     public TelemetryPacket packet = new TelemetryPacket();
     //public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
@@ -217,8 +204,9 @@ public class OffseasonDECODE extends LinearOpMode {
                         needshoot = true;
                         //重置？
                     }
-//                    turret.update(gamepad2.left_stick_x);
-                    turret.update(targetSpeed, needshoot);//未完待续（控制瞄准）[需检查]
+                    turret.update(gamepad2.left_stick_x);//旋转
+                    turret.update(targetSpeed, needshoot);//发射（手动）
+                    //未完待续（控制瞄准）[需检查]
                 }
                 break;
             case STOP:
@@ -243,15 +231,13 @@ public class OffseasonDECODE extends LinearOpMode {
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
         telemetry.addData("READYTOSHOOT", ReadyToShoot);
 //        telemetry.addData("DIS", disSensor.getDis());
-//        telemetry.addData("NoHeadMode",chassis.?"PlayerBased":"RoboticBased");
         telemetry.addData("isBusy", actionRunner.isBusy());
         telemetry.addData("TeamColor", teamColor);
         telemetry.addData("RobotSTATUS", robotStatus.toString());
-//        telemetry.addData("RunMode",chassis.runningToPoint?"RUNNING_TO_POINT":"MANUAL");
         telemetry.addData("turretSTATUS", turretStatus.toString());
         telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
-        telemetry.addData("Position",robotPosition.getPose2d().toString());
-        telemetry.addData("Heading", robotPosition.getPose2d());
+        telemetry.addData("Position",RobotPosition.getInstance().getPose2d().toString());
+        telemetry.addData("Heading", RobotPosition.getInstance().getPose2d());
         shooter.setTelemetry();
         chassis.telemetry();
         sweeper.setTelemetry();
@@ -265,7 +251,7 @@ public class OffseasonDECODE extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Init();
-        //留下更改一些参数的后门(??
+        //赛前初始化，选择队伍颜色，确定目标tag ID，设置LED等
         while(opModeInInit()||!InitStarted) {
             if (gamepad1.a) {
                 teamColor = TEAM_COLOR.BLUE;
@@ -291,10 +277,6 @@ public class OffseasonDECODE extends LinearOpMode {
 //            if(teamColor == TEAM_COLOR.BLUE){
 //                chassis.resetNoHeadModeStartError(-Math.PI/2);
 //            }
-//            else{
-//                chassis.resetNoHeadModeStartError(Math.PI/2);
-//            }
-//            telemetry.addData("Position(inch)", Point2D.rotate(chassis.robotPosition.getData().getPosition(DistanceUnit.INCH), teamColor == TEAM_COLOR.BLUE ? Math.PI / 2 : -Math.PI / 2).toString());
             telemetry.addData("TEAM_COLOR", teamColor.toString());
             telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
             telemetry.update();
