@@ -23,7 +23,8 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
 public class OffseasonDECODE extends LinearOpMode {
     long lastNanoTime;
-    public enum ROBOT_STATUS{
+
+    public enum ROBOT_STATUS {
         EATING,
         OUTPUT,
         WAITING,
@@ -31,9 +32,12 @@ public class OffseasonDECODE extends LinearOpMode {
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
+
     public enum TEAM_COLOR {
-        RED,BLUE
+        RED,
+        BLUE
     }
+
     TEAM_COLOR teamColor;
 
     public enum SWEEPER_STATUS {
@@ -42,31 +46,32 @@ public class OffseasonDECODE extends LinearOpMode {
         OUTPUT,
         STOP
     }
+
     SWEEPER_STATUS sweeperStatus = SWEEPER_STATUS.STOP;
+
     public enum TURRET_STATUS {
         SHOOTING,
         STOP,
         IDLE
     }
+
     TURRET_STATUS turretStatus = TURRET_STATUS.STOP;
     public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
     public Sweeper sweeper; // 清扫器控制器实例
     public Shooter shooter; // 发射器控制器实例
     public Turret turret; // 触发器控制器实例
-    public ActionRunner actionRunner;//actionRunner控制器实例
+    public ActionRunner actionRunner;// actionRunner控制器实例
     public TelemetryPacket packet = new TelemetryPacket();
-    //public BlinkinLedController ledController; // LED控制器实例
+    // public BlinkinLedController ledController; // LED控制器实例
     public boolean ReadyToShoot = false;
-    public boolean shouldAim = false;//建议把这个分配给二操右扳机RT//先不用扳机，两个都暂时都给
-    //最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
+    public boolean shouldAim = false;// 建议把这个分配给二操右扳机RT//先不用扳机，两个都暂时都给
+    // 最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
     public boolean shouldShoot = false;
     public boolean needshoot = false;
-    public static double turretmode = 0;//0为自动瞄准，1为定位的开环，2为手动瞄准
+    public static double turretmode = 0;// 0为自动瞄准，1为定位的开环，2为手动瞄准
     public int targetSpeed = 0;
 
-    void Init(){
-
-        //todo set team color
+    void Init() {
         teamColor = TEAM_COLOR.BLUE;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry = InstanceTelemetry.init(telemetry);
@@ -75,96 +80,100 @@ public class OffseasonDECODE extends LinearOpMode {
         turret = new Turret(hardwareMap, telemetry);
         actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
-        //ledController = new BlinkinLedController(hardwareMap);
+        // ledController = new BlinkinLedController(hardwareMap);
     }
-    void inputRobotStatus(){
-        if(gamepad1.xWasPressed()){
+
+    void inputRobotStatus() {
+        if (gamepad1.xWasPressed()) {
             robotStatus = ROBOT_STATUS.WAITING;
             chassis.exchangeMode();
-        }//为什么要用xWasReleased?
+        } // 为什么要用xWasReleased?
 
-        if(gamepad1.aWasPressed() || gamepad2.aWasPressed()){
+        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
             shouldShoot = false;
             shouldAim = false;
             robotStatus = ROBOT_STATUS.WAITING;
         }
 
-        //一操 二操切换 二操可强制开启
-        if(gamepad2.leftBumperWasPressed()){
+        // 一操 二操切换 二操可强制开启
+        if (gamepad2.leftBumperWasPressed()) {
             shouldShoot = false;
-            if(robotStatus == ROBOT_STATUS.EATING){
+            if (robotStatus == ROBOT_STATUS.EATING) {
                 robotStatus = ROBOT_STATUS.WAITING;
-            }
-            else{
+            } else {
                 robotStatus = ROBOT_STATUS.EATING;
             }
 
         }
 
-        //吸球部分
-        if(gamepad1.leftBumperWasPressed()){
+        // 吸球部分
+        if (gamepad1.leftBumperWasPressed()) {
             shouldShoot = false;
+            needshoot = false;
             robotStatus = ROBOT_STATUS.EATING;
         }
 
-        if(gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed()){
+        if (gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed()) {
             shouldShoot = false;
+            needshoot = false;
             robotStatus = ROBOT_STATUS.OUTPUT;
         }
 
-        //发射部分
-        if(gamepad1.yWasPressed() || gamepad2.yWasPressed()){
+        // 发射部分
+        if ((gamepad1.yWasPressed() || gamepad2.yWasPressed()) && (turretmode != 2)) {
             shouldShoot = !shouldShoot;
             shouldAim = !shouldAim;
+            needshoot = false;
             robotStatus = ROBOT_STATUS.SHOOTING;
         }
 
-//        if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
-//            shouldShoot = false;
-//            robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
-//        }
+        // if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
+        // shouldShoot = false;
+        // robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
+        // }
 
-        if (gamepad2.xWasPressed()){
+        if (gamepad2.xWasPressed()) {
             turretmode = (turretmode + 1) % 3;
         }
 
     }
+
     void setStatus() {
         switch (robotStatus) {
             case EATING:
                 sweeperStatus = SWEEPER_STATUS.EAT;
                 turretStatus = TURRET_STATUS.IDLE;
-                //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
+                // ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
                 break;
             case OUTPUT:
                 sweeperStatus = SWEEPER_STATUS.OUTPUT;
                 turretStatus = TURRET_STATUS.IDLE;
                 break;
             case WAITING:
-                //boolean AprilTagStatus = !Double.isNaN(aprilTagDetector.getPose().pose.position.x);
                 sweeperStatus = SWEEPER_STATUS.STOP;
                 turretStatus = TURRET_STATUS.IDLE;
-//                if (teamColor == TEAM_COLOR.RED) {
-//                    //ledController.showRedTeam();
-//                }
-//                else{
-//                    //ledController.showBlueTeam();
-//                }
+                // if (teamColor == TEAM_COLOR.RED) {
+                //  ledController.showRedTeam();
+                // }
+                // else{
+                //  ledController.showBlueTeam();
+                // }
                 break;
             case SHOOTING:
-                //ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                // ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                 turretStatus = TURRET_STATUS.SHOOTING;
-                //sweeper和trigger状态由shooter条件决定，在shoot()中
+                // sweeper和trigger状态由shooter条件决定，在shoot()中
                 break;
-
 
         }
     }
-    void chassis(){
+
+    void chassis() {
         chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
     }
-    void sweeper(){
-        switch (sweeperStatus){
+
+    void sweeper() {
+        switch (sweeperStatus) {
             case EAT:
                 sweeper.setEat();
                 break;
@@ -179,6 +188,7 @@ public class OffseasonDECODE extends LinearOpMode {
                 break;
         }
     }
+
     void turret() {
         switch (turretStatus) {
             case SHOOTING:
@@ -189,24 +199,25 @@ public class OffseasonDECODE extends LinearOpMode {
                 } else if (turretmode == 2) {
                     shouldAim = false;
                     shouldShoot = false;
+                    needshoot = false;
                     if (gamepad2.dpad_up) {
                         targetSpeed = 850; // 高速
-                     } else if (gamepad2.dpad_right) {
+                    } else if (gamepad2.dpad_right) {
                         targetSpeed = 760; // 中高速
                     } else if (gamepad2.dpad_down) {
                         targetSpeed = 650; // 中速
                     } else if (gamepad2.dpad_left) {
                         targetSpeed = 500; // 低速
                     } else {
-                        targetSpeed = (int) gamepad2.left_trigger*1000;//扳机控制速度，按得越深越快
+                        targetSpeed = (int) gamepad2.left_trigger * 1000;// 扳机控制速度，按得越深越快
                     }
-                    if (gamepad2.yWasPressed()){
+                    if (gamepad2.yWasPressed()) {
                         needshoot = true;
-                        //重置？
+                        // 重置？
                     }
-                    turret.update(gamepad2.left_stick_x);//旋转
-                    turret.update(targetSpeed, needshoot);//发射（手动）
-                    //未完待续（控制瞄准）[需检查]
+                    turret.update(gamepad2.left_stick_x);// 旋转
+                    turret.update(targetSpeed, needshoot);// 发射（手动）
+                    // 未完待续（控制瞄准）[需检查]
                 }
                 break;
             case STOP:
@@ -224,35 +235,37 @@ public class OffseasonDECODE extends LinearOpMode {
         }
     }
 
-    void telemetry(){
+    void telemetry() {
         sweeper.setTelemetry();
         packet.fieldOverlay().setStroke("#3F51B5");
         Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
         telemetry.addData("READYTOSHOOT", ReadyToShoot);
-//        telemetry.addData("DIS", disSensor.getDis());
+        // telemetry.addData("DIS", disSensor.getDis());
         telemetry.addData("isBusy", actionRunner.isBusy());
         telemetry.addData("TeamColor", teamColor);
         telemetry.addData("RobotSTATUS", robotStatus.toString());
         telemetry.addData("turretSTATUS", turretStatus.toString());
         telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
-        telemetry.addData("Position",RobotPosition.getInstance().getPose2d().toString());
+        telemetry.addData("Position", RobotPosition.getInstance().getPose2d().toString());
         telemetry.addData("Heading", RobotPosition.getInstance().getPose2d());
         shooter.setTelemetry();
         chassis.telemetry();
         sweeper.setTelemetry();
-        telemetry.addData("FPS",1000000000.0/(System.nanoTime()-lastNanoTime));
-        lastNanoTime=System.nanoTime();
+        telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
+        lastNanoTime = System.nanoTime();
         telemetry.update();
     }
+
     public static int targetTagId;
-    public static double time=1.2;
-    boolean InitStarted=false;
+    public static double time = 1.2;
+    boolean InitStarted = false;
+
     @Override
     public void runOpMode() throws InterruptedException {
         Init();
-        //赛前初始化，选择队伍颜色，确定目标tag ID，设置LED等
-        while(opModeInInit()||!InitStarted) {
+        // 赛前初始化，选择队伍颜色，确定目标tag ID，设置LED等
+        while (opModeInInit() || !InitStarted) {
             if (gamepad1.a) {
                 teamColor = TEAM_COLOR.BLUE;
             }
@@ -268,15 +281,15 @@ public class OffseasonDECODE extends LinearOpMode {
                     targetTagId = 24;
                     break;
             }
-//            if(teamColor == TEAM_COLOR.BLUE){
-//                //ledController.showBlueTeam();
-//            }
-//            if(teamColor == TEAM_COLOR.RED){
-//                //ledController.showRedTeam();
-//            }
-//            if(teamColor == TEAM_COLOR.BLUE){
-//                chassis.resetNoHeadModeStartError(-Math.PI/2);
-//            }
+            // if(teamColor == TEAM_COLOR.BLUE){
+            // //ledController.showBlueTeam();
+            // }
+            // if(teamColor == TEAM_COLOR.RED){
+            // //ledController.showRedTeam();
+            // }
+            // if(teamColor == TEAM_COLOR.BLUE){
+            // chassis.resetNoHeadModeStartError(-Math.PI/2);
+            // }
             telemetry.addData("TEAM_COLOR", teamColor.toString());
             telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
             telemetry.update();
