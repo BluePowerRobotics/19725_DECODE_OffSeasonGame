@@ -66,8 +66,41 @@ public class HypParams {
      * todo:反转炮台水平电机时需要额外转过的角（单位：度）
      */
     public static double ReverseRollAngle = 2;
+
     /**
-     * todo:机器人最大线速度（单位：米/秒）
+     * todo:发射前等待时间（单位：ms）
+     * 飞轮开始加速前的准备等待时间，此期间sweeper反转PrepareAngle
+     */
+    public static int WaitTime = 500;
+
+    /**
+     * todo:发射前sweeper反转角度（单位：tick）
+     * sweeper在发射前反向旋转的编码器ticks数，将球拉离飞轮
+     */
+    public static int PrepareAngle = 100;
+
+    /**
+     * todo:sweeper吃球速度（单位：tick/s）
+     */
+    public static int SweeperEatVel = 1960;
+
+    /**
+     * todo:sweeper给出artifact速度（单位：tick/s）
+     */
+    public static int SweeperGiveArtifactVel = 1960;
+
+    /**
+     * todo:sweeper吐球速度（单位：tick/s）
+     */
+    public static int SweeperOutputVel = -960;
+
+    /**
+     * todo:sweeper发射触发速度（单位：tick/s）
+     */
+    public static int SweeperTriggerVel = 2100;
+
+    /**
+     * todo:机器人最大线速度（单位：英寸/秒）
      * 底盘运动时允许的最大平移速度
      */
     public static double maxV = 2;
