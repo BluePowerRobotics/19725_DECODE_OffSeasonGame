@@ -27,7 +27,7 @@ public class TurretDegreeController {
     public static double ROLL_TICKS_PER_DEGREE = 1.187878787878;
 
     public static double SERVO_POSITION_PER_DEGREE = 0.0688816;// 这个值是根据舵机的实际测试测量得到的参数
-    public static double YAW_OFFSET = 0.0; // yaw 初始角，用于校准舵机 0 度位置
+    public static double YAW_OFFSET = 65.0; // yaw 初始角，用于校准舵机 0 度位置
     public static double ANGLE_TOLERANCE = 0.5;
 
     private double currentRoll = 0.0;
@@ -54,8 +54,8 @@ public class TurretDegreeController {
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
-    public static double YAW_ANGLE_MIN = 0.0;
-    public static double YAW_ANGLE_MAX = 180.0;
+    public static double YAW_ANGLE_MIN = 45.0;
+    public static double YAW_ANGLE_MAX = 65.0;
 
     /**
      * 构造函数
@@ -163,7 +163,7 @@ public class TurretDegreeController {
      * @param yaw 目标角度(度)，范围[YAW_ANGLE_MIN, YAW_ANGLE_MAX]
      */
     public void setTargetYaw(double yaw) {
-        this.targetYaw = Math.max(YAW_OFFSET, Math.min(YAW_ANGLE_MAX, yaw));
+        this.targetYaw = Math.min(YAW_OFFSET, Math.max(YAW_ANGLE_MIN, yaw));
     }
 
     /**
@@ -211,7 +211,7 @@ public class TurretDegreeController {
      */
     private boolean rotateYawTo(double targetAngle) {
         setTargetYaw(targetAngle);
-        currentYaw = yawServo.getPosition() / SERVO_POSITION_PER_DEGREE + YAW_OFFSET;
+        currentYaw = YAW_OFFSET - yawServo.getPosition() / SERVO_POSITION_PER_DEGREE ;
         return Math.abs(currentYaw - targetAngle) <= ANGLE_TOLERANCE;
     }
 
@@ -247,10 +247,10 @@ public class TurretDegreeController {
         double power = voltageOut.getVoltageOutPower(outputVoltage);
         rollMotor.setPower(power);
 
-        double yawDelta = targetYaw - YAW_OFFSET; // 计算相对于初始角的变化量
+        double yawDelta = YAW_OFFSET - targetYaw ; // 计算相对于初始角的变化量
         double yawTargetServo = yawDelta * SERVO_POSITION_PER_DEGREE;
         yawServo.setPosition(Math.max(YAW_SERVO_MIN, Math.min(YAW_SERVO_MAX, yawTargetServo)));
-        currentYaw = yawServo.getPosition() / SERVO_POSITION_PER_DEGREE + YAW_OFFSET;
+        currentYaw =YAW_OFFSET- yawServo.getPosition() / SERVO_POSITION_PER_DEGREE;
 
         if (telemetry != null) {
             telemetry.addData("TargetRoll", targetRoll);
