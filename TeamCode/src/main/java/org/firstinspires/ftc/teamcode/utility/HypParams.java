@@ -10,14 +10,14 @@ import com.acmerobotics.roadrunner.Pose2d;
  */
 public class HypParams {
     /**
-     * todo:机器人碰撞框（单位：英寸）
+     * 机器人碰撞框（单位：英寸）
      * 定义机器人在场地中的碰撞边界，用于避障和边界检测
      */
     public static ConvexPolygon BoundingBox = new ConvexPolygon(
-            new Point2D(20, 20),
-            new Point2D(-20, 20),
-            new Point2D(-20, -20),
-            new Point2D(20, -20)
+        new Point2D(6.2, 6.7),
+        new Point2D(-6.2, 6.7),
+        new Point2D(-6.2, -6.7),
+        new Point2D(6.2, -6.7)
     );
 
     /**
@@ -51,17 +51,9 @@ public class HypParams {
      */
     public static double TagH= 33;
     /**
-     * todo:相机与炮口的水平距离（单位：米）
-     */
-    public static double WebcamR = 0.1;
-    /**
      * todo:相机仰角（单位：度）
      */
     public static double WebcamTheta = 45;
-    /**
-     * todo:射程最远时所对仰角
-     */
-    public static double BestYaw = 50;
     /**
      * todo:反转炮台水平电机时需要额外转过的角（单位：度）
      */
