@@ -33,10 +33,10 @@ public class TurretTickTest extends LinearOpMode {
             }
             if(mode){
                 if(gamepad1.dpadUpWasPressed()){
-                    targetPosition_r = targetPosition_r +500;
+                    targetPosition_r = targetPosition_r +50;
                 }
                 if(gamepad1.dpadDownWasPressed()){
-                    targetPosition_r = targetPosition_r -500;
+                    targetPosition_r = targetPosition_r -50;
                 }
                 if(gamepad1.dpadLeftWasPressed()){
                     currentDegree_r = currentDegree_r -1;
@@ -46,7 +46,7 @@ public class TurretTickTest extends LinearOpMode {
                 }
                 roll.setTargetPosition((int) targetPosition_r);
                 roll.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                roll.setPower(1);
+                roll.setPower(0.25);
                 if(gamepad1.bWasPressed()){MOTOR_TICK_PER_DEGREE=roll.getCurrentPosition()/ currentDegree_r;}
 
 
