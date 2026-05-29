@@ -24,8 +24,10 @@ public class TurretDegreeController {
     private SlotConfig config;
     private Telemetry telemetry;
 
-    public static double ROLL_MOTOR_TICKS_PER_REV = 28.0;
-    public static double ROLL_TICKS_PER_DEGREE = ROLL_MOTOR_TICKS_PER_REV / 360.0;
+    public static double ROLL_TICKS_PER_DEGREE = 1.187878787878；
+
+    public static double SERVO_POSITION_PER_DEGREE = 0.0688816;// 这个值是根据舵机的实际测试测量得到的参数
+    public static double YAW_OFFSET = 0.0; // yaw 初始角，用于校准舵机 0 度位置
     public static double ANGLE_TOLERANCE = 0.5;
 
     private double currentRoll = 0.0;
@@ -105,10 +107,10 @@ public class TurretDegreeController {
         rollMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         rollMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         currentRoll = 0.0;
-        currentYaw = 0.0;
+        currentYaw = YAW_OFFSET;
         targetRoll = 0.0;
-        targetYaw = 0.0;
-        yawServo.setPosition(YAW_SERVO_MIN);
+        targetYaw = YAW_OFFSET;
+        yawServo.setPosition(0.0); // 初始位置对应 YAW_OFFSET 角度
         
         // 重置方向反转补偿状态
         lastTargetRoll = 0.0;
@@ -161,7 +163,7 @@ public class TurretDegreeController {
      * @param yaw 目标角度(度)，范围[YAW_ANGLE_MIN, YAW_ANGLE_MAX]
      */
     public void setTargetYaw(double yaw) {
-        this.targetYaw = Math.max(YAW_ANGLE_MIN, Math.min(YAW_ANGLE_MAX, yaw));
+        this.targetYaw = Math.max(YAW_OFFSET, Math.min(YAW_ANGLE_MAX, yaw));
     }
 
     /**
@@ -209,8 +211,7 @@ public class TurretDegreeController {
      */
     private boolean rotateYawTo(double targetAngle) {
         setTargetYaw(targetAngle);
-        currentYaw = yawServo.getPosition() * (YAW_ANGLE_MAX - YAW_ANGLE_MIN) + YAW_ANGLE_MIN;
-
+        currentYaw = yawServo.getPosition() / SERVO_POSITION_PER_DEGREE + YAW_OFFSET;
         return Math.abs(currentYaw - targetAngle) <= ANGLE_TOLERANCE;
     }
 
@@ -246,11 +247,10 @@ public class TurretDegreeController {
         double power = voltageOut.getVoltageOutPower(outputVoltage);
         rollMotor.setPower(power);
 
-        double yawTargetServo = (targetYaw - YAW_ANGLE_MIN) / (YAW_ANGLE_MAX - YAW_ANGLE_MIN);
+        double yawDelta = targetYaw - YAW_OFFSET; // 计算相对于初始角的变化量
+        double yawTargetServo = yawDelta * SERVO_POSITION_PER_DEGREE;
         yawServo.setPosition(Math.max(YAW_SERVO_MIN, Math.min(YAW_SERVO_MAX, yawTargetServo)));
-        //提醒一点，这里的yawServo.getPosition()读取到的就是你给它set的targetposition。舵机不会
-        //以任何电气方式实时读取自己的位置并返回。所以currentYaw即yawTargetServo
-        currentYaw = yawServo.getPosition() * (YAW_ANGLE_MAX - YAW_ANGLE_MIN) + YAW_ANGLE_MIN;
+        currentYaw = yawServo.getPosition() / SERVO_POSITION_PER_DEGREE + YAW_OFFSET;
 
         if (telemetry != null) {
             telemetry.addData("TargetRoll", targetRoll);
