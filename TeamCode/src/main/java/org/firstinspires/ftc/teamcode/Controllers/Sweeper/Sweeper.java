@@ -31,7 +31,7 @@ public class Sweeper {
     }
 
     private void setDirection() {
-        switch (ForR) {
+        switch(ForR) {
             case 0:
                 motor.setDirection(DcMotor.Direction.REVERSE);
                 break;
@@ -64,7 +64,6 @@ public class Sweeper {
     /**
      * 发射前准备：反转sweeper将球拉离飞轮
      * 反转速度与吐球速度相同
-     *
      * @param ticks 反转ticks数
      */
     public void prepare(int ticks) {
@@ -97,5 +96,26 @@ public class Sweeper {
         }
         motor.setVelocity(targetVelocity);
     }
-}
 
+    public double getPower() {
+        return motor.getPower();
+    }
+
+    public double getVel() {
+        return motor.getVelocity();
+    }
+
+    public int getFR() {
+        return ForR;
+    }
+
+    public double getCurrent() {
+        return motor.getCurrent(CurrentUnit.AMPS);
+    }
+
+    public void setTelemetry() {
+        telemetry.addData("Sweeper Velocity", getVel());
+        telemetry.addData("Sweeper Power*1000", getPower()*1000);
+        telemetry.addData("Sweeper Current", getCurrent());
+    }
+}
