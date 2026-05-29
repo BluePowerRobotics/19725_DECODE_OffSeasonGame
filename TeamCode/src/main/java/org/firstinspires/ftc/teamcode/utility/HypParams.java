@@ -74,12 +74,12 @@ public class HypParams {
     /**
      * todo:sweeper吃球速度（单位：tick/s）
      */
-    public static int SweeperEatVel = 1960;
+    public static int SweeperEatVel = 2600;
 
     /**
      * todo:sweeper给出artifact速度（单位：tick/s）
      */
-    public static int SweeperGiveArtifactVel = 1960;
+    public static int SweeperGiveArtifactVel = 2600;
 
     /**
      * todo:sweeper吐球速度（单位：tick/s）

@@ -96,10 +96,16 @@ public class Chassis {
                 // Road Runner 场地坐标系: field velocity = (-Ky, -Kx)
                 //   x = forward = -left_stick_y  (摇杆前推(-1) → 场地前向(+1))
                 //   y = strafe  = -left_stick_x  (摇杆左推(-1) → 场地左移(+1))
-                // 旋转到机器人坐标系: robotVel = fieldVel.rotated(-heading)
-                Vector2d fieldVel = new Vector2d(-Ky, -Kx);
-                Vector2d robotVel = fieldVel.rotated(-RobotPosition.getInstance().getTheta());
-                drive.setDrivePowers(new PoseVelocity2d(robotVel.times(maxV), omega));
+                // 旋转到机器人坐标系: 使用纯数学计算旋转矩阵
+                double fieldX = -Ky;
+                double fieldY = -Kx;
+                double angle = -RobotPosition.getInstance().getTheta();
+                double cosAngle = Math.cos(angle);
+                double sinAngle = Math.sin(angle);
+                // 旋转矩阵: [cos -sin; sin cos]
+                double robotX = (fieldX * cosAngle - fieldY * sinAngle) * maxV;
+                double robotY = (fieldX * sinAngle + fieldY * cosAngle) * maxV;
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(robotX, robotY), omega));
             } else {
                 // 有头模式 (robot-centric)：摇杆控制机器人本体方向运动
                 // forward = -Ky (摇杆前推为负 → 机器人前进为正)

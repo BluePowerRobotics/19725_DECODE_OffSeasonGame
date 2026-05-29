@@ -82,7 +82,7 @@ public class VelocityTest extends LinearOpMode {
             // 根据状态更新底盘
             if (currentState == State.RUNNING) {
                 // 不做左右平移（Ky = 0）
-                chassis.update(v, 0.0, omega);
+                chassis.update(v, 0.0, omega,false);
             }
             
             // 实时显示当前参数

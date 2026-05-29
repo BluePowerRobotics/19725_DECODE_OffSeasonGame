@@ -90,7 +90,7 @@ public class FullTest extends LinearOpMode {
             // D-pad 左右 → 预期射速（仅设置预期功率，飞轮仍停止）
             if (gamepad2.dpad_right) {
                 targetSpeed += SPEED_STEP;
-            } else if (gamepad2.dpadLeft) {
+            } else if (gamepad2.dpadLeftWasPressed()) {
                 targetSpeed -= SPEED_STEP;
             }
 

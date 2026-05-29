@@ -26,7 +26,7 @@ public class TurretDegreeController {
 
     public static double ROLL_TICKS_PER_DEGREE = 1.187878787878;
 
-    public static double SERVO_POSITION_PER_DEGREE = 0.0688816;// 这个值是根据舵机的实际测试测量得到的参数
+    public static double SERVO_POSITION_PER_DEGREE = 0.0588816;// 这个值是根据舵机的实际测试测量得到的参数
     public static double YAW_OFFSET = 65.0; // yaw 初始角，用于校准舵机 0 度位置
     public static double ANGLE_TOLERANCE = 0.5;
 
