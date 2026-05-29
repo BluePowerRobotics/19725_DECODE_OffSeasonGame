@@ -80,10 +80,10 @@ public class FullTest extends LinearOpMode {
 
             // D-pad 上下 → yaw（仰角）
             if (gamepad2.dpad_up) {
-                targetYaw = Math.min(TurretDegreeController.YAW_ANGLE_MAX, targetYaw + YAW_STEP);
+                targetYaw = 50;
             }
             if (gamepad2.dpad_down) {
-                targetYaw = Math.max(TurretDegreeController.YAW_ANGLE_MIN, targetYaw - YAW_STEP);
+                targetYaw = 45;
             }
             turret.turretDegreeController.setTargetYaw(targetYaw);
 

@@ -34,6 +34,7 @@ public class Shootertester extends LinearOpMode {
 
             shooter.update();
             telemetry.addData("Velocity", targetVelocity);
+            telemetry.addData("Reached", shooter.reachedVelocity());
             telemetry.addData("leftV",shooter.getSpeedL());
             telemetry.addData("rightV",shooter.getSpeedR());
 

@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.VoltageOut;
 @Config
 public class Shooter {
     /** 比例系数 */
-    public static double kP = 1.0;
+    public static double kP = 0.05;
     /** 积分系数 */
-    public static double kI = 0.0;
+    public static double kI = 0.3;
     /** 微分系数 */
-    public static double kD = 0.0;
+    public static double kD = 0.0001;
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */
@@ -90,7 +90,7 @@ public class Shooter {
         return reachedVelocity();
     }
     public boolean reachedVelocity(){
-        return (Math.abs(currentVelocity - targetVelocity) < VelocityTolerance);//&&shooterR.reachedTarget();
+        return (Math.abs(currentVelocity - targetVelocity - 20) < VelocityTolerance);//&&shooterR.reachedTarget();
     }
 
     public void update(){
@@ -111,7 +111,7 @@ public class Shooter {
         long now = System.currentTimeMillis();
         double dt = lastUpdateTime == 0 ? 0.02 : (now - lastUpdateTime) / 1000.0;
         lastUpdateTime = now;
-        currentVelocity = shooterL.getVelocity();
+        currentVelocity = shooterR.getVelocity();
         outputVoltage = controller.calculate(targetVelocity, currentVelocity, dt, true);
         power = voltageOut.getVoltageOutPower(outputVoltage);
 
