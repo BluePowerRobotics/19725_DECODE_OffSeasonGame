@@ -28,7 +28,7 @@ public class SweeperTester extends LinearOpMode {
                 sweeper.setOutput();
             } else if (gamepad1.xWasPressed()) {
                 sweeper.setStop();
-            } else if (gamepad1.dpad_upWasPressed()) {
+            } else if (gamepad1.dpadUpWasPressed()) {
                 sweeper.setTrigger();
             }
 
