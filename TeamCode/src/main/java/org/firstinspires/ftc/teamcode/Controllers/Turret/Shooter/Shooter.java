@@ -67,9 +67,9 @@ public class Shooter {
         this.shooterR.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         this.shooterR.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        this.shooterL.setDirection(DcMotorEx.Direction.REVERSE);
+        this.shooterR.setDirection(DcMotorEx.Direction.REVERSE);
 
-        this.shooterR.setDirection(DcMotorEx.Direction.FORWARD);
+        this.shooterL.setDirection(DcMotorEx.Direction.FORWARD);
 
         // 初始化电压输出控制器
         this.voltageOut = new VoltageOut(hardwareMap);

@@ -49,8 +49,8 @@ public class TurretDegreeController {
     public double kS = 0.0;
     public double kV = 0.0;
     public double kA = 0.0;
-    public double outputMin = -14.0;
-    public double outputMax = 14.0;
+    public double outputMin = -10.0;
+    public double outputMax = 10.0;
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
