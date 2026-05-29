@@ -95,25 +95,25 @@ public class HypParams {
      * todo:机器人最大线速度（单位：英寸/秒）
      * 底盘运动时允许的最大平移速度
      */
-    public static double maxV = 2;
+    public static double maxV = 1.5;
 
     /**
      * todo:机器人最大角速度（单位：弧度/秒）
      * 底盘旋转时允许的最大角速度
      */
-    public static double maxOmega = Math.PI;
+    public static double maxOmega = Math.PI*0.75;
 
     /**
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(0, 0, 0);
+    public static Pose2d startPoseRed = new Pose2d(62.5, 24, Math.PI);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(0, 0, 0);
+    public static Pose2d startPoseBlue = new Pose2d(62.5, -24, 0);
 
     /**
      * todo:自动模式下游走速度（单位：米/秒）
@@ -132,12 +132,6 @@ public class HypParams {
      * false = 有头模式(robot-centric)：摇杆控制机器人本体坐标系运动（默认）
      */
     public static boolean InitialUseNoHeadMode = false;
-
-    /**
-     * 球的质量（单位：千克）
-     * 用于RK4弹道动力学计算
-     */
-    public static double ballMass = 0.06;
 
     /**
      * 目标角度每帧变化范围（单位：弧度）
