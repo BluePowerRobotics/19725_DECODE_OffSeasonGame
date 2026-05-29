@@ -89,7 +89,7 @@ public class HypParams {
     /**
      * todo:sweeper发射触发速度（单位：tick/s）
      */
-    public static int SweeperTriggerVel = 2100;
+    public static int SweeperTriggerVel = 3000;
 
     /**
      * todo:机器人最大线速度（单位：英寸/秒）
@@ -128,9 +128,10 @@ public class HypParams {
 
     /**
      * 初始操控模式标志
-     * false表示使用"有头模式"（场心地坐标系），true表示使用"无头模式"（机器人坐标系）
+     * true = 无头模式(field-centric)：摇杆控制场地坐标系运动，机器人自动旋转补偿
+     * false = 有头模式(robot-centric)：摇杆控制机器人本体坐标系运动（默认）
      */
-    public static boolean InitialRunningToPose = true;
+    public static boolean InitialUseNoHeadMode = false;
 
     /**
      * 球的质量（单位：千克）

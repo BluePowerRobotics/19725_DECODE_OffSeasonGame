@@ -73,6 +73,7 @@ public class OffseasonDECODE extends LinearOpMode {
     public boolean needshoot = false;
     public static double turretmode = 0;// 0为自动瞄准，1为定位的开环，2为手动瞄准
     public int targetSpeed = 0;
+    public static boolean useNoHeadMode = false;
 
     void Init() {
         teamColor = TEAM_COLOR.BLUE;
@@ -83,14 +84,15 @@ public class OffseasonDECODE extends LinearOpMode {
         turret = new Turret(hardwareMap, telemetry);
         actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
+        useNoHeadMode = HypParams.InitialUseNoHeadMode;
         // ledController = new BlinkinLedController(hardwareMap);
     }
 
     void inputRobotStatus() {
         if (gamepad1.xWasPressed()) {
             robotStatus = ROBOT_STATUS.WAITING;
-            chassis.exchangeMode();
-        } // 为什么要用xWasReleased?
+            useNoHeadMode = !useNoHeadMode;
+        }
 
         if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
             shouldShoot = false;
@@ -172,7 +174,7 @@ public class OffseasonDECODE extends LinearOpMode {
     }
 
     void chassis() {
-        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, useNoHeadMode);
     }
 
     void sweeper() {
@@ -266,6 +268,7 @@ public class OffseasonDECODE extends LinearOpMode {
         telemetry.addData("RobotSTATUS", robotStatus.toString());
         telemetry.addData("turretSTATUS", turretStatus.toString());
         telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
+        telemetry.addData("NoHeadMode", useNoHeadMode);
         telemetry.addData("Position", RobotPosition.getInstance().getPose2d().toString());
         telemetry.addData("Heading", RobotPosition.getInstance().getPose2d());
         shooter.setTelemetry();
