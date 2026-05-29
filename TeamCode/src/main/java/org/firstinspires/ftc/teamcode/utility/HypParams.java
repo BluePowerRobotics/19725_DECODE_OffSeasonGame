@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utility;
+        package org.firstinspires.ftc.teamcode.utility;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -14,10 +14,10 @@ public class HypParams {
      * 定义机器人在场地中的碰撞边界，用于避障和边界检测
      */
     public static ConvexPolygon BoundingBox = new ConvexPolygon(
-        new Point2D(20, 20),
-        new Point2D(-20, 20),
-        new Point2D(-20, -20),
-        new Point2D(20, -20)
+            new Point2D(20, 20),
+            new Point2D(-20, 20),
+            new Point2D(-20, -20),
+            new Point2D(20, -20)
     );
 
     /**
@@ -25,9 +25,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(72, 24),
-        new Point2D(72, -24),
-        new Point2D(48, 0)
+            new Point2D(72, 24),
+            new Point2D(72, -24),
+            new Point2D(48, 0)
     );
 
     /**
@@ -35,9 +35,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
-        new Point2D(0, 0),
-        new Point2D(-72, 72),
-        new Point2D(-72, -72)
+            new Point2D(0, 0),
+            new Point2D(-72, 72),
+            new Point2D(-72, -72)
     );
     //是否去小三角
     public static boolean ToLeft=true;
@@ -66,8 +66,41 @@ public class HypParams {
      * todo:反转炮台水平电机时需要额外转过的角（单位：度）
      */
     public static double ReverseRollAngle = 2;
+
     /**
-     * todo:机器人最大线速度（单位：米/秒）
+     * todo:发射前等待时间（单位：ms）
+     * 飞轮开始加速前的准备等待时间，此期间sweeper反转PrepareAngle
+     */
+    public static int WaitTime = 500;
+
+    /**
+     * todo:发射前sweeper反转角度（单位：tick）
+     * sweeper在发射前反向旋转的编码器ticks数，将球拉离飞轮
+     */
+    public static int PrepareAngle = 100;
+
+    /**
+     * todo:sweeper吃球速度（单位：tick/s）
+     */
+    public static int SweeperEatVel = 1960;
+
+    /**
+     * todo:sweeper给出artifact速度（单位：tick/s）
+     */
+    public static int SweeperGiveArtifactVel = 1960;
+
+    /**
+     * todo:sweeper吐球速度（单位：tick/s）
+     */
+    public static int SweeperOutputVel = -960;
+
+    /**
+     * todo:sweeper发射触发速度（单位：tick/s）
+     */
+    public static int SweeperTriggerVel = 2100;
+
+    /**
+     * todo:机器人最大线速度（单位：英寸/秒）
      * 底盘运动时允许的最大平移速度
      */
     public static double maxV = 2;
@@ -96,8 +129,8 @@ public class HypParams {
      */
     public static double WanderSpeed = 1;
     /*
-        * 最大小球偏移角（单位：弧度）
-        * 可以根据limelight的视场角和实际情况调整
+     * 最大小球偏移角（单位：弧度）
+     * 可以根据limelight的视场角和实际情况调整
      */
     public static double MaxBearing=Math.toRadians(25);
 
@@ -173,8 +206,8 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesRed = {
-        new Pose2d(10, 20, Math.toRadians(90)),
-        new Pose2d(20, 20, Math.toRadians(90))
+            new Pose2d(10, 20, Math.toRadians(90)),
+            new Pose2d(20, 20, Math.toRadians(90))
     };
 
     /**
@@ -182,7 +215,7 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesBlue = {
-        new Pose2d(10, -20, Math.toRadians(-90)),
-        new Pose2d(20, -20, Math.toRadians(-90))
+            new Pose2d(10, -20, Math.toRadians(-90)),
+            new Pose2d(20, -20, Math.toRadians(-90))
     };
 }

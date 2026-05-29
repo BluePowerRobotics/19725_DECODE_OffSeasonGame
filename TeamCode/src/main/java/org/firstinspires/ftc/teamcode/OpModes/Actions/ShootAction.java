@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes.Actions;
+        package org.firstinspires.ftc.teamcode.OpModes.Actions;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.roadrunner.Action;
@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 public class ShootAction implements Action {
     private final Turret turret;
@@ -25,10 +26,19 @@ public class ShootAction implements Action {
     public boolean run(@NonNull TelemetryPacket packet) {
         RobotPosition.getInstance().update();
 
-        sweeper.setStop();
+        turret.update(true, true, targetTagId);
+
+        if (turret.getShootPhase() == Turret.ShootPhase.PREPARING) {
+            if (!sweeper.isPreparing()) {
+                sweeper.prepare(HypParams.PrepareAngle);
+            }
+        } else if (turret.getShootPhase() == Turret.ShootPhase.FIRING) {
+            sweeper.setTrigger();
+        } else if (turret.getShootPhase() == Turret.ShootPhase.IDLE && !sweeper.isPreparing()) {
+            sweeper.setStop();
+        }
         sweeper.update();
         chassis.stop();
-        turret.update(true, true, targetTagId);
         return !RobotPosition.getInstance().isEmpty();
     }
 }
