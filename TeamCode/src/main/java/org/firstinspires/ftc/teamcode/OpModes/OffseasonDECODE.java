@@ -187,15 +187,16 @@ public class OffseasonDECODE extends LinearOpMode {
                 sweeper.setStop();
                 break;
         }
+        sweeper.update();
     }
 
     void turret() {
         switch (turretStatus) {
             case SHOOTING:
                 if (turretmode == 0) {
-                    turret.update(true, true, targetTagId);
+                    turret.update(true, shouldShoot, targetTagId);
                 } else if (turretmode == 1) {
-                    turret.update(false, true, targetTagId);
+                    turret.update(false, shouldShoot, targetTagId);
                 } else if (turretmode == 2) {
                     shouldAim = false;
                     shouldShoot = false;
