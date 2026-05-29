@@ -24,7 +24,7 @@ public class TurretDegreeController {
     private SlotConfig config;
     private Telemetry telemetry;
 
-    public static double ROLL_TICKS_PER_DEGREE = 1.187878787878；
+    public static double ROLL_TICKS_PER_DEGREE = 1.187878787878;
 
     public static double SERVO_POSITION_PER_DEGREE = 0.0688816;// 这个值是根据舵机的实际测试测量得到的参数
     public static double YAW_OFFSET = 0.0; // yaw 初始角，用于校准舵机 0 度位置
