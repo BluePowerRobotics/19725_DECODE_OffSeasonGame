@@ -19,7 +19,7 @@ public class EatTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化组件
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
         tracker = new Tracker(hardwareMap);
         sweeper = new Sweeper(hardwareMap, telemetry);
         

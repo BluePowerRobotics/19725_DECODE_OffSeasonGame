@@ -39,7 +39,7 @@ public class FullTest extends LinearOpMode {
         sweeper = new Sweeper(hardwareMap, telemetry);
         shooter = new Shooter(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
-        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
 
         waitForStart();
 

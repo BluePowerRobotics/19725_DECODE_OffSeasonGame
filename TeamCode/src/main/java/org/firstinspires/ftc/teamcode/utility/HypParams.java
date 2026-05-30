@@ -39,8 +39,20 @@ public class HypParams {
             new Point2D(-72, 72),
             new Point2D(-72, -72)
     );
+
+    public static ConvexPolygon SHOOTING_AREA_NEAR_RED = new ConvexPolygon(
+            new Point2D(0, 0),
+            new Point2D(-72, 72),
+            new Point2D(-72, 0)
+    );
+
+    public static ConvexPolygon SHOOTING_AREA_NEAR_BLUE = new ConvexPolygon(
+            new Point2D(0, 0),
+            new Point2D(-72, -72),
+            new Point2D(-72, 0)
+    );
     //是否去小三角
-    public static boolean ToLeft=true;
+    public static boolean ToLeft=false;
     /**
      * todo:炮口与目标的高度差（单位：米）
      * 用于RK4弹道计算，即发射点与目标点之间的垂直距离
@@ -193,8 +205,8 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesRed = {
-            new Pose2d(10, 20, Math.toRadians(90)),
-            new Pose2d(20, 20, Math.toRadians(90))
+            new Pose2d(36, 36, Math.toRadians(90)),
+            new Pose2d(12, 36, Math.toRadians(90))
     };
 
     /**
@@ -202,7 +214,7 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesBlue = {
-            new Pose2d(10, -20, Math.toRadians(-90)),
-            new Pose2d(20, -20, Math.toRadians(-90))
+            new Pose2d(36, -36, Math.toRadians(-90)),
+            new Pose2d(12, -36, Math.toRadians(-90))
     };
 }

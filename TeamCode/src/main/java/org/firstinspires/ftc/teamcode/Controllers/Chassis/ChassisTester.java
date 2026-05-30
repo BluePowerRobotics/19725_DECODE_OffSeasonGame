@@ -9,7 +9,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
@@ -24,7 +24,7 @@ public class ChassisTester extends LinearOpMode {
     @Override
     public void runOpMode()throws InterruptedException{
         ActionRunner actionRunner = new ActionRunner();
-        Chassis chassis=new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        Chassis chassis=new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while (opModeIsActive()){

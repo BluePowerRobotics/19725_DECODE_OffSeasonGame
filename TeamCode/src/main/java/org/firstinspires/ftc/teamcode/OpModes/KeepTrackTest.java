@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.utility.MathSolver;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 
 @TeleOp(name = "KeepTrackTest", group = "Tests")
@@ -21,7 +22,7 @@ public class KeepTrackTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化组件
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
         tracker = new Tracker(hardwareMap);
         sweeper = new Sweeper(hardwareMap, telemetry);
         
@@ -59,8 +60,8 @@ public class KeepTrackTest extends LinearOpMode {
             // 显示状态信息
             telemetry.addData("Has Target", tracker.getHasTarget());
             telemetry.addData("TargetTheta", tracker.getTargetTheta());
-            telemetry.addData("Ball Full", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isFull());
-            telemetry.addData("Ball Empty", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isEmpty());
+            //telemetry.addData("Ball Full", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isFull());
+            //telemetry.addData("Ball Empty", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isEmpty());
             chassis.telemetry();
             telemetry.update();
         }

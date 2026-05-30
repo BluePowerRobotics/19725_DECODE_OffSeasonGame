@@ -11,13 +11,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-@Autonomous
-public class AutoEasy extends LinearOpMode {
-    public enum TEAM_COLOR { RED, BLUE }
-
-    private TEAM_COLOR teamColor = TEAM_COLOR.RED;
-    private boolean initStarted = false;
+@Autonomous(name = "AutoEasy_Blue")
+public class AutoEasy_Blue extends LinearOpMode {
     private Action trajectoryAction;
     private boolean trajectoryStarted = false;
 
@@ -25,24 +22,10 @@ public class AutoEasy extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        while (opModeInInit() || !initStarted) {
-            if (gamepad1.a) teamColor = TEAM_COLOR.BLUE;
-            if (gamepad1.b) teamColor = TEAM_COLOR.RED;
-
-            telemetry.addData("TEAM_COLOR", teamColor.toString());
-            telemetry.addData("Instructions", "A: Blue, B: Red");
-            telemetry.update();
-            initStarted = true;
-        }
-
         ActionRunner actionRunner = new ActionRunner();
-        Chassis chassis = new Chassis(hardwareMap,
-                teamColor == TEAM_COLOR.RED ? TeamColor.RED : TeamColor.BLUE,
-                actionRunner, telemetry);
+        Chassis chassis = new Chassis(hardwareMap, TeamColor.BLUE, actionRunner, telemetry);
 
-        Pose2d targetPose = (teamColor == TEAM_COLOR.RED)
-                ? new Pose2d(60, 60, 0)
-                : new Pose2d(60, -60, 0);
+        Pose2d targetPose = new Pose2d(60, -60, 0);
 
         waitForStart();
         if (isStopRequested()) return;

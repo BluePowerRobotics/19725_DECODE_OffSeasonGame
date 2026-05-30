@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @TeleOp(name = "VelocityTest", group = "Tests")
 public class VelocityTest extends LinearOpMode {
@@ -30,7 +31,7 @@ public class VelocityTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化底盘
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("State", currentState);
