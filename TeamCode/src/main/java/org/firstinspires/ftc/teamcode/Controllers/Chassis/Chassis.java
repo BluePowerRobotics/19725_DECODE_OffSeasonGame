@@ -7,7 +7,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utility.TeamColor;
+import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
@@ -29,8 +29,8 @@ public class Chassis {
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
-    public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry) {
-        Pose2d startPose = (teamColor == TeamColor.RED) ?
+    public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+        Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
                 HypParams.startPoseRed : HypParams.startPoseBlue;
         RobotPosition.RobotPositioninit(hardwareMap, startPose);
         this.drive = RobotPosition.getInstance().getDrive();
@@ -73,23 +73,6 @@ public class Chassis {
         Point2D nearestVector = (HypParams.ToLeft) ? VecToLeft : VecToRight;
         double targetTheta = nearestVector.getRadian()-RobotPosition.getInstance().getTheta();
 
-        GoTo(targetTheta);
-    }
-
-    public void GoToNearShootingArea(boolean isRed){
-        Point2D currentPos = new Point2D(
-            RobotPosition.getInstance().getX(),
-            RobotPosition.getInstance().getY()
-        );
-
-        ConvexPolygon targetArea = isRed ? HypParams.SHOOTING_AREA_NEAR_RED : HypParams.SHOOTING_AREA_NEAR_BLUE;
-        if (HypParams.BoundingBox.inAbsolute(RobotPosition.getInstance().getPose2d()).IsIntersected(targetArea)) {
-            stop();
-            return;
-        }
-
-        Point2D nearestVector = targetArea.NearestVectorFrom(currentPos);
-        double targetTheta = nearestVector.getRadian() - RobotPosition.getInstance().getTheta();
         GoTo(targetTheta);
     }
 

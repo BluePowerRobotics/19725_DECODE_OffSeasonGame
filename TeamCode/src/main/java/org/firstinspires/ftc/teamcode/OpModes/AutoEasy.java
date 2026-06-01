@@ -37,7 +37,7 @@ public class AutoEasy extends LinearOpMode {
 
         ActionRunner actionRunner = new ActionRunner();
         Chassis chassis = new Chassis(hardwareMap,
-                teamColor == TEAM_COLOR.RED ? TeamColor.RED : TeamColor.BLUE,
+                teamColor == TEAM_COLOR.RED ? OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE,
                 actionRunner, telemetry);
 
         Pose2d targetPose = (teamColor == TEAM_COLOR.RED)
