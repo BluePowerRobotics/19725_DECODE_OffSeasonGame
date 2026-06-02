@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
-import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
@@ -44,10 +43,8 @@ public class OffseasonDECODE extends LinearOpMode {
     public enum SWEEPER_STATUS {
         EAT,
         GIVE_ARTIFACT,
-        TRIGGER,
         OUTPUT,
-        STOP,
-        PREPARE
+        STOP
     }
 
     SWEEPER_STATUS sweeperStatus = SWEEPER_STATUS.STOP;
@@ -183,16 +180,11 @@ public class OffseasonDECODE extends LinearOpMode {
             case GIVE_ARTIFACT:
                 sweeper.setGiveArtifact();
                 break;
-            case TRIGGER:
-                sweeper.setTrigger();
-                break;
             case OUTPUT:
                 sweeper.setOutput();
                 break;
             case STOP:
                 sweeper.setStop();
-                break;
-            case PREPARE:
                 break;
         }
         sweeper.update();
@@ -227,16 +219,6 @@ public class OffseasonDECODE extends LinearOpMode {
                     turret.update(gamepad2.left_stick_x);// 旋转
                     turret.update(targetSpeed, needshoot);// 发射（手动）
                     // 未完待续（控制瞄准）[需检查]
-                }
-                if (turretmode != 2) {
-                    if (turret.getShootPhase() == Turret.ShootPhase.PREPARING) {
-                        if (!sweeper.isPreparing()) {
-                            sweeper.prepare(HypParams.PrepareAngle);
-                        }
-                        sweeperStatus = SWEEPER_STATUS.PREPARE;
-                    } else if (turret.getShootPhase() == Turret.ShootPhase.FIRING) {
-                        sweeperStatus = SWEEPER_STATUS.TRIGGER;
-                    }
                 }
                 break;
             case STOP:

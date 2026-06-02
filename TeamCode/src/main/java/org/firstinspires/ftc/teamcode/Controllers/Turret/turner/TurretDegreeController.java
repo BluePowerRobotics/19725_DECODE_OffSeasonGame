@@ -24,8 +24,8 @@ public class TurretDegreeController {
     private SlotConfig config;
     private Telemetry telemetry;
 
-    public static double ROLL_TICKS_PER_DEGREE = 1.1878787878;
-    public static double YAW_POSITION_PER_DEGREE=0.00688816;
+    public static double ROLL_MOTOR_TICKS_PER_REV = 28.0;
+    public static double ROLL_TICKS_PER_DEGREE = ROLL_MOTOR_TICKS_PER_REV / 360.0;
     public static double ANGLE_TOLERANCE = 0.5;
 
     private double currentRoll = 0.0;
