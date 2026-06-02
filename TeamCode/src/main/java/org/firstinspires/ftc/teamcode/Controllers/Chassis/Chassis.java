@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
+import org.firstinspires.ftc.teamcode.utility.MathSolver;
+
 
 
 @Config
@@ -26,6 +28,7 @@ public class Chassis {
 
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
+    private boolean useNoHeadMode = HypParams.InitialUseNoHeadMode;
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
@@ -39,6 +42,15 @@ public class Chassis {
 
     }
 
+    public void setUseNoHeadMode(boolean useNoHeadMode){
+        this.useNoHeadMode = useNoHeadMode;
+    }
+    public void exchangeUseNoHeadMode(){
+        useNoHeadMode = !useNoHeadMode;
+    }
+    public boolean getUseNoHeadMode(){
+        return useNoHeadMode;
+    }
     public void stop(){
         drive.setDrivePowers(new PoseVelocity2d(
                 new Vector2d(0,0),
@@ -85,34 +97,28 @@ public class Chassis {
             new Vector2d(0,0),
             omega));
     }
-    public void update(double Kx, double Ky, double Komega, boolean useNoHeadMode){
+    public void update(double Kx, double Ky, double Komega){
         lastKx = Kx;
         lastKy = Ky;
         lastKomega = Komega;
         if(!actionRunner.isBusy()){
-            double omega = Komega * maxOmega;
-            if (useNoHeadMode) {
-                // 无头模式 (field-centric)：摇杆控制场地方向运动
-                // Road Runner 场地坐标系: field velocity = (-Ky, -Kx)
-                //   x = forward = -left_stick_y  (摇杆前推(-1) → 场地前向(+1))
-                //   y = strafe  = -left_stick_x  (摇杆左推(-1) → 场地左移(+1))
-                // 旋转到机器人坐标系: 使用纯数学计算旋转矩阵
-                double fieldX = Ky;
-                double fieldY = Kx;
-                double angle = -RobotPosition.getInstance().getTheta();
-                double cosAngle = Math.cos(angle);
-                double sinAngle = Math.sin(angle);
-                // 旋转矩阵: [cos -sin; sin cos]
-                double robotX = (fieldX * cosAngle - fieldY * sinAngle) * maxV;
-                double robotY = (fieldX * sinAngle + fieldY * cosAngle) * maxV;
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(robotX, robotY), omega));
-            } else {
-                // 有头模式 (robot-centric)：摇杆控制机器人本体方向运动
-                // forward = -Ky (摇杆前推为负 → 机器人前进为正)
-                // strafe  = -Kx (摇杆右推为正 → Road Runner负y向右移动)
-                double forward = Ky * maxV;
-                double strafe = Kx * maxV;
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forward, strafe), omega));
+            // 摇杆 → 底盘速度映射：Ky/Kx 取反以匹配 FTC SDK 手柄惯例（上推为负、右推为正）
+            // 官方 SDK: forward = -gamepad1.left_stick_y, strafe = gamepad1.left_stick_x
+            // Road Runner: PoseVelocity2d.y 正值 = 向左横移，故 strafe 也需取反
+            double forwardVel = -Ky * maxV;
+            double strafeVel = -Kx * maxV;
+            double omega = -Komega * maxOmega;
+            if(useNoHeadMode){
+                double theta = RobotPosition.getInstance().getTheta();
+                double cos = Math.cos(theta);
+                double sin = Math.sin(theta);
+                // 将场心坐标系速度旋转到机器人坐标系
+                double forwardRobot = forwardVel * cos + strafeVel * sin;
+                double strafeRobot = -forwardVel * sin + strafeVel * cos;
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardRobot, strafeRobot), omega));
+            }
+            else{
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardVel, strafeVel), omega));
             }
         }
     }
@@ -120,6 +126,7 @@ public class Chassis {
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
+        telemetry.addData("useNoHeadMode", useNoHeadMode);
         telemetry.addData("lfP",drive.leftFront.getPower());
         telemetry.addData("rfP",drive.rightFront.getPower());
         telemetry.addData("lbP",drive.leftBack.getPower());

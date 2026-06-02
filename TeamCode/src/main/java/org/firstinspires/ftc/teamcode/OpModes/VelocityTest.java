@@ -81,8 +81,8 @@ public class VelocityTest extends LinearOpMode {
             
             // 根据状态更新底盘
             if (currentState == State.RUNNING) {
-                // 不做左右平移（Ky = 0）
-                chassis.update(v, 0.0, omega,false);
+                // 不做左右平移（Kx = 0），取反 v 以匹配 chassis.update 的 FTC SDK 手柄惯例
+                chassis.update(0.0, -v, omega);
             }
             
             // 实时显示当前参数

@@ -10,7 +10,7 @@ startPoseBlue //初始姿态Blue（Pose2d,inch）
 WanderSpeed //Auto游走速度（m/s）
 Limelight_h //即Projector中的h（m），用于Tracker
 Limelight_m0 //即Projector中的m0（m），用于Tracker
-InitialUseNoHeadMode //初始操控模式 true=无头模式 false=有头模式(默认)
+InitialRunningToPose //初始操控模式
 distanceThreshold// 聚类距离阈值，用于判断检测是否属于同一目标
 confirmationFrames// 目标确认所需的连续帧数
 removalFrames// 目标移除所需的连续缺失帧数

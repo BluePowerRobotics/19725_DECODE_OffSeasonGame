@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 public class ChassisTester extends LinearOpMode {
 
     long lastNanoTime=0;
-    boolean useNoHeadMode = false;
 
 
     @Override
@@ -29,10 +28,9 @@ public class ChassisTester extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()){
             RobotPosition.getInstance().update();
-            chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, useNoHeadMode);
-            if(gamepad1.xWasReleased()) useNoHeadMode = !useNoHeadMode;
+            chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            if(gamepad1.xWasReleased())chassis.exchangeUseNoHeadMode();
             lastNanoTime=System.nanoTime();
-            telemetry.addData("NoHeadMode", useNoHeadMode);
             chassis.telemetry();
             telemetry.update();
             TelemetryPacket packet = new TelemetryPacket();
