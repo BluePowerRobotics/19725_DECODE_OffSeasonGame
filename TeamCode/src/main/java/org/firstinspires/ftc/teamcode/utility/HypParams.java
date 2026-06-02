@@ -103,9 +103,9 @@ public class HypParams {
 
     /**
      * 初始操控模式标志
-     * false表示使用"有头模式"（场心地坐标系），true表示使用"无头模式"（机器人坐标系）
+     * true=无头模式（场心地坐标系），false=有头模式（机器人坐标系）
      */
-    public static boolean InitialRunningToPose = true;
+    public static boolean InitialUseNoHeadMode = false;
 
     /**
      * 球的质量（单位：千克）

@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
@@ -69,10 +70,12 @@ public class OffseasonDECODE extends LinearOpMode {
     public boolean shouldShoot = false;
     public boolean needshoot = false;
     public static double turretmode = 0;// 0为自动瞄准，1为定位的开环，2为手动瞄准
+    public static boolean useNoHeadMode = false;
     public int targetSpeed = 0;
 
     void Init() {
         teamColor = TEAM_COLOR.BLUE;
+        useNoHeadMode = HypParams.InitialUseNoHeadMode;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetry = InstanceTelemetry.init(telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
@@ -86,8 +89,9 @@ public class OffseasonDECODE extends LinearOpMode {
     void inputRobotStatus() {
         if (gamepad1.xWasPressed()) {
             robotStatus = ROBOT_STATUS.WAITING;
-            chassis.exchangeMode();
-        } // 为什么要用xWasReleased?
+            useNoHeadMode = !useNoHeadMode;
+            chassis.setUseNoHeadMode(useNoHeadMode);
+        }
 
         if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
             shouldShoot = false;
@@ -248,6 +252,7 @@ public class OffseasonDECODE extends LinearOpMode {
         telemetry.addData("RobotSTATUS", robotStatus.toString());
         telemetry.addData("turretSTATUS", turretStatus.toString());
         telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
+        telemetry.addData("useNoHeadMode", useNoHeadMode);
         telemetry.addData("Position", RobotPosition.getInstance().getPose2d().toString());
         telemetry.addData("Heading", RobotPosition.getInstance().getPose2d());
         shooter.setTelemetry();
@@ -300,6 +305,7 @@ public class OffseasonDECODE extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             inputRobotStatus();
+            RobotPosition.getInstance().update();
             setStatus();
             chassis();
             turret();

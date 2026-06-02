@@ -28,8 +28,7 @@ public class Chassis {
 
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
-    private boolean RunningToPose = HypParams.InitialRunningToPose;
-    private boolean useFieldRelative = false;
+    private boolean useNoHeadMode = HypParams.InitialUseNoHeadMode;
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
@@ -43,18 +42,14 @@ public class Chassis {
 
     }
 
-    public void setMode(boolean RunningToPose){
-        this.RunningToPose = RunningToPose;
+    public void setUseNoHeadMode(boolean useNoHeadMode){
+        this.useNoHeadMode = useNoHeadMode;
     }
-
-    public void exchangeMode(){
-        RunningToPose = !RunningToPose;
+    public void exchangeUseNoHeadMode(){
+        useNoHeadMode = !useNoHeadMode;
     }
-    public void exchangeFieldRelativeMode(){
-        useFieldRelative = !useFieldRelative;
-    }
-    public boolean getFieldRelativeMode(){
-        return useFieldRelative;
+    public boolean getUseNoHeadMode(){
+        return useNoHeadMode;
     }
     public void stop(){
         drive.setDrivePowers(new PoseVelocity2d(
@@ -107,17 +102,23 @@ public class Chassis {
         lastKy = Ky;
         lastKomega = Komega;
         if(!actionRunner.isBusy()){
-            double vx = Kx * maxV;
-            double vy = Ky * maxV;
+            // 摇杆 → 底盘速度映射：
+            //   left_stick_y: -1=前推, +1=后拉 → forward: 负号反转
+            //   left_stick_x: -1=左推, +1=右推 → strafe: 负号反转（RoadRunner +Y=左）
+            double forwardVel = -Ky * maxV;
+            double strafeVel = -Kx * maxV;
             double omega = Komega * maxOmega;
-            if(useFieldRelative){
+            if(useNoHeadMode){
                 double theta = RobotPosition.getInstance().getTheta();
-                double vxField = vx * Math.cos(theta) - vy * Math.sin(theta);
-                double vyField = vx * Math.sin(theta) + vy * Math.cos(theta);
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vyField, -vxField), omega));
+                double cos = Math.cos(theta);
+                double sin = Math.sin(theta);
+                // 将场心坐标系速度旋转到机器人坐标系
+                double forwardRobot = forwardVel * cos + strafeVel * sin;
+                double strafeRobot = -forwardVel * sin + strafeVel * cos;
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardRobot, strafeRobot), omega));
             }
             else{
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(vy, -vx), omega));
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardVel, strafeVel), omega));
             }
         }
     }
@@ -125,8 +126,7 @@ public class Chassis {
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
-        telemetry.addData("RunningToPose", RunningToPose);
-        telemetry.addData("FieldRelative", useFieldRelative);
+        telemetry.addData("useNoHeadMode", useNoHeadMode);
         telemetry.addData("lfP",drive.leftFront.getPower());
         telemetry.addData("rfP",drive.rightFront.getPower());
         telemetry.addData("lbP",drive.leftBack.getPower());
