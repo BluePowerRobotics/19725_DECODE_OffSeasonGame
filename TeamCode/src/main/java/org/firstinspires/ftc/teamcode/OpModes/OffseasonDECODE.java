@@ -4,36 +4,33 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-//import org.firstinspires.ftc.teamcode.rubbishbin.BlinkinLedController;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.InstanceTelemetry;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
-import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
-import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 @Config
 @TeleOp(name = "OffseasonDECODE", group = "AAA_OffseasonDECODE")
 public class OffseasonDECODE extends LinearOpMode {
     long lastNanoTime;
 
+    // 状态机：定义机器人当前正在执行的操作
     public enum ROBOT_STATUS {
-        EATING,
-        OUTPUT,
-        WAITING,
-        SHOOTING
+        EATING,   // 吸取器正在吃球
+        OUTPUT,   // 吸取器正在吐球
+        WAITING,  // 空闲待命
+        SHOOTING  // 发射序列中
     }
 
     ROBOT_STATUS robotStatus = ROBOT_STATUS.WAITING;
 
+    // 队伍颜色选择
     public enum TEAM_COLOR {
         RED,
         BLUE
@@ -41,276 +38,201 @@ public class OffseasonDECODE extends LinearOpMode {
 
     TEAM_COLOR teamColor;
 
-    public enum SWEEPER_STATUS {
-        EAT,
-        GIVE_ARTIFACT,
-        OUTPUT,
-        STOP
-    }
-
-    SWEEPER_STATUS sweeperStatus = SWEEPER_STATUS.STOP;
-
+    // 炮塔瞄准模式：控制 turret.update() 使用哪种瞄准策略
     public enum TURRET_STATUS {
-        SHOOTING,
-        STOP,
-        IDLE
+        VISION,        // 使用视觉(AprilTag) + 定位联合瞄准
+        LOCALIZATION,  // 仅使用定位(无视觉)自动瞄准
+        MANUAL         // 手柄手动控制 roll/yaw/speed
     }
 
-    TURRET_STATUS turretStatus = TURRET_STATUS.STOP;
-    public Chassis chassis; // 底盘控制器实例，负责机器人的移动控制
-    public Sweeper sweeper; // 清扫器控制器实例
-    public Shooter shooter; // 发射器控制器实例
-    public Turret turret; // 触发器控制器实例
-    public ActionRunner actionRunner;// actionRunner控制器实例
-    public TelemetryPacket packet = new TelemetryPacket();
-    // public BlinkinLedController ledController; // LED控制器实例
-    public boolean ReadyToShoot = false;
-    public boolean shouldAim = false;// 建议把这个分配给二操右扳机RT//先不用扳机，两个都暂时都给
-    // 最好留一手：二操按x切换手动瞄准，摇杆控制炮台，防止定位瞄准失效
-    public boolean shouldShoot = false;
-    public boolean needshoot = false;
-    public static double turretmode = 0;// 0为自动瞄准，1为定位的开环，2为手动瞄准
-    public static boolean useNoHeadMode = false;
-    public int targetSpeed = 0;
+    TURRET_STATUS turretStatus = TURRET_STATUS.VISION;
 
-    void Init() {
-        teamColor = TEAM_COLOR.BLUE;
-        useNoHeadMode = HypParams.InitialUseNoHeadMode;
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        telemetry = InstanceTelemetry.init(telemetry);
-        sweeper = new Sweeper(hardwareMap, telemetry);
-        shooter = new Shooter(hardwareMap, telemetry);
-        turret = new Turret(hardwareMap, telemetry);
-        actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
-        // ledController = new BlinkinLedController(hardwareMap);
-    }
+    private boolean initStarted = false;
+    // 高层控制器：通过各控制器的 update() 接口驱动硬件，不直接访问下层类
+    private Chassis chassis;
+    private Sweeper sweeper;
+    private Turret turret;
+    private ActionRunner actionRunner;
 
-    void inputRobotStatus() {
-        if (gamepad1.xWasPressed()) {
-            robotStatus = ROBOT_STATUS.WAITING;
-            useNoHeadMode = !useNoHeadMode;
-            chassis.setUseNoHeadMode(useNoHeadMode);
-        }
+    // 炮塔手动模式参数
+    private int targetTagId;   // 自动瞄准的目标 AprilTag ID
+    private double roll = 0.0; // Roll 角度，由左摇杆 X 累积
+    private double yaw = 50.0; // Yaw 角度，由 D-Pad 上下调节
+    private int targetSpeed = 0; // 射手转速，由 D-Pad 左右调节
+    private boolean isShooting = false; // 发射开关，由 A 键切换
 
-        if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-            shouldShoot = false;
-            shouldAim = false;
-            robotStatus = ROBOT_STATUS.WAITING;
-        }
-
-        // 一操 二操切换 二操可强制开启
-        if (gamepad2.leftBumperWasPressed()) {
-            shouldShoot = false;
-            if (robotStatus == ROBOT_STATUS.EATING) {
-                robotStatus = ROBOT_STATUS.WAITING;
-            } else {
-                robotStatus = ROBOT_STATUS.EATING;
-            }
-
-        }
-
-        // 吸球部分
-        if (gamepad1.leftBumperWasPressed()) {
-            shouldShoot = false;
-            needshoot = false;
-            robotStatus = ROBOT_STATUS.EATING;
-        }
-
-        if (gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed()) {
-            shouldShoot = false;
-            needshoot = false;
-            robotStatus = ROBOT_STATUS.OUTPUT;
-        }
-
-        // 发射部分
-        if ((gamepad1.yWasPressed() || gamepad2.yWasPressed()) && (turretmode != 2)) {
-            shouldShoot = !shouldShoot;
-            shouldAim = !shouldAim;
-            needshoot = false;
-            robotStatus = ROBOT_STATUS.SHOOTING;
-        }
-
-        // if (gamepad1.bWasPressed() || gamepad2.bWasPressed()){
-        // shouldShoot = false;
-        // robotStatus = ROBOT_STATUS.GIVE_ARTIFACT;
-        // }
-
-        if (gamepad2.xWasPressed()) {
-            turretmode = (turretmode + 1) % 3;
-        }
-
-    }
-
-    void setStatus() {
-        switch (robotStatus) {
-            case EATING:
-                sweeperStatus = SWEEPER_STATUS.EAT;
-                turretStatus = TURRET_STATUS.IDLE;
-                // ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
-                break;
-            case OUTPUT:
-                sweeperStatus = SWEEPER_STATUS.OUTPUT;
-                turretStatus = TURRET_STATUS.IDLE;
-                break;
-            case WAITING:
-                sweeperStatus = SWEEPER_STATUS.STOP;
-                turretStatus = TURRET_STATUS.IDLE;
-                // if (teamColor == TEAM_COLOR.RED) {
-                //  ledController.showRedTeam();
-                // }
-                // else{
-                //  ledController.showBlueTeam();
-                // }
-                break;
-            case SHOOTING:
-                // ledController.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-                turretStatus = TURRET_STATUS.SHOOTING;
-                // sweeper和trigger状态由shooter条件决定，在shoot()中
-                break;
-
-        }
-    }
-
-    void chassis() {
-        chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-    }
-
-    void sweeper() {
-        switch (sweeperStatus) {
-            case EAT:
-                sweeper.setEat();
-                break;
-            case GIVE_ARTIFACT:
-                sweeper.setGiveArtifact();
-                break;
-            case OUTPUT:
-                sweeper.setOutput();
-                break;
-            case STOP:
-                sweeper.setStop();
-                break;
-        }
-        sweeper.update();
-    }
-
-    void turret() {
-        switch (turretStatus) {
-            case SHOOTING:
-                if (turretmode == 0) {
-                    turret.update(true, shouldShoot, targetTagId);
-                } else if (turretmode == 1) {
-                    turret.update(false, shouldShoot, targetTagId);
-                } else if (turretmode == 2) {
-                    shouldAim = false;
-                    shouldShoot = false;
-                    needshoot = false;
-                    if (gamepad2.dpad_up) {
-                        targetSpeed = 850; // 高速
-                    } else if (gamepad2.dpad_right) {
-                        targetSpeed = 760; // 中高速
-                    } else if (gamepad2.dpad_down) {
-                        targetSpeed = 650; // 中速
-                    } else if (gamepad2.dpad_left) {
-                        targetSpeed = 500; // 低速
-                    } else {
-                        targetSpeed = (int) gamepad2.left_trigger * 1000;// 扳机控制速度，按得越深越快
-                    }
-                    if (gamepad2.yWasPressed()) {
-                        needshoot = true;
-                        // 重置？
-                    }
-                    turret.update(gamepad2.left_stick_x);// 旋转
-                    turret.update(targetSpeed, needshoot);// 发射（手动）
-                    // 未完待续（控制瞄准）[需检查]
-                }
-                break;
-            case STOP:
-                turret.update(false, false, targetTagId);
-                break;
-            case IDLE:
-                if (turretmode == 0) {
-                    turret.update(true, false, targetTagId);
-                } else if (turretmode == 1) {
-                    turret.update(false, false, targetTagId);
-                } else if (turretmode == 2) {
-                    turret.update(gamepad2.left_stick_x);
-                }
-                break;
-        }
-    }
-
-    void telemetry() {
-        sweeper.setTelemetry();
-        packet.fieldOverlay().setStroke("#3F51B5");
-        Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
-        telemetry.addData("READYTOSHOOT", ReadyToShoot);
-        // telemetry.addData("DIS", disSensor.getDis());
-        telemetry.addData("isBusy", actionRunner.isBusy());
-        telemetry.addData("TeamColor", teamColor);
-        telemetry.addData("RobotSTATUS", robotStatus.toString());
-        telemetry.addData("turretSTATUS", turretStatus.toString());
-        telemetry.addData("sweeperSTATUS", sweeperStatus.toString());
-        telemetry.addData("useNoHeadMode", useNoHeadMode);
-        telemetry.addData("Position", RobotPosition.getInstance().getPose2d().toString());
-        telemetry.addData("Heading", RobotPosition.getInstance().getPose2d());
-        shooter.setTelemetry();
-        chassis.telemetry();
-        sweeper.setTelemetry();
-        telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
-        lastNanoTime = System.nanoTime();
-        telemetry.update();
-    }
-
-    public static int targetTagId;
-    public static double time = 1.2;
-    boolean InitStarted = false;
+    // 手动模式参数调节步长和限幅
+    private static final double ROLL_SPEED = 2.0;
+    private static final double YAW_STEP = 5.0;
+    private static final int SPEED_STEP = 100;
+    private static final int SPEED_MIN = 0;
+    private static final int SPEED_MAX = 3000;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Init();
-        // 赛前初始化，选择队伍颜色，确定目标tag ID，设置LED等
-        while (opModeInInit() || !InitStarted) {
-            if (gamepad1.a) {
-                teamColor = TEAM_COLOR.BLUE;
-            }
-            if (gamepad1.b) {
-                teamColor = TEAM_COLOR.RED;
-            }
-            // 确定目标tag ID
+        // 初始化仪表盘和全局 Telemetry 单例
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetry = InstanceTelemetry.init(telemetry);
+
+        // === Init 阶段：选择队伍颜色 ===
+        while (opModeInInit() || !initStarted) {
+            initStarted = true;
+            if (gamepad1.a) teamColor = TEAM_COLOR.BLUE;
+            if (gamepad1.b) teamColor = TEAM_COLOR.RED;
+
+            // 根据队伍颜色设置自动瞄准目标 Tag
             switch (teamColor) {
-                case BLUE:
-                    targetTagId = 20; // 默认蓝队tag ID
-                    break;
-                case RED:
-                    targetTagId = 24;
-                    break;
+                case BLUE: targetTagId = 20; break;
+                case RED: targetTagId = 24; break;
             }
-            // if(teamColor == TEAM_COLOR.BLUE){
-            // //ledController.showBlueTeam();
-            // }
-            // if(teamColor == TEAM_COLOR.RED){
-            // //ledController.showRedTeam();
-            // }
-            // if(teamColor == TEAM_COLOR.BLUE){
-            // chassis.resetNoHeadModeStartError(-Math.PI/2);
-            // }
-            telemetry.addData("TEAM_COLOR", teamColor.toString());
-            telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
+
+            telemetry.addData("TEAM_COLOR", teamColor != null ? teamColor.toString() : "N/A");
+            telemetry.addData("Target Tag ID", targetTagId);
+            telemetry.addData("Instructions", "A: Blue, B: Red");
             telemetry.update();
-            InitStarted = true;
         }
 
+        // === 硬件控制器初始化 ===
+        actionRunner = new ActionRunner();
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
+        sweeper = new Sweeper(hardwareMap, telemetry);
+        turret = new Turret(hardwareMap, telemetry);
+
+        // 操作说明
+        telemetry.addData("Status", "Initialized");
+        telemetry.addData("--- P1 Controls ---", "");
+        telemetry.addData("Left Stick", "Chassis Drive");
+        telemetry.addData("X", "Toggle No-Head Mode");
+        telemetry.addData("Left Bumper", "Sweeper Eat");
+        telemetry.addData("Right Bumper", "Sweeper Output");
+        telemetry.addData("Y", "Sweeper Stop");
+        telemetry.addData("--- P2 Controls ---", "");
+        telemetry.addData("Left Stick X", "Turret Roll (MANUAL mode)");
+        telemetry.addData("D-Pad Up/Down", "Yaw (MANUAL mode)");
+        telemetry.addData("D-Pad Left/Right", "Speed (MANUAL mode)");
+        telemetry.addData("A", "Toggle Shoot");
+        telemetry.addData("X", "Cycle Aim Mode (VISION->LOCALIZATION->MANUAL)");
+        telemetry.addData("Left Bumper", "Sweeper Eat (Priority)");
+        telemetry.addData("Right Bumper", "Sweeper Output (Priority)");
+        telemetry.update();
+
         waitForStart();
+        if (isStopRequested()) return;
+
+        // === 主循环：各控制器 update() 统一调度 ===
         while (opModeIsActive()) {
-            inputRobotStatus();
+            // 更新定位信息
             RobotPosition.getInstance().update();
-            setStatus();
-            chassis();
-            turret();
-            sweeper();
-            telemetry();
+
+            // === 底盘控制：左摇杆驱动，X 切换无头模式 ===
+            chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+            if (gamepad1.xWasPressed()) {
+                chassis.exchangeUseNoHeadMode();
+            }
+
+            // === 吸取器控制：P2 优先于 P1 ===
+            boolean g2SweeperActive = false;
+            if (gamepad2.left_bumper) {
+                sweeper.setEat();
+                robotStatus = ROBOT_STATUS.EATING;
+                g2SweeperActive = true;
+            } else if (gamepad2.right_bumper) {
+                sweeper.setOutput();
+                robotStatus = ROBOT_STATUS.OUTPUT;
+                g2SweeperActive = true;
+            }
+
+            if (!g2SweeperActive) {
+                if (gamepad1.left_bumper) {
+                    sweeper.setEat();
+                    robotStatus = ROBOT_STATUS.EATING;
+                } else if (gamepad1.right_bumper) {
+                    sweeper.setOutput();
+                    robotStatus = ROBOT_STATUS.OUTPUT;
+                } else if (gamepad1.y) {
+                    sweeper.setStop();
+                    if (!isShooting) robotStatus = ROBOT_STATUS.WAITING;
+                } else if (!isShooting) {
+                    robotStatus = ROBOT_STATUS.WAITING;
+                }
+            }
+
+            // === 炮塔瞄准模式轮换：P2 X 键循环 ===
+            if (gamepad2.xWasPressed()) {
+                switch (turretStatus) {
+                    case VISION: turretStatus = TURRET_STATUS.LOCALIZATION; break;
+                    case LOCALIZATION: turretStatus = TURRET_STATUS.MANUAL; break;
+                    case MANUAL: turretStatus = TURRET_STATUS.VISION; break;
+                }
+            }
+
+            // === 炮塔控制：根据当前瞄准模式选择 turret.update() 接口 ===
+            switch (turretStatus) {
+                case VISION:
+                    // 视觉+定位自动瞄准：turret 内部通过 AprilTag 和定位数据进行 Aim/Shoot
+                    if (gamepad2.aWasPressed()) isShooting = !isShooting;
+                    turret.update(true, isShooting, targetTagId);
+                    break;
+                case LOCALIZATION:
+                    // 纯定位自动瞄准：turret 仅依靠场地定位数据(无视觉)
+                    if (gamepad2.aWasPressed()) isShooting = !isShooting;
+                    turret.update(false, isShooting, targetTagId);
+                    break;
+                case MANUAL:
+                    // 手动模式：摇杆和 D-Pad 直接调节 Roll/Yaw/Speed
+                    roll += gamepad2.left_stick_x * ROLL_SPEED;
+
+                    if (gamepad2.dpad_up) yaw += YAW_STEP;
+                    if (gamepad2.dpad_down) yaw -= YAW_STEP;
+
+                    if (gamepad2.dpad_right) targetSpeed += SPEED_STEP;
+                    if (gamepad2.dpad_left) targetSpeed -= SPEED_STEP;
+                    targetSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, targetSpeed));
+
+                    if (gamepad2.aWasPressed()) isShooting = !isShooting;
+                    turret.update(roll, yaw, targetSpeed, isShooting);
+                    break;
+            }
+
+            // 发射状态下自动将吸取器设为吃球，持续向射手供弹
+            if (isShooting && !g2SweeperActive) {
+                sweeper.setEat();
+                robotStatus = ROBOT_STATUS.SHOOTING;
+            }
+
+            sweeper.update();
+
+            // === 遥测输出 ===
+            chassis.telemetry();
+            telemetry.addData("useNoHeadMode", chassis.getUseNoHeadMode());
+            telemetry.addData("Robot Status", robotStatus.toString());
+            telemetry.addData("Turret Aim Mode", turretStatus.toString());
+            telemetry.addData("Target Tag ID", targetTagId);
+            telemetry.addData("TEAM_COLOR", teamColor.toString());
+            // 手动模式下额外显示角度和速度参数
+            if (turretStatus == TURRET_STATUS.MANUAL) {
+                telemetry.addData("Roll", "%.2f deg", roll);
+                telemetry.addData("Yaw", "%.2f deg", yaw);
+                telemetry.addData("Target Speed", "%d RPM", targetSpeed);
+            }
+            telemetry.addData("Shooting", isShooting ? "ACTIVE" : "IDLE");
+            sweeper.setTelemetry();
+            telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
+            lastNanoTime = System.nanoTime();
+            telemetry.update();
+
+            // Dashboard 场地俯视图：实时绘制机器人位姿
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setStroke("#3F51B5");
+            Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
         }
+
+        // === 停止时关闭所有电机 ===
+        chassis.stop();
+        turret.stop();
+        sweeper.setStop();
+        sweeper.update();
     }
 }
