@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
@@ -10,7 +11,8 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.utility.MathSolver;
 
 
-@TeleOp(name = "KeepTrackTest", group = "Tests")
+@Autonomous
+(name = "KeepTrackTest", group = "Tests")
 public class KeepTrackTest extends LinearOpMode {
     private Chassis chassis;
     private Tracker tracker;

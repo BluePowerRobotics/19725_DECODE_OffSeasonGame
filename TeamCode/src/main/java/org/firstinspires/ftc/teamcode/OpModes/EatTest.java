@@ -8,7 +8,8 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 
-@TeleOp(name = "EatTest", group = "Tests")
+@Autonomous
+(name = "EatTest", group = "Tests")
 public class EatTest extends LinearOpMode {
     private Chassis chassis;
     private Tracker tracker;
