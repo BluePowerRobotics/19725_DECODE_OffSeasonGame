@@ -54,7 +54,7 @@ public class KeepTrackTest extends LinearOpMode {
                 double targetTheta = tracker.getTargetTheta();
                 chassis.HeadTo(MathSolver.normalizeAngle(RobotPosition.getInstance().getTheta()+targetTheta));
             } else {
-                chassis.HeadTo(Math.PI);
+                chassis.stop();
             }
 
             
