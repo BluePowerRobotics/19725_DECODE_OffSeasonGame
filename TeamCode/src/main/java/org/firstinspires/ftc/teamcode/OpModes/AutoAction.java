@@ -1,4 +1,3 @@
-/*
 package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -20,7 +19,6 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
-import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 
 
@@ -31,7 +29,7 @@ public class AutoAction extends LinearOpMode {
         RED, BLUE
     }
 
-    private TeamColor teamColor = TeamColor.RED;
+    private TEAM_COLOR teamColor = TEAM_COLOR.RED;
     private boolean initStarted = false;
 
     private Chassis chassis;
@@ -48,10 +46,10 @@ public class AutoAction extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         while (opModeInInit() || !initStarted) {
             if (gamepad1.a) {
-                teamColor = TeamColor.BLUE;
+                teamColor = TEAM_COLOR.BLUE;
             }
             if (gamepad1.b) {
-                teamColor = TeamColor.RED;
+                teamColor = TEAM_COLOR.RED;
             }
 
             switch (teamColor) {
@@ -72,7 +70,8 @@ public class AutoAction extends LinearOpMode {
         }
 
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, teamColor == TEAM_COLOR.RED ?
+            OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE, actionRunner, telemetry);
 
         turret = new Turret(hardwareMap, telemetry);
 
@@ -81,7 +80,7 @@ public class AutoAction extends LinearOpMode {
         tracker = new Tracker(hardwareMap);
         tracker.start();
 
-        Pose2d[] eatPoses = (teamColor == TeamColor.RED) ? HypParams.EatPosesRed : HypParams.EatPosesBlue;
+        Pose2d[] eatPoses = (teamColor == TEAM_COLOR.RED) ? HypParams.EatPosesRed : HypParams.EatPosesBlue;
         eatPoseReached = new boolean[eatPoses.length];
         currentEatPoseIndex = 0;
 
@@ -163,7 +162,7 @@ public class AutoAction extends LinearOpMode {
                         }
                         else{
                             actionRunner.add(new SearchAction(chassis, tracker, sweeper,
-                                teamColor == TeamColor.RED ? TEAM_COLOR.RED : TEAM_COLOR.BLUE));
+                                teamColor == TEAM_COLOR.RED ? OffseasonDECODE.TEAM_COLOR.RED : OffseasonDECODE.TEAM_COLOR.BLUE));
                             lastActionType = "Search";
                         }
                     }
@@ -172,4 +171,3 @@ public class AutoAction extends LinearOpMode {
         }
     }
 }
-*/

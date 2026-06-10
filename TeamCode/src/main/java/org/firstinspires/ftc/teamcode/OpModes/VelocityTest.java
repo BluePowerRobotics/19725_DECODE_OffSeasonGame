@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
-import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @TeleOp(name = "VelocityTest", group = "Tests")
 public class VelocityTest extends LinearOpMode {
@@ -31,7 +30,7 @@ public class VelocityTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化底盘
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("State", currentState);
@@ -82,8 +81,8 @@ public class VelocityTest extends LinearOpMode {
             
             // 根据状态更新底盘
             if (currentState == State.RUNNING) {
-                // 不做左右平移（Ky = 0）
-                chassis.update(v, 0.0, omega,false);
+                // 不做左右平移（Kx = 0），取反 v 以匹配 chassis.update 的 FTC SDK 手柄惯例
+                chassis.update(0.0, -v, omega);
             }
             
             // 实时显示当前参数

@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
-import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @TeleOp(name = "SensitivityTest", group = "Tests")
 public class SensitivityTest extends LinearOpMode {
@@ -22,7 +21,7 @@ public class SensitivityTest extends LinearOpMode {
     private double currentMaxOmega = HypParams.maxOmega;
     private static final double V_STEP = 0.1;
     private static final double OMEGA_STEP = 0.05;
-    private boolean useNoHeadMode = false;
+    private boolean useNoHeadMode = HypParams.InitialUseNoHeadMode;
     private long lastNanoTime = 0;
     private Chassis chassis;
 
@@ -30,7 +29,7 @@ public class SensitivityTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
 
         waitForStart();
 
@@ -56,29 +55,30 @@ public class SensitivityTest extends LinearOpMode {
 
             if (gamepad1.xWasReleased()) {
                 useNoHeadMode = !useNoHeadMode;
+                chassis.setUseNoHeadMode(useNoHeadMode);
             }
 
             MecanumDrive drive = RobotPosition.getInstance().getDrive();
             double Kx = gamepad1.left_stick_x;
             double Ky = gamepad1.left_stick_y;
             double Komega = gamepad1.right_stick_x;
+
+            double forwardVel = -Ky * currentMaxV;
+            double strafeVel = -Kx * currentMaxV;
             double omega = Komega * currentMaxOmega;
 
             if (useNoHeadMode) {
-                double fieldX = Ky;
-                double fieldY = Kx;
-                double angle = -RobotPosition.getInstance().getTheta();
-                double cosAngle = Math.cos(angle);
-                double sinAngle = Math.sin(angle);
-                double robotX = (fieldX * cosAngle - fieldY * sinAngle) * currentMaxV;
-                double robotY = (fieldX * sinAngle + fieldY * cosAngle) * currentMaxV;
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(robotX, robotY), omega));
+                double theta = RobotPosition.getInstance().getTheta();
+                double cos = Math.cos(theta);
+                double sin = Math.sin(theta);
+                double forwardRobot = forwardVel * cos + strafeVel * sin;
+                double strafeRobot = -forwardVel * sin + strafeVel * cos;
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardRobot, strafeRobot), omega));
             } else {
-                double forward = Ky * currentMaxV;
-                double strafe = Kx * currentMaxV;
-                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forward, strafe), omega));
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardVel, strafeVel), omega));
             }
 
+            chassis.telemetry();
             telemetry.addData("Current maxV", "%.2f in/s", currentMaxV);
             telemetry.addData("Current maxOmega", "%.2f rad/s (%.1f deg/s)", currentMaxOmega, Math.toDegrees(currentMaxOmega));
             telemetry.addData("HypParams maxV", "%.2f", HypParams.maxV);
@@ -87,8 +87,9 @@ public class SensitivityTest extends LinearOpMode {
             telemetry.addData("LeftStickX", "%.2f", Kx);
             telemetry.addData("LeftStickY", "%.2f", Ky);
             telemetry.addData("RightStickX", "%.2f", Komega);
-            telemetry.addData("Instructions", "D-pad Up/Down: maxV(+/-%.1f) | Left/Right: maxOmega(+/-%.2f) | X: NoHead", V_STEP, OMEGA_STEP);
-            chassis.telemetry();
+            telemetry.addData("Instructions",
+                "D-pad Up/Down: maxV(+/-%.1f) | Left/Right: maxOmega(+/-%.2f) | X: NoHead",
+                V_STEP, OMEGA_STEP);
             telemetry.addData("FPS", 1000000000.0 / (System.nanoTime() - lastNanoTime));
             lastNanoTime = System.nanoTime();
             telemetry.update();

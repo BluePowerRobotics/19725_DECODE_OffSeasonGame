@@ -80,6 +80,6 @@ public class Tracker {
     }
 
     public double getTargetTheta() {
-        return targetTheta;
+        return -targetTheta;
     }
 }

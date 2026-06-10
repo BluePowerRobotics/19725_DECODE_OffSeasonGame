@@ -8,7 +8,8 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 
-@TeleOp(name = "EatTest", group = "Tests")
+@Autonomous
+(name = "EatTest", group = "Tests")
 public class EatTest extends LinearOpMode {
     private Chassis chassis;
     private Tracker tracker;
@@ -19,7 +20,7 @@ public class EatTest extends LinearOpMode {
     public void runOpMode() {
         // 初始化组件
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
         tracker = new Tracker(hardwareMap);
         sweeper = new Sweeper(hardwareMap, telemetry);
         

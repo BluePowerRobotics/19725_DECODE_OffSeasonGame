@@ -1,4 +1,4 @@
-        package org.firstinspires.ftc.teamcode.utility;
+package org.firstinspires.ftc.teamcode.utility;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -10,14 +10,14 @@ import com.acmerobotics.roadrunner.Pose2d;
  */
 public class HypParams {
     /**
-     * 机器人碰撞框（单位：英寸）
+     * todo:机器人碰撞框（单位：英寸）
      * 定义机器人在场地中的碰撞边界，用于避障和边界检测
      */
     public static ConvexPolygon BoundingBox = new ConvexPolygon(
-        new Point2D(6.2, 6.7),
-        new Point2D(-6.2, 6.7),
-        new Point2D(-6.2, -6.7),
-        new Point2D(6.2, -6.7)
+        new Point2D(20, 20),
+        new Point2D(-20, 20),
+        new Point2D(-20, -20),
+        new Point2D(20, -20)
     );
 
     /**
@@ -25,9 +25,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-            new Point2D(72, 24),
-            new Point2D(72, -24),
-            new Point2D(48, 0)
+        new Point2D(72, 24),
+        new Point2D(72, -24),
+        new Point2D(48, 0)
     );
 
     /**
@@ -35,24 +35,12 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
-            new Point2D(0, 0),
-            new Point2D(-72, 72),
-            new Point2D(-72, -72)
-    );
-
-    public static ConvexPolygon SHOOTING_AREA_NEAR_RED = new ConvexPolygon(
-            new Point2D(0, 0),
-            new Point2D(-72, 72),
-            new Point2D(-72, 0)
-    );
-
-    public static ConvexPolygon SHOOTING_AREA_NEAR_BLUE = new ConvexPolygon(
-            new Point2D(0, 0),
-            new Point2D(-72, -72),
-            new Point2D(-72, 0)
+        new Point2D(0, 0),
+        new Point2D(-72, 72),
+        new Point2D(-72, -72)
     );
     //是否去小三角
-    public static boolean ToLeft=false;
+    public static boolean ToLeft=true;
     /**
      * todo:炮口与目标的高度差（单位：米）
      * 用于RK4弹道计算，即发射点与目标点之间的垂直距离
@@ -63,69 +51,44 @@ public class HypParams {
      */
     public static double TagH= 33;
     /**
+     * todo:相机与炮口的水平距离（单位：米）
+     */
+    public static double WebcamR = 0.1;
+    /**
      * todo:相机仰角（单位：度）
      */
     public static double WebcamTheta = 45;
     /**
+     * todo:射程最远时所对仰角
+     */
+    public static double BestYaw = 50;
+    /**
      * todo:反转炮台水平电机时需要额外转过的角（单位：度）
      */
     public static double ReverseRollAngle = 2;
-
     /**
-     * todo:发射前等待时间（单位：ms）
-     * 飞轮开始加速前的准备等待时间，此期间sweeper反转PrepareAngle
-     */
-    public static int WaitTime = 500;
-
-    /**
-     * todo:发射前sweeper反转角度（单位：tick）
-     * sweeper在发射前反向旋转的编码器ticks数，将球拉离飞轮
-     */
-    public static int PrepareAngle = 100;
-
-    /**
-     * todo:sweeper吃球速度（单位：tick/s）
-     */
-    public static int SweeperEatVel = 2600;
-
-    /**
-     * todo:sweeper给出artifact速度（单位：tick/s）
-     */
-    public static int SweeperGiveArtifactVel = 2600;
-
-    /**
-     * todo:sweeper吐球速度（单位：tick/s）
-     */
-    public static int SweeperOutputVel = -960;
-
-    /**
-     * todo:sweeper发射触发速度（单位：tick/s）
-     */
-    public static int SweeperTriggerVel = 3000;
-
-    /**
-     * todo:机器人最大线速度（单位：英寸/秒）
+     * todo:机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度
      */
-    public static double maxV = 1.5;
+    public static double maxV = 2;
 
     /**
      * todo:机器人最大角速度（单位：弧度/秒）
      * 底盘旋转时允许的最大角速度
      */
-    public static double maxOmega = Math.PI*0.75;
+    public static double maxOmega = Math.PI;
 
     /**
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(62.5, 24, Math.PI);
+    public static Pose2d startPoseRed = new Pose2d(0, 0, 0);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(62.5, -24, 0);
+    public static Pose2d startPoseBlue = new Pose2d(0, 0, 0);
 
     /**
      * todo:自动模式下游走速度（单位：米/秒）
@@ -133,17 +96,22 @@ public class HypParams {
      */
     public static double WanderSpeed = 1;
     /*
-     * 最大小球偏移角（单位：弧度）
-     * 可以根据limelight的视场角和实际情况调整
+        * 最大小球偏移角（单位：弧度）
+        * 可以根据limelight的视场角和实际情况调整
      */
     public static double MaxBearing=Math.toRadians(25);
 
     /**
      * 初始操控模式标志
-     * true = 无头模式(field-centric)：摇杆控制场地坐标系运动，机器人自动旋转补偿
-     * false = 有头模式(robot-centric)：摇杆控制机器人本体坐标系运动（默认）
+     * true=无头模式（场心地坐标系），false=有头模式（机器人坐标系）
      */
     public static boolean InitialUseNoHeadMode = false;
+
+    /**
+     * 球的质量（单位：千克）
+     * 用于RK4弹道动力学计算
+     */
+    public static double ballMass = 0.06;
 
     /**
      * 目标角度每帧变化范围（单位：弧度）
@@ -205,8 +173,8 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesRed = {
-            new Pose2d(36, 36, Math.toRadians(90)),
-            new Pose2d(12, 36, Math.toRadians(90))
+        new Pose2d(10, 20, Math.toRadians(90)),
+        new Pose2d(20, 20, Math.toRadians(90))
     };
 
     /**
@@ -214,7 +182,7 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesBlue = {
-            new Pose2d(36, -36, Math.toRadians(-90)),
-            new Pose2d(12, -36, Math.toRadians(-90))
+        new Pose2d(10, -20, Math.toRadians(-90)),
+        new Pose2d(20, -20, Math.toRadians(-90))
     };
 }
