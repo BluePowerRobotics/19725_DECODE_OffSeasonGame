@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers;
 
 /**
- * SlotConfig类用于配置PID和SVA控制器的参数
  * 采用建造者模式，支持链式调用设置参数
  */
 public class SlotConfig {
@@ -13,6 +12,7 @@ public class SlotConfig {
     public double kD = 0;
     /** 积分上限 */
     public double maxI = 1;
+    /** Izone 区域，误差小于该值才累加I */
     /** 静态摩擦系数 */
     public double kS = 0;
     /** 速度系数 */
@@ -20,9 +20,7 @@ public class SlotConfig {
     /** 加速度系数 */
     public double kA = 0;
     /** 输出最小值 */
-    public double outputMin = -1;
     /** 输出最大值 */
-    public double outputMax = 1;
 
     /**
      * 设置比例系数
@@ -52,6 +50,7 @@ public class SlotConfig {
      */
     public SlotConfig withMaxI(double maxI) { this.maxI = maxI; return this; }
     
+    /**
     /**
      * 设置静态摩擦系数
      * @param kS 静态摩擦系数
