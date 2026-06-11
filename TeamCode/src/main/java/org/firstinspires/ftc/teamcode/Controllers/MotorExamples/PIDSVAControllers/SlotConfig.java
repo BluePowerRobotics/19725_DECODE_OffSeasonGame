@@ -37,7 +37,7 @@ public class SlotConfig {
     /** 微分系数 */
     public double kD = 0;
     /** 积分上限 */
-    public double maxI = 1;
+    public double maxI = Double.POSITIVE_INFINITY;
     /** Izone 区域，误差小于该值才累加I */
     public double iZone = Double.POSITIVE_INFINITY;
     /** 静态摩擦系数 */

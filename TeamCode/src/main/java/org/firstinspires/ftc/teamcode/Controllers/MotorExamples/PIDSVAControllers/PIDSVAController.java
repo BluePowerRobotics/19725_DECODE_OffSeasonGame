@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PIDSVAController类实现了带有SVA前馈的PID控制器
+ * PIDSVAController类实现了带有SVA前馈的PID控制器,并带有输出上下限，iZone等功能，工程上更实用
  * 支持多slot配置，可根据不同场景切换参数
  */
 public class PIDSVAController {
@@ -106,11 +106,15 @@ public class PIDSVAController {
         SlotConfig cfg = slots.get(currentSlot);
         // 计算误差
         double error = setpoint - measurement;
-        // 计算积分
-        integral += error * dt;
-        // 积分限幅
-        if (cfg != null && integral > cfg.maxI) integral = cfg.maxI;
-        if (cfg != null && integral < -cfg.maxI) integral = -cfg.maxI;
+        // 仅在误差小于Izone时才累加积分
+        if (cfg != null && Math.abs(error) < cfg.iZone) {
+            integral += error * dt;
+            // 积分限幅
+            if (integral > cfg.maxI) integral = cfg.maxI;
+            if (integral < -cfg.maxI) integral = -cfg.maxI;
+        } else {
+            integral = 0; // 误差超出Izone时不积分
+        }
         // 计算微分
         double derivative = (error - previousError) / dt;
         // 更新上一次误差
