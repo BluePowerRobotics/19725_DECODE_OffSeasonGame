@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utility.MathSolver;
 public class KeepTrackTest extends LinearOpMode {
     private Chassis chassis;
     private Tracker tracker;
-    private Sweeper sweeper;
+
     private ActionRunner actionRunner;
 
     @Override
@@ -25,7 +25,6 @@ public class KeepTrackTest extends LinearOpMode {
         actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
         tracker = new Tracker(hardwareMap);
-        sweeper = new Sweeper(hardwareMap, telemetry);
         
         // 启动 tracker
         tracker.start();
@@ -39,15 +38,7 @@ public class KeepTrackTest extends LinearOpMode {
         while (opModeIsActive()) {
             // 更新定位和追踪
             RobotPosition.getInstance().update();
-            
-            if (RobotPosition.getInstance().isFull()) {
-                sweeper.setStop();
-            }
-            else{
-                sweeper.setEat();
-            }
 
-            sweeper.update();
             tracker.update();
             
             if (tracker.getHasTarget()) {
@@ -69,7 +60,6 @@ public class KeepTrackTest extends LinearOpMode {
 
         // 停止所有组件
         chassis.stop();
-        sweeper.setStop();
         tracker.stop();
     }
 }
