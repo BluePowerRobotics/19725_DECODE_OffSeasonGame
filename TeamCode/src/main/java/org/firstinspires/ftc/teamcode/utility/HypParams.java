@@ -94,7 +94,7 @@ public class HypParams {
      * todo:自动模式下游走速度（单位：米/秒）
      * 机器人在自动搜索状态下的移动速度
      */
-    public static double WanderSpeed = 1;
+    public static double WanderSpeed = 0.5;
     /*
         * 最大小球偏移角（单位：弧度）
         * 可以根据limelight的视场角和实际情况调整

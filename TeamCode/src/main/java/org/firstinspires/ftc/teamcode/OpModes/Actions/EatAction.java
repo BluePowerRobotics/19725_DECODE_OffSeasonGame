@@ -38,7 +38,8 @@ public class EatAction implements Action {
             double targetTheta = tracker.getTargetTheta();
             chassis.GoTo(targetTheta);
         } else {
-            chassis.HeadTo(Math.PI);
+            chassis.stop();
+            //chassis.HeadTo(Math.PI);
             if(Math.abs(RobotPosition.getInstance().getTheta())<0.1){
                 return false;
             }

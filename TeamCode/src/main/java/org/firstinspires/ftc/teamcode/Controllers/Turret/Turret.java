@@ -113,7 +113,8 @@ public class Turret {
         double targetYaw = 0;
 
         if (isTargetFound && targetDetection != null) {
-            double bearing = targetDetection.ftcPose.bearing;
+            //webcam顺时针为正，程序内统一以逆时针为正
+            double bearing = -targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
             targetRoll = this.roll + bearing;
             targetYaw = this.yaw + elevation;
