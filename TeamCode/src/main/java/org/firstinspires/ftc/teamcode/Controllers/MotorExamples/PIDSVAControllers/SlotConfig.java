@@ -1,8 +1,33 @@
 package org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers;
 
 /**
- * SlotConfig类用于配置PID和SVA控制器的参数
- * 采用建造者模式，支持链式调用设置参数
+ * SlotConfig类用于配置PID和SVA控制器的参数///
+ * 采用建造者模式，支持链式调用设置参数///
+ * 请注意，只在初始化时通过构建新的SlotConfig对象来修改参数，运行过程中用with()函数修改，否则会把其他你并不想修改的参数恢复到默认值///
+ * 示例：
+ * …………Controller{
+ *     …………
+ *     private final SlotConfig config;
+ *     init(){
+ *         slot = new SlotConfig()
+ *                 .withKP(velGain)
+ *                 .withKI(0.0)
+ *                 .withKD(0.0)
+ *                 .withKS(Ks)
+ *                 .withKV(Kv)
+ *                 .withKA(Ka)
+ *                 .withOutputLimits(-14.0, 14.0);
+ *     }
+ *     update(){
+ *         slot.withKP(velGain)
+ *                 .withKS(Ks)
+ *                 .withKV(Kv)
+ *                 .withKA(Ka);
+ *         velocityController.resetSlot(slot);
+ *     }
+ *     …………
+ * }
+ *
  */
 public class SlotConfig {
     /** 比例系数 */
@@ -12,7 +37,9 @@ public class SlotConfig {
     /** 微分系数 */
     public double kD = 0;
     /** 积分上限 */
-    public double maxI = 1;
+    public double maxI = Double.POSITIVE_INFINITY;
+    /** Izone 区域，误差小于该值才累加I */
+    public double iZone = Double.POSITIVE_INFINITY;
     /** 静态摩擦系数 */
     public double kS = 0;
     /** 速度系数 */
@@ -20,9 +47,9 @@ public class SlotConfig {
     /** 加速度系数 */
     public double kA = 0;
     /** 输出最小值 */
-    public double outputMin = -1;
+    public double outputMin = -14;
     /** 输出最大值 */
-    public double outputMax = 1;
+    public double outputMax = 14;
 
     /**
      * 设置比例系数
@@ -52,6 +79,13 @@ public class SlotConfig {
      */
     public SlotConfig withMaxI(double maxI) { this.maxI = maxI; return this; }
     
+    /**
+     * 设置Izone区域，误差小于该值才累加I
+     * @param iZone Izone阈值
+     * @return 当前SlotConfig实例，用于链式调用
+     */
+    public SlotConfig withIZone(double iZone) { this.iZone = iZone; return this; }
+
     /**
      * 设置静态摩擦系数
      * @param kS 静态摩擦系数
