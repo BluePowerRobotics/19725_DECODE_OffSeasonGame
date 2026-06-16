@@ -109,4 +109,8 @@ public class PIDController {
     public double getKI() { return kI; }
     /** @return 当前微分系数 */
     public double getKD() { return kD; }
+    /** @return 当前积分累积值 */
+    public double getIntegral() { return integral; }
+    /** @return 上一次误差值 */
+    public double getPreviousError() { return previousError; }
 }

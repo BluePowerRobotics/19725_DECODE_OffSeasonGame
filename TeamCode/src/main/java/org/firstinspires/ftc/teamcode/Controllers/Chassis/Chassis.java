@@ -35,7 +35,8 @@ public class Chassis {
     // 航向PID控制器，用于GoTo方法的旋转功率控制
     private final PIDController headingPID;
     private double lastGoToTime = 0;
-    private double lastNormalizedError = 0; // 上一次的角度误差，用于检测±π跳变
+    private double lastNormalizedError = 0; // 上一次的展开误差，用于D项微分计算
+    private boolean isFirstGoTo = true;      // 首次调用标志，避免D项跳变
 
     public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
@@ -63,39 +64,56 @@ public class Chassis {
                 new Vector2d(0,0),
                 0));
     }
-    public void GoTo(double targetTheta){ //targetTheta表示目标方向与小车正前方（x轴正方向）的夹角（逆时针为正）
+    public void GoTo(double targetTheta) { //targetTheta表示目标方向与小车正前方（x轴正方向）的夹角（逆时针为正）
         // 将角度差归一化到[-π, π]
         double error = MathSolver.normalizeAngle(targetTheta);
 
-        // 误差连续性保护：避免相邻帧在±π边界跳变导致D项尖峰
-        double errorDelta = error - lastNormalizedError;
-        if (errorDelta > Math.PI) {
-            error -= 2 * Math.PI;
-        } else if (errorDelta < -Math.PI) {
-            error += 2 * Math.PI;
+        // 对误差做连续性展开：仅用于D项的微分计算
+        double unwrappedError = error;
+        if (!isFirstGoTo) {
+            double errorDelta = error - lastNormalizedError;
+            if (errorDelta > Math.PI) {
+                unwrappedError = error - 2 * Math.PI;
+            } else if (errorDelta < -Math.PI) {
+                unwrappedError = error + 2 * Math.PI;
+            }
         }
-        lastNormalizedError = error;
+        double dErrorDelta = isFirstGoTo ? 0 : (unwrappedError - lastNormalizedError);
+        lastNormalizedError = unwrappedError;
 
-        // 速度分量：向目标方向前进
-        double vx = Math.cos(targetTheta) * wanderSpeed;
-        double vy = Math.sin(targetTheta) * wanderSpeed;
+        // 速度分量：使用归一化误差，使速度方向与PID控制的旋转方向一致
+        double vx = Math.cos(error) * wanderSpeed;
+        double vy = Math.sin(error) * wanderSpeed;
 
         // 计算时间间隔（秒）
         double currentTime = System.nanoTime() / 1e9;
         double dt = (lastGoToTime > 0) ? (currentTime - lastGoToTime) : 0.02;
-        if (dt <= 0 || dt > 0.5) dt = 0.02; // 防止异常时间间隔
+
+        // 长时间间隔后重置PID状态（累计的积分和微分状态已过时）
+        if (dt <= 0 || dt > 0.5) {
+            headingPID.reset();
+            isFirstGoTo = true;
+            dt = 0.02;
+        }
         lastGoToTime = currentTime;
 
-        // 使用标准PID语义：setpoint=0（目标偏差为0），measurement为当前偏差的负值
-        // calculate(setpoint, measurement, dt) 内部: error = setpoint - measurement = 0 - (-error) = error
-        double omega = headingPID.calculate(0, -error, dt);
+        // 完整PID计算，然后替换D项：避免±π边界导数尖峰
+        double prevError = headingPID.getPreviousError();
+        double fullOutput = headingPID.calculate(0, -error, dt);
+
+        // 减去内部D项（使用归一化误差），加上外部D项（使用展开误差）
+        double kD = headingPID.getKD();
+        double internalD = kD * (error - prevError) / dt;
+        double externalD = isFirstGoTo ? 0 : (kD * dErrorDelta / dt);
+        isFirstGoTo = false;
+
+        double omega = fullOutput - internalD + externalD;
         // 角速度限幅
         omega = Math.max(-maxOmega, Math.min(maxOmega, omega));
 
         drive.setDrivePowers(new PoseVelocity2d(
-                new Vector2d(vx,vy),
+                new Vector2d(vx, vy),
                 omega));
-
     }
     public void GoToShootingArea(){
         Point2D currentPos = new Point2D(
@@ -130,6 +148,8 @@ public class Chassis {
      */
     public void resetHeadingPID() {
         headingPID.reset();
+        lastNormalizedError = 0;
+        isFirstGoTo = true;
     }
 
     /** @return 航向PID的kP值 */
