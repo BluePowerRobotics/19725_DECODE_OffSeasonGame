@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
 import org.firstinspires.ftc.teamcode.utility.MathSolver;
-
+import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers.PIDController;
 
 
 @Config
@@ -24,13 +24,18 @@ public class Chassis {
 
     private final double maxV = HypParams.maxV;
     private final double maxOmega = HypParams.maxOmega;
-    private final double WanderSpeed = HypParams.WanderSpeed;
+    private double wanderSpeed = HypParams.WanderSpeed;
 
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
     private boolean useNoHeadMode = HypParams.InitialUseNoHeadMode;
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
+
+    // 航向PID控制器，用于GoTo方法的旋转功率控制
+    private final PIDController headingPID;
+    private double lastGoToTime = 0;
+    private double lastNormalizedError = 0; // 上一次的角度误差，用于检测±π跳变
 
     public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
@@ -39,6 +44,8 @@ public class Chassis {
         this.drive = RobotPosition.getInstance().getDrive();
         this.actionRunner = actionRunner;
         this.telemetry = telemetry;
+        // 初始化航向PID：kP=3.0, kI=0.1, kD=0.05, maxI=0.5
+        this.headingPID = new PIDController(3.0, 0.1, 0.05, 0.5);
 
     }
 
@@ -56,13 +63,35 @@ public class Chassis {
                 new Vector2d(0,0),
                 0));
     }
-    public void GoTo(double targetTheta){ //targetTheta表示目标与小车正前方（x轴正方向）的夹角（逆时针为正）
-        //前进的同时转向
-        double vx = Math.cos(targetTheta) * WanderSpeed;
-        double vy = Math.sin(targetTheta) * WanderSpeed;
-        double k = maxOmega / HypParams.MaxBearing;
-        double omega = targetTheta * k;
-        //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试
+    public void GoTo(double targetTheta){ //targetTheta表示目标方向与小车正前方（x轴正方向）的夹角（逆时针为正）
+        // 将角度差归一化到[-π, π]
+        double error = MathSolver.normalizeAngle(targetTheta);
+
+        // 误差连续性保护：避免相邻帧在±π边界跳变导致D项尖峰
+        double errorDelta = error - lastNormalizedError;
+        if (errorDelta > Math.PI) {
+            error -= 2 * Math.PI;
+        } else if (errorDelta < -Math.PI) {
+            error += 2 * Math.PI;
+        }
+        lastNormalizedError = error;
+
+        // 速度分量：向目标方向前进
+        double vx = Math.cos(targetTheta) * wanderSpeed;
+        double vy = Math.sin(targetTheta) * wanderSpeed;
+
+        // 计算时间间隔（秒）
+        double currentTime = System.nanoTime() / 1e9;
+        double dt = (lastGoToTime > 0) ? (currentTime - lastGoToTime) : 0.02;
+        if (dt <= 0 || dt > 0.5) dt = 0.02; // 防止异常时间间隔
+        lastGoToTime = currentTime;
+
+        // 使用标准PID语义：setpoint=0（目标偏差为0），measurement为当前偏差的负值
+        // calculate(setpoint, measurement, dt) 内部: error = setpoint - measurement = 0 - (-error) = error
+        double omega = headingPID.calculate(0, -error, dt);
+        // 角速度限幅
+        omega = Math.max(-maxOmega, Math.min(maxOmega, omega));
+
         drive.setDrivePowers(new PoseVelocity2d(
                 new Vector2d(vx,vy),
                 omega));
@@ -88,15 +117,36 @@ public class Chassis {
         GoTo(targetTheta);
     }
 
-    public void HeadTo(double Theta){
-        double diff = Theta - RobotPosition.getInstance().getTheta();
-        double targetTheta = Math.atan2(Math.sin(diff), Math.cos(diff));
-        double k = maxOmega / Math.PI;
-        double omega = Math.max(-maxOmega, Math.min(maxOmega, targetTheta * k));
-        drive.setDrivePowers(new PoseVelocity2d(
-            new Vector2d(0,0),
-            omega));
+
+    /**
+     * 设置航向PID参数（用于手柄热调参）
+     */
+    public void setHeadingPID(double kP, double kI, double kD) {
+        headingPID.setPID(kP, kI, kD);
     }
+
+    /**
+     * 重置航向PID积分与微分状态
+     */
+    public void resetHeadingPID() {
+        headingPID.reset();
+    }
+
+    /** @return 航向PID的kP值 */
+    public double getHeadingKP() { return headingPID.getKP(); }
+    /** @return 航向PID的kI值 */
+    public double getHeadingKI() { return headingPID.getKI(); }
+    /** @return 航向PID的kD值 */
+    public double getHeadingKD() { return headingPID.getKD(); }
+
+    /** 设置漫游速度（用于手柄调节） */
+    public void setWanderSpeed(double speed) {
+        this.wanderSpeed = Math.max(0, Math.min(maxV, speed));
+    }
+
+    /** @return 当前漫游速度 */
+    public double getWanderSpeed() { return wanderSpeed; }
+
     public void update(double Kx, double Ky, double Komega){
         lastKx = Kx;
         lastKy = Ky;
@@ -127,6 +177,9 @@ public class Chassis {
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
         telemetry.addData("useNoHeadMode", useNoHeadMode);
+        telemetry.addData("HeadingPID_kP", headingPID.getKP());
+        telemetry.addData("HeadingPID_kI", headingPID.getKI());
+        telemetry.addData("HeadingPID_kD", headingPID.getKD());
         telemetry.addData("lfP",drive.leftFront.getPower());
         telemetry.addData("rfP",drive.rightFront.getPower());
         telemetry.addData("lbP",drive.leftBack.getPower());

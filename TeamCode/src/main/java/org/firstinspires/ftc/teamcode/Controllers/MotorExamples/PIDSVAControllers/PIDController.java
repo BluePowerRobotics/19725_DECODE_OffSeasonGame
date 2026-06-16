@@ -102,4 +102,11 @@ public class PIDController {
     public void setMaxI(double maxI) {
         this.maxI = maxI;
     }
+
+    /** @return 当前比例系数 */
+    public double getKP() { return kP; }
+    /** @return 当前积分系数 */
+    public double getKI() { return kI; }
+    /** @return 当前微分系数 */
+    public double getKD() { return kD; }
 }

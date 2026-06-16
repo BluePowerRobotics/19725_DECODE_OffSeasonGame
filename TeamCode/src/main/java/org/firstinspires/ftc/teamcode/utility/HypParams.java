@@ -91,15 +91,15 @@ public class HypParams {
     public static Pose2d startPoseBlue = new Pose2d(0, 0, 0);
 
     /**
-     * todo:自动模式下游走速度（单位：米/秒）
+     * todo:自动模式下游走速度（单位：英寸/秒）
      * 机器人在自动搜索状态下的移动速度
      */
-    public static double WanderSpeed = 0.5;
+    public static double WanderSpeed = 1;
     /*
         * 最大小球偏移角（单位：弧度）
         * 可以根据limelight的视场角和实际情况调整
      */
-    public static double MaxBearing=Math.toRadians(25);
+    public static double MaxBearing=Math.toRadians(10); //25
 
     /**
      * 初始操控模式标志
@@ -134,7 +134,7 @@ public class HypParams {
      * todo:低通滤波系数
      * 用于Tracker中对目标角度的滤波处理，值越小滤波越平滑
      */
-    public static double FilterAlpha = 0.3;
+    public static double FilterAlpha = 0.4;
 
     /**
      * todo:球满时与距离传感器的距离（单位：mm）
