@@ -97,6 +97,7 @@ public class OffseasonDECODE extends LinearOpMode {
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
+        turret.setGamepads(gamepad1, gamepad2);
 
         // 操作说明
         telemetry.addData("Status", "Initialized");

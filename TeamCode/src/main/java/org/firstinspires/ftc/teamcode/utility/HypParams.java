@@ -63,9 +63,10 @@ public class HypParams {
      */
     public static double BestYaw = 50;
     /**
-     * todo:反转炮台水平电机时需要额外转过的角（单位：度）
+     * 炮台水平旋转角度范围（单位：度）
+     * 炮台实际可旋转的机械角度限制为 [-maxRoll, maxRoll]
      */
-    public static double ReverseRollAngle = 2;
+    public static double maxRoll = 120;
     /**
      * todo:机器人最大线速度（单位：米/秒）
      * 底盘运动时允许的最大平移速度

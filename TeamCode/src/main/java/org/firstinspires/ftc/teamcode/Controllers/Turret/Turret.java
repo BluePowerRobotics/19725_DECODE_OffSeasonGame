@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -41,6 +42,27 @@ public class Turret {
     private double finalAimRoll;
     private double finalAimYaw;
     private int currentTargetTagId;
+    
+    private Gamepad gamepad1;
+    private Gamepad gamepad2;
+
+    /**
+     * 设置手柄引用，用于发射失败时震动反馈
+     */
+    public void setGamepads(Gamepad g1, Gamepad g2) {
+        this.gamepad1 = g1;
+        this.gamepad2 = g2;
+    }
+
+    /**
+     * 发射失败时震动所有手柄 + telemetry提示
+     */
+    private void rumbleOnFail(String reason) {
+        telemetry.addData("Shooting FAIL", reason);
+        telemetry.update();
+        if (gamepad1 != null) gamepad1.rumbleBlips(3);
+        if (gamepad2 != null) gamepad2.rumbleBlips(3);
+    }
 
     public Turret(HardwareMap hardwareMap, Telemetry telemetry) {
         roll = 0.0;
@@ -74,7 +96,6 @@ public class Turret {
     public boolean rotate_to(double roll, double yaw){
         boolean success = turretDegreeController.rotateTo(roll, yaw);
         if (success) {
-            this.roll = ((roll % 360) + 540) % 360 - 180;
             this.yaw = yaw;
         }
         return success;
@@ -118,9 +139,8 @@ public class Turret {
             double elevation = targetDetection.ftcPose.elevation;
             targetRoll = this.roll + bearing;
             targetYaw = this.yaw + elevation;
-            if (targetRoll <= -180 || targetRoll >= 180) {
-                isTargetFound = false;
-            }
+            // 即使超出射界，仍保留视觉数据更新 targetRoll 以保持跟踪
+            // 物理限幅由 TurretDegreeController.setTargetRoll() 处理
         }
 
         if (!isTargetFound) {
@@ -182,8 +202,7 @@ public class Turret {
                         double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
                         solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
                     } else {
-                        telemetry.addData("BST Error", "No goal position for tag %d", currentTargetTagId);
-                        telemetry.update();
+                        rumbleOnFail("No goal position for tag " + currentTargetTagId);
                         break;
                     }
                 }
@@ -196,8 +215,7 @@ public class Turret {
                     telemetry.addData("BST Init", "speed=%d", solution.speed);
                     telemetry.update();
                 } else {
-                    telemetry.addData("BST Error", solution.message);
-                    telemetry.update();
+                    rumbleOnFail("BST solve failed: " + solution.message);
                 }
                 break;
             }
@@ -235,17 +253,26 @@ public class Turret {
                     if (solution.success) {
                         finalAimRoll = Math.toDegrees(solution.roll);
                         finalAimYaw = solution.yaw;
+                        
+                        // 若计算出的平转角度超出硬件允许范围，中止发射
+                        if (Math.abs(finalAimRoll) > HypParams.maxRoll) {
+                            rumbleOnFail(String.format("Roll out of range (%.1f°), abort", finalAimRoll));
+                            shootPhase = ShootPhase.IDLE;
+                            shooting = false;
+                            waitingForSpeed = false;
+                            break;
+                        }
+                        
                         turretDegreeController.rotateTo(finalAimRoll, finalAimYaw);
                         telemetry.addData("BST Final", "roll=%.2f yaw=%.2f", finalAimRoll, finalAimYaw);
                     }
                     telemetry.addData("Shooter", "Speed reached, turret aiming");
                     telemetry.update();
                 } else if (System.currentTimeMillis() - speedWaitStartTime > SPEED_WAIT_TIMEOUT_MS) {
+                    rumbleOnFail("Speed wait timeout");
                     shootPhase = ShootPhase.IDLE;
                     shooting = false;
                     waitingForSpeed = false;
-                    telemetry.addData("Shooter", "Speed wait timeout");
-                    telemetry.update();
                 }
                 break;
             }
