@@ -1,16 +1,21 @@
 package org.firstinspires.ftc.teamcode.Controllers.Chassis;
 
+import android.graphics.Color;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RoadRunner.Localizer;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
+import org.firstinspires.ftc.teamcode.utility.filter.EMA;
 @Config
 public class RobotPosition {
     private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
@@ -26,6 +31,15 @@ public class RobotPosition {
     public static double mindistance=HypParams.mindistance;//此变量代表球空时与传感器的距离：最小值
     public static double wrongdistance=HypParams.wrongdistance;//那个b传感器，在3cm以内搁那乱转，神经病，写这个变量避免一下这种愚蠢行为。
 
+    public NormalizedColorSensor fullSensor;
+    public NormalizedColorSensor emptySensor;
+
+    // 对HSV三通道分别做EMA滤波，避免单帧噪声导致误判
+    private final EMA hueFilter = new EMA(HypParams.ColorAlpha);
+    private final EMA saturationFilter = new EMA(HypParams.ColorAlpha);
+    private final EMA valueFilter = new EMA(HypParams.ColorAlpha);
+    private final float[] filteredHsv = new float[3];
+
     public boolean ableToShoot = false;
     //todo :调整距离
     /**
@@ -33,26 +47,32 @@ public class RobotPosition {
      * false 表示3个球未满（未检测到球）
      */
     public boolean isFull(){
-        double sensor_distance=sensorDistancemax.getDistance(DistanceUnit.MM);
-        if (sensor_distance <= maxdistance && sensor_distance>=wrongdistance) {  //瞪大你的眼睛好好看看，这条件成立的了吗？20>=30?
-            return true;
-        }
-        else{
-            return false;
-        }
+        if (fullSensor == null) return false;
+        readAndFilter(fullSensor, filteredHsv);
+        return HypParams.isGreenBall(filteredHsv) || HypParams.isPurpleBall(filteredHsv);
     }
     /**
      *true 表示无球
      *false 表示有球
      */
     public boolean isEmpty(){
-        double sensor_distance=sensorDistancemin.getDistance(DistanceUnit.MM);
+        if (emptySensor == null) return true;
+        readAndFilter(emptySensor, filteredHsv);
+        return !(HypParams.isGreenBall(filteredHsv) || HypParams.isPurpleBall(filteredHsv));
+    }
 
-        if (sensor_distance >= mindistance && sensor_distance>=wrongdistance) {
-            return true;
-        }
-        else{
-            return false;
+    /**
+     * 读取颜色传感器，转为HSV并做EMA滤波，结果写入outHsv
+     */
+    private void readAndFilter(NormalizedColorSensor sensor, float[] outHsv) {
+        NormalizedRGBA colors = sensor.getNormalizedColors();
+        float[] rawHsv = new float[3];
+        Color.colorToHSV(colors.toColor(), rawHsv);
+
+        if (!Float.isNaN(rawHsv[0]) && !Float.isNaN(rawHsv[1]) && !Float.isNaN(rawHsv[2])) {
+            outHsv[0] = (float) hueFilter.update(rawHsv[0]);
+            outHsv[1] = (float) saturationFilter.update(rawHsv[1]);
+            outHsv[2] = (float) valueFilter.update(rawHsv[2]);
         }
     }
 
@@ -80,6 +100,8 @@ public class RobotPosition {
         instance.drive=new MecanumDrive(hardwareMap,instance.currentPose);
         instance.sensorDistancemax = hardwareMap.get(DistanceSensor.class, "dismax");
         instance.sensorDistancemin = hardwareMap.get(DistanceSensor.class, "dismin");
+        instance.fullSensor = hardwareMap.get(NormalizedColorSensor.class, "FullSensor");
+        instance.emptySensor = hardwareMap.get(NormalizedColorSensor.class, "EmptySensor");
         instance.localizer=instance.drive.localizer;
         return instance;
     }

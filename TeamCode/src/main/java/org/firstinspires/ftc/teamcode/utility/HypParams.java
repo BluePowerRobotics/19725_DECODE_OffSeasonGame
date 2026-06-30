@@ -137,6 +137,59 @@ public class HypParams {
     public static double FilterAlpha = 0.4;
 
     /**
+     * todo:颜色低通滤波系数
+     * 用于Tracker中对目标角度的滤波处理，值越小滤波越平滑
+     */
+    public static double ColorAlpha = 0.4;
+    /*
+     * todo:绿色球的HSV范围下限
+     * 数组：[H, S, V]，H范围0~360，S/V范围0~1
+     */
+    public static float[] GREEN_HSV_MIN = {100f, 0.3f, 0.3f};
+
+    /**
+     * todo:绿色球的HSV范围上限
+     * 数组：[H, S, V]
+     */
+    public static float[] GREEN_HSV_MAX = {140f, 1.0f, 1.0f};
+
+    /**
+     * todo:紫色球的HSV范围下限
+     * 数组：[H, S, V]，H范围0~360，S/V范围0~1
+     */
+    public static float[] PURPLE_HSV_MIN = {260f, 0.3f, 0.3f};
+
+    /**
+     * todo:紫色球的HSV范围上限
+     * 数组：[H, S, V]
+     */
+    public static float[] PURPLE_HSV_MAX = {310f, 1.0f, 1.0f};
+
+    /**
+     * 判断HSV值是否落在绿色球的预设范围内
+     *
+     * @param hsv HSV数组，[H, S, V]
+     * @return true 表示该颜色匹配绿色球
+     */
+    public static boolean isGreenBall(float[] hsv) {
+        return hsv[0] >= GREEN_HSV_MIN[0] && hsv[0] <= GREEN_HSV_MAX[0]
+            && hsv[1] >= GREEN_HSV_MIN[1] && hsv[1] <= GREEN_HSV_MAX[1]
+            && hsv[2] >= GREEN_HSV_MIN[2] && hsv[2] <= GREEN_HSV_MAX[2];
+    }
+
+    /**
+     * 判断HSV值是否落在紫色球的预设范围内
+     *
+     * @param hsv HSV数组，[H, S, V]
+     * @return true 表示该颜色匹配紫色球
+     */
+    public static boolean isPurpleBall(float[] hsv) {
+        return hsv[0] >= PURPLE_HSV_MIN[0] && hsv[0] <= PURPLE_HSV_MAX[0]
+            && hsv[1] >= PURPLE_HSV_MIN[1] && hsv[1] <= PURPLE_HSV_MAX[1]
+            && hsv[2] >= PURPLE_HSV_MIN[2] && hsv[2] <= PURPLE_HSV_MAX[2];
+    }
+
+    /**
      * todo:球满时与距离传感器的距离（单位：mm）
      * 传感器检测到小于此值时认为球已满
      */
