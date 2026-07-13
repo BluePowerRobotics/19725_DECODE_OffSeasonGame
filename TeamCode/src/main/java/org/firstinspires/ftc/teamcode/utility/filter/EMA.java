@@ -6,7 +6,7 @@ package org.firstinspires.ftc.teamcode.utility.filter;
  * alpha越接近1，平滑效果越弱，响应越快；alpha越接近0，平滑效果越强，响应越慢
  */
 public class EMA {
-    private final double alpha;
+    private double alpha;
     private double filteredValue;
     private boolean hasInitialValue;
 
@@ -23,6 +23,18 @@ public class EMA {
         this.alpha = alpha;
         this.filteredValue = 0.0;
         this.hasInitialValue = false;
+    }
+
+    /**
+     * 设置新的alpha值
+     *
+     * @param alpha 平滑系数，范围(0, 1]
+     */
+    public void setAlpha(double alpha) {
+        if (alpha <= 0 || alpha > 1) {
+            throw new IllegalArgumentException("alpha must be in range (0, 1]");
+        }
+        this.alpha = alpha;
     }
 
     /**
