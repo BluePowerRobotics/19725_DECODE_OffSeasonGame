@@ -68,16 +68,16 @@ public class HypParams {
      */
     public static double maxRoll = 120;
     /**
-     * todo:机器人最大线速度（单位：米/秒）
+     * todo:机器人最大线速度（单位：英寸/秒）
      * 底盘运动时允许的最大平移速度
      */
     public static double maxV = 2;
 
     /**
-     * todo:机器人最大角速度（单位：弧度/秒）
+     * 机器人最大角速度（单位：弧度/秒）
      * 底盘旋转时允许的最大角速度
      */
-    public static double maxOmega = Math.PI;
+    public static double maxOmega = 1.3;
 
     /**
      * todo:红队初始姿态（单位：英寸，弧度）

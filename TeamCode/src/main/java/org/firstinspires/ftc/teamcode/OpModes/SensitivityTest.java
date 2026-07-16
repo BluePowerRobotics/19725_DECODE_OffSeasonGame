@@ -65,7 +65,7 @@ public class SensitivityTest extends LinearOpMode {
 
             double forwardVel = -Ky * currentMaxV;
             double strafeVel = -Kx * currentMaxV;
-            double omega = Komega * currentMaxOmega;
+            double omega = -Komega * currentMaxOmega;
 
             if (useNoHeadMode) {
                 double theta = RobotPosition.getInstance().getTheta();

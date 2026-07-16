@@ -25,12 +25,6 @@ public class RobotPosition {
     static MecanumDrive drive;
     HardwareMap hardwareMap;
     Localizer localizer;
-    public DistanceSensor sensorDistancemax;
-    public DistanceSensor sensorDistancemin;
-    public static double maxdistance=HypParams.maxdistance;//此变量代表球满时与传感器的距离：最大值
-    public static double mindistance=HypParams.mindistance;//此变量代表球空时与传感器的距离：最小值
-    public static double wrongdistance=HypParams.wrongdistance;//那个b传感器，在3cm以内搁那乱转，神经病，写这个变量避免一下这种愚蠢行为。
-
     public NormalizedColorSensor fullSensor;
     public NormalizedColorSensor emptySensor;
 
@@ -98,8 +92,6 @@ public class RobotPosition {
 
         instance.currentPose = initpose != null ? initpose : new Pose2d(0,0,0);
         instance.drive=new MecanumDrive(hardwareMap,instance.currentPose);
-        instance.sensorDistancemax = hardwareMap.get(DistanceSensor.class, "dismax");
-        instance.sensorDistancemin = hardwareMap.get(DistanceSensor.class, "dismin");
         instance.fullSensor = hardwareMap.get(NormalizedColorSensor.class, "FullSensor");
         instance.emptySensor = hardwareMap.get(NormalizedColorSensor.class, "EmptySensor");
         instance.localizer=instance.drive.localizer;

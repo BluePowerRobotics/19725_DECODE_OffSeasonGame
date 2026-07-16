@@ -358,9 +358,8 @@ public final class MecanumDrive {
         rightBack = hardwareMap.get(DcMotorEx.class, "bR");
         rightFront = hardwareMap.get(DcMotorEx.class, "fR");
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // 设置电机零功率行为为制动

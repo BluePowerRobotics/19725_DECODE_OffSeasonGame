@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.VoltageOut;
 @Config
 public class Shooter {
     /** 比例系数 */
-    public static double kP = 1.0;
+    public static double kP = 0.0;
     /** 积分系数 */
     public static double kI = 0.0;
     /** 微分系数 */
@@ -22,9 +22,9 @@ public class Shooter {
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */
-    public static double kS = 2.3;
+    public static double kS = 0;
     /** 速度系数 */
-    public static double kV = 0.0073;
+    public static double kV = 0.0;
     /** 加速度系数 */
     public static double kA = 0.0;
     /** 输出电压最小值 */
@@ -67,9 +67,9 @@ public class Shooter {
         this.shooterR.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         this.shooterR.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        this.shooterL.setDirection(DcMotorEx.Direction.REVERSE);
+        this.shooterL.setDirection(DcMotorEx.Direction.FORWARD);
 
-        this.shooterR.setDirection(DcMotorEx.Direction.FORWARD);
+        this.shooterR.setDirection(DcMotorEx.Direction.REVERSE);
 
         // 初始化电压输出控制器
         this.voltageOut = new VoltageOut(hardwareMap);

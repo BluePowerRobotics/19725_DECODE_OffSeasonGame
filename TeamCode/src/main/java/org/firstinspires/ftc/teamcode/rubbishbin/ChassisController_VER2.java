@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAController
 public class ChassisController_VER2 {
     public static class Params{
         //todo 调整参数
-        public double maxV=0.5; // 最大线速度 (m/s)
+        public double maxV=0.5; // 最大线速度 (inch/s)
         public double maxOmega=Math.PI*1/2; // 最大角速度 (rad/s)
         public double zeroThresholdV =0.05; // 速度零点阈值 (m/s)
         public double zeroThresholdOmega =Math.toRadians(0.5); // 角速度零点阈值 (rad/s)
