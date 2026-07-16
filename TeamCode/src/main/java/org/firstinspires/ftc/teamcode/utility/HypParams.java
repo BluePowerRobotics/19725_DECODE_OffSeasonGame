@@ -223,6 +223,18 @@ public class HypParams {
     }
 
     /**
+     * trigger舵机发射位置（0~1）
+     * 舵机旋转到此位置时发射球
+     */
+    public static double triggerLaunchPosition = 0.8;
+
+    /**
+     * trigger舵机复位位置（0~1）
+     * 发射后舵机回到此位置
+     */
+    public static double triggerResetPosition = 0.2;
+
+    /**
      * todo:红队吃球位姿列表（单位：英寸，弧度）
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */

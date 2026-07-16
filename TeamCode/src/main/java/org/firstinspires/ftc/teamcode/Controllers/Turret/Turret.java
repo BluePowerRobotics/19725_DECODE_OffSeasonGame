@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Controllers.Turret;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -27,6 +28,8 @@ public class Turret {
     private double roll;
     private double yaw;
     private BSTsolver bstSolver;
+
+    private Servo triggerServo;
 
     private boolean shooting = false;
     private boolean waitingForSpeed = false;
@@ -73,6 +76,9 @@ public class Turret {
 
         turretDegreeController = new TurretDegreeController(hardwareMap, telemetry);
         bstSolver = new BSTsolver();
+
+        triggerServo = hardwareMap.get(Servo.class, "trigger");
+        triggerServo.setPosition(HypParams.triggerResetPosition);
 
         initAprilTag(hardwareMap);
     }
@@ -297,12 +303,12 @@ public class Turret {
     }
 
     public void launch() {
-        //todo: 打开闸门
+        triggerServo.setPosition(HypParams.triggerLaunchPosition);
         lastLaunchTime = System.currentTimeMillis();
     }
 
     public void reset(){
-        //todo: 关闭闸门
+        triggerServo.setPosition(HypParams.triggerResetPosition);
         shooting = false;
         waitingForSpeed = false;
         shooter.setTargetVelocity(0);
