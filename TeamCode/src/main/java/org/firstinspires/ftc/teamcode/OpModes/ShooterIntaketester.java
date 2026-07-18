@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.utility.HypParams;
 public class ShooterIntaketester extends LinearOpMode {
 
     public Shooter shooter;
-    public int targetVelocity = 4000;
+    public int targetVelocity = 1700;
 
     private Sweeper sweeper;
-    private int sweeperTargetVelocity = 1
-    000;
+    private int sweeperTargetVelocity = 1000;
+
     private Servo triggerServo;
     private boolean triggerAtLaunch = false;
 

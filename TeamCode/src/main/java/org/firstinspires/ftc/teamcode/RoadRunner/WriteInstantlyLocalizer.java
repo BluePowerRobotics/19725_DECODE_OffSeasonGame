@@ -53,6 +53,14 @@ public class WriteInstantlyLocalizer implements Localizer{
         pose=localizer.getPose();
     }
     
+    /**
+     * 获取内部使用的 PinpointLocalizer 实例
+     * @return PinpointLocalizer 实例
+     */
+    public PinpointLocalizer getPinpointLocalizer() {
+        return (PinpointLocalizer) localizer;
+    }
+
     @Override
     public void setPose(Pose2d pose) {
         // 委托给内部定位器设置位姿
