@@ -31,8 +31,8 @@ public class MotorPIDTuning extends LinearOpMode {
 
 
         // 创建ExampleVoltageOutMotor实例，控制名为"SVA"的电机
-        VoltageOutMotor flywheel = new VoltageOutMotor(hardwareMap, "SVA", telemetry,false);
-        VoltageOutMotor flywheel2 = new VoltageOutMotor(hardwareMap, "SVA2", telemetry,true);
+        VoltageOutMotor flywheel = new VoltageOutMotor(hardwareMap, "motorL", telemetry,false);
+        VoltageOutMotor flywheel2 = new VoltageOutMotor(hardwareMap, "motorR", telemetry,true);
 
         waitForStart();
 

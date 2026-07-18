@@ -97,7 +97,7 @@ public class MotorSVATuning extends LinearOpMode {
     /** 手动模式下的电压增量 */
     public static double voltageIncrement = 1;
     /** 电机名称 */
-    public static String motorName = "SVA"; 
+    public static String motorName = "motorL";
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -106,7 +106,7 @@ public class MotorSVATuning extends LinearOpMode {
 
         // 初始化电机
         motor = hardwareMap.get(DcMotorEx.class, motorName);
-        followerMotor = hardwareMap.get(DcMotorEx.class, "SVA2"); // 假设有第二个电机作为跟随
+        followerMotor = hardwareMap.get(DcMotorEx.class, "motorR"); // 假设有第二个电机作为跟随
         motor.setDirection(DcMotorSimple.Direction.FORWARD);
         followerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

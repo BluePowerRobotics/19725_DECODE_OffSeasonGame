@@ -43,7 +43,7 @@ public class RobotPosition {
     public boolean isFull(){
         if (fullSensor == null) return false;
         readAndFilter(fullSensor, filteredHsv);
-        return HypParams.isGreenBall(filteredHsv) || HypParams.isPurpleBall(filteredHsv);
+        return HypParams.isBall_Full(filteredHsv);
     }
     /**
      *true 表示无球
@@ -52,7 +52,7 @@ public class RobotPosition {
     public boolean isEmpty(){
         if (emptySensor == null) return true;
         readAndFilter(emptySensor, filteredHsv);
-        return !(HypParams.isGreenBall(filteredHsv) || HypParams.isPurpleBall(filteredHsv));
+        return !(HypParams.isBall_Empty(filteredHsv));
     }
 
     /**

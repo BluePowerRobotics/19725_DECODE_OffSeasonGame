@@ -132,30 +132,35 @@ public class OffseasonDECODE extends LinearOpMode {
                 chassis.exchangeUseNoHeadMode();
             }
 
-            // === 吸取器控制：P2 优先于 P1 ===
-            boolean g2SweeperActive = false;
-            if (gamepad2.left_bumper) {
-                sweeper.setEat();
-                robotStatus = ROBOT_STATUS.EATING;
-                g2SweeperActive = true;
-            } else if (gamepad2.right_bumper) {
-                sweeper.setOutput();
-                robotStatus = ROBOT_STATUS.OUTPUT;
-                g2SweeperActive = true;
-            }
-
-            if (!g2SweeperActive) {
-                if (gamepad1.left_bumper) {
+            // === 吸取器控制：发射状态优先于手柄 ===
+            if (isShooting) {
+                sweeper.setGiveArtifact();
+                robotStatus = ROBOT_STATUS.SHOOTING;
+            } else {
+                boolean g2SweeperActive = false;
+                if (gamepad2.left_bumper) {
                     sweeper.setEat();
                     robotStatus = ROBOT_STATUS.EATING;
-                } else if (gamepad1.right_bumper) {
+                    g2SweeperActive = true;
+                } else if (gamepad2.right_bumper) {
                     sweeper.setOutput();
                     robotStatus = ROBOT_STATUS.OUTPUT;
-                } else if (gamepad1.y) {
-                    sweeper.setStop();
-                    if (!isShooting) robotStatus = ROBOT_STATUS.WAITING;
-                } else if (!isShooting) {
-                    robotStatus = ROBOT_STATUS.WAITING;
+                    g2SweeperActive = true;
+                }
+
+                if (!g2SweeperActive) {
+                    if (gamepad1.left_bumper) {
+                        sweeper.setEat();
+                        robotStatus = ROBOT_STATUS.EATING;
+                    } else if (gamepad1.right_bumper) {
+                        sweeper.setOutput();
+                        robotStatus = ROBOT_STATUS.OUTPUT;
+                    } else if (gamepad1.y) {
+                        sweeper.setStop();
+                        robotStatus = ROBOT_STATUS.WAITING;
+                    } else {
+                        robotStatus = ROBOT_STATUS.WAITING;
+                    }
                 }
             }
 
@@ -194,12 +199,6 @@ public class OffseasonDECODE extends LinearOpMode {
                     if (gamepad2.aWasPressed()) isShooting = !isShooting;
                     turret.update(roll, yaw, targetSpeed, isShooting);
                     break;
-            }
-
-            // 发射状态下自动将吸取器设为吃球，持续向射手供弹
-            if (isShooting && !g2SweeperActive) {
-                sweeper.setEat();
-                robotStatus = ROBOT_STATUS.SHOOTING;
             }
 
             sweeper.update();

@@ -78,32 +78,32 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
         // 驱动模型参数
-        public double inPerTick = 0.001999; // 每个编码器 tick 对应的英寸数
-        public double lateralInPerTick = inPerTick; // 横向移动每个 tick 对应的英寸数
-        public double trackWidthTicks = 0; // 轮距（编码器 tick 单位）
+        public double inPerTick = 0.001999;
+        public double lateralInPerTick = inPerTick;
+        public double trackWidthTicks = 13000;
 
         // 电机前馈参数（tick 单位）
-        public double kS = 0; // 静态摩擦力补偿
-        public double kV = 0; // 速度比例系数
-        public double kA = 0; // 加速度比例系数
+        public double kS = 0.2;
+        public double kV = 2.5;
+        public double kA = 0.3;
 
         // 路径规划参数（英寸单位）
-        public double maxWheelVel = 50; // 最大轮速
-        public double minProfileAccel = -30; // 最小加速度
-        public double maxProfileAccel = 50; // 最大加速度
+        public double maxWheelVel = 50;
+        public double minProfileAccel = -30;
+        public double maxProfileAccel = 50;
 
         // 转向规划参数（弧度单位）
-        public double maxAngVel = Math.PI; // 最大角速度（与路径共享）
-        public double maxAngAccel = Math.PI; // 最大角加速度
+        public double maxAngVel = Math.PI;
+        public double maxAngAccel = Math.PI;
 
         // 路径控制器增益
-        public double axialGain = 0.0; // 轴向控制增益
-        public double lateralGain = 0.0; // 横向控制增益
-        public double headingGain = 0.0; // 航向控制增益（与转向共享）
+        public double axialGain = 0.5;
+        public double lateralGain = 0.5;
+        public double headingGain = 3.0;
 
-        public double axialVelGain = 0.0; // 轴向速度控制增益
-        public double lateralVelGain = 0.0; // 横向速度控制增益
-        public double headingVelGain = 0.0; // 航向速度控制增益（与转向共享）
+        public double axialVelGain = 0.2;
+        public double lateralVelGain = 0.2;
+        public double headingVelGain = 0.1;
     }
 
     /**

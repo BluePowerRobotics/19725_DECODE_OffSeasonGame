@@ -65,22 +65,26 @@ public class FullTest extends LinearOpMode {
                 chassis.exchangeUseNoHeadMode();
             }
 
-            boolean g2SweeperActive = false;
-            if (gamepad2.left_bumper) {
-                sweeper.setEat();
-                g2SweeperActive = true;
-            } else if (gamepad2.right_bumper) {
-                sweeper.setOutput();
-                g2SweeperActive = true;
-            }
-
-            if (!g2SweeperActive) {
-                if (gamepad1.left_bumper) {
+            if (isShooting) {
+                sweeper.setGiveArtifact();
+            } else {
+                boolean g2SweeperActive = false;
+                if (gamepad2.left_bumper) {
                     sweeper.setEat();
-                } else if (gamepad1.right_bumper) {
+                    g2SweeperActive = true;
+                } else if (gamepad2.right_bumper) {
                     sweeper.setOutput();
-                } else if (gamepad1.y) {
-                    sweeper.setStop();
+                    g2SweeperActive = true;
+                }
+
+                if (!g2SweeperActive) {
+                    if (gamepad1.left_bumper) {
+                        sweeper.setEat();
+                    } else if (gamepad1.right_bumper) {
+                        sweeper.setOutput();
+                    } else if (gamepad1.y) {
+                        sweeper.setStop();
+                    }
                 }
             }
 
@@ -107,10 +111,6 @@ public class FullTest extends LinearOpMode {
             }
 
             turret.update(roll, yaw, targetSpeed, isShooting);
-
-            if (isShooting && !g2SweeperActive) {
-                sweeper.setEat();
-            }
 
             sweeper.update();
 

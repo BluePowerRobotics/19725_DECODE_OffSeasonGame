@@ -178,47 +178,37 @@ public class IntakeTester extends LinearOpMode {
 
             telemetry.addLine();
             telemetry.addLine("====== FullSensor ======");
-            telemetry.addLine()
-                    .addData("Raw H", "%.1f", fullRawHsv[0])
-                    .addData("S", "%.3f", fullRawHsv[1])
-                    .addData("V", "%.3f", fullRawHsv[2]);
-            telemetry.addLine()
-                    .addData("EMA H", "%.1f", fullFilteredHsv[0])
-                    .addData("S", "%.3f", fullFilteredHsv[1])
-                    .addData("V", "%.3f", fullFilteredHsv[2]);
+            telemetry.addData("Full Raw H", "%.1f", fullRawHsv[0]);
+            telemetry.addData("Full Raw S", "%.3f", fullRawHsv[1]);
+            telemetry.addData("Full Raw V", "%.3f", fullRawHsv[2]);
+            telemetry.addData("Full EMA H", "%.1f", fullFilteredHsv[0]);
+            telemetry.addData("Full EMA S", "%.3f", fullFilteredHsv[1]);
+            telemetry.addData("Full EMA V", "%.3f", fullFilteredHsv[2]);
             telemetry.addLine("--- FullSensor Range ---");
-            telemetry.addLine()
-                    .addData("H min", "%.1f", fullHsvMin[0])
-                    .addData("H max", "%.1f", fullHsvMax[0]);
-            telemetry.addLine()
-                    .addData("S min", "%.3f", fullHsvMin[1])
-                    .addData("S max", "%.3f", fullHsvMax[1]);
-            telemetry.addLine()
-                    .addData("V min", "%.3f", fullHsvMin[2])
-                    .addData("V max", "%.3f", fullHsvMax[2]);
-            telemetry.addData("Full -> isFull", HypParams.isGreenBall(fullFilteredHsv) || HypParams.isPurpleBall(fullFilteredHsv));
+            telemetry.addData("Full H min", "%.1f", fullHsvMin[0]);
+            telemetry.addData("Full H max", "%.1f", fullHsvMax[0]);
+            telemetry.addData("Full S min", "%.3f", fullHsvMin[1]);
+            telemetry.addData("Full S max", "%.3f", fullHsvMax[1]);
+            telemetry.addData("Full V min", "%.3f", fullHsvMin[2]);
+            telemetry.addData("Full V max", "%.3f", fullHsvMax[2]);
+            telemetry.addData("Full -> isFull", HypParams.isBall_Full(fullFilteredHsv));
 
             telemetry.addLine();
             telemetry.addLine("====== EmptySensor ======");
-            telemetry.addLine()
-                    .addData("Raw H", "%.1f", emptyRawHsv[0])
-                    .addData("S", "%.3f", emptyRawHsv[1])
-                    .addData("V", "%.3f", emptyRawHsv[2]);
-            telemetry.addLine()
-                    .addData("EMA H", "%.1f", emptyFilteredHsv[0])
-                    .addData("S", "%.3f", emptyFilteredHsv[1])
-                    .addData("V", "%.3f", emptyFilteredHsv[2]);
+            telemetry.addData("Empty Raw H", "%.1f", emptyRawHsv[0]);
+            telemetry.addData("Empty Raw S", "%.3f", emptyRawHsv[1]);
+            telemetry.addData("Empty Raw V", "%.3f", emptyRawHsv[2]);
+            telemetry.addData("Empty EMA H", "%.1f", emptyFilteredHsv[0]);
+            telemetry.addData("Empty EMA S", "%.3f", emptyFilteredHsv[1]);
+            telemetry.addData("Empty EMA V", "%.3f", emptyFilteredHsv[2]);
             telemetry.addLine("--- EmptySensor Range ---");
-            telemetry.addLine()
-                    .addData("H min", "%.1f", emptyHsvMin[0])
-                    .addData("H max", "%.1f", emptyHsvMax[0]);
-            telemetry.addLine()
-                    .addData("S min", "%.3f", emptyHsvMin[1])
-                    .addData("S max", "%.3f", emptyHsvMax[1]);
-            telemetry.addLine()
-                    .addData("V min", "%.3f", emptyHsvMin[2])
-                    .addData("V max", "%.3f", emptyHsvMax[2]);
-            telemetry.addData("Empty -> isEmpty", !(HypParams.isGreenBall(emptyFilteredHsv) || HypParams.isPurpleBall(emptyFilteredHsv)));
+            telemetry.addData("Empty H min", "%.1f", emptyHsvMin[0]);
+            telemetry.addData("Empty H max", "%.1f", emptyHsvMax[0]);
+            telemetry.addData("Empty S min", "%.3f", emptyHsvMin[1]);
+            telemetry.addData("Empty S max", "%.3f", emptyHsvMax[1]);
+            telemetry.addData("Empty V min", "%.3f", emptyHsvMin[2]);
+            telemetry.addData("Empty V max", "%.3f", emptyHsvMax[2]);
+            telemetry.addData("Empty -> isEmpty", !(HypParams.isBall_Empty(emptyFilteredHsv)));
 
             telemetry.addLine();
             telemetry.addData("Alpha", "%.3f", currentAlpha);

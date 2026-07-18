@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 @Config
 @TeleOp(name = "Processor Tester", group = "Test")
-
 public class ProcessorTest extends LinearOpMode {
 
 
@@ -47,13 +46,13 @@ public class ProcessorTest extends LinearOpMode {
 
     // 调节参数
 
-    private double decimation = 1.0;  // 图像降采样倍数（1.0-8.0，默认2.0）
+    public static double decimation = 1.0;  // 图像降采样倍数（1.0-8.0，默认2.0）
 
-    private long exposureMs = 30;        // 毫秒
+    public static long exposureMs = 30;        // 毫秒
 
-    private double gain = 1;             // 增益 (0 表示自动)
+    public static double gain = 0;             // 增益 (0 表示自动)
 
-    private double whiteBalanceK = 3200; // 色温 (开尔文)
+    public static double whiteBalanceK = 3200; // 色温 (开尔文)
 
 
 
@@ -64,9 +63,7 @@ public class ProcessorTest extends LinearOpMode {
     private WhiteBalanceControl whiteBalanceControl;
 
 
-
     @Override
-
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         

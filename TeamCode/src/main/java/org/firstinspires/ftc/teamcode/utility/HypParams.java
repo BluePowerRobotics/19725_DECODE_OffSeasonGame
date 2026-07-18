@@ -51,10 +51,6 @@ public class HypParams {
      */
     public static double TagH= 33;
     /**
-     * todo:相机与炮口的水平距离（单位：米）
-     */
-    public static double WebcamR = 0.1;
-    /**
      * todo:相机仰角（单位：度）
      */
     public static double WebcamTheta = 45;
@@ -143,39 +139,39 @@ public class HypParams {
      */
     public static double ColorAlpha = 0.4;
     /*
-     * todo:绿色球的HSV范围下限
+     * todo:EmptySensor处球的HSV范围下限
      * 数组：[H, S, V]，H范围0~360，S/V范围0~1
      */
-    public static float[] GREEN_HSV_MIN = {100f, 0.3f, 0.3f};
+    public static float[] Ball_Empty_HSV_MIN = {0f, 0.08f, 0.08f};
 
     /**
-     * todo:绿色球的HSV范围上限
+     * todo:EmptySensor处球的HSV范围上限
      * 数组：[H, S, V]
      */
-    public static float[] GREEN_HSV_MAX = {140f, 1.0f, 1.0f};
+    public static float[] Ball_Empty_HSV_MAX = {360f, 0.92f, 1f};
 
     /**
-     * todo:紫色球的HSV范围下限
+     * todo:FullSensor处球的HSV范围下限
      * 数组：[H, S, V]，H范围0~360，S/V范围0~1
      */
-    public static float[] PURPLE_HSV_MIN = {260f, 0.3f, 0.3f};
+    public static float[] Ball_Full_HSV_MIN = {260f, 0.3f, 0.3f};
 
     /**
-     * todo:紫色球的HSV范围上限
+     * todo:FullSensor处球的HSV范围上限
      * 数组：[H, S, V]
      */
-    public static float[] PURPLE_HSV_MAX = {310f, 1.0f, 1.0f};
+    public static float[] Ball_Full_HSV_MAX = {310f, 1.0f, 1.0f};
 
     /**
-     * 判断HSV值是否落在绿色球的预设范围内
+     * 判断HSV值是否落在EmptySensor处球的预设范围内
      *
      * @param hsv HSV数组，[H, S, V]
-     * @return true 表示该颜色匹配绿色球
+     * @return true 表示该颜色匹配EmptySensor处球
      */
-    public static boolean isGreenBall(float[] hsv) {
-        return hsv[0] >= GREEN_HSV_MIN[0] && hsv[0] <= GREEN_HSV_MAX[0]
-            && hsv[1] >= GREEN_HSV_MIN[1] && hsv[1] <= GREEN_HSV_MAX[1]
-            && hsv[2] >= GREEN_HSV_MIN[2] && hsv[2] <= GREEN_HSV_MAX[2];
+    public static boolean isBall_Empty(float[] hsv) {
+        return hsv[0] >= Ball_Empty_HSV_MIN[0] && hsv[0] <= Ball_Empty_HSV_MAX[0]
+            && hsv[1] >= Ball_Empty_HSV_MIN[1] && hsv[1] <= Ball_Empty_HSV_MAX[1]
+            && hsv[2] >= Ball_Empty_HSV_MIN[2] && hsv[2] <= Ball_Empty_HSV_MAX[2];
     }
 
     /**
@@ -184,29 +180,12 @@ public class HypParams {
      * @param hsv HSV数组，[H, S, V]
      * @return true 表示该颜色匹配紫色球
      */
-    public static boolean isPurpleBall(float[] hsv) {
-        return hsv[0] >= PURPLE_HSV_MIN[0] && hsv[0] <= PURPLE_HSV_MAX[0]
-            && hsv[1] >= PURPLE_HSV_MIN[1] && hsv[1] <= PURPLE_HSV_MAX[1]
-            && hsv[2] >= PURPLE_HSV_MIN[2] && hsv[2] <= PURPLE_HSV_MAX[2];
+    public static boolean isBall_Full(float[] hsv) {
+        return hsv[0] >= Ball_Full_HSV_MIN[0] && hsv[0] <= Ball_Full_HSV_MAX[0]
+            && hsv[1] >= Ball_Full_HSV_MIN[1] && hsv[1] <= Ball_Full_HSV_MAX[1]
+            && hsv[2] >= Ball_Full_HSV_MIN[2] && hsv[2] <= Ball_Full_HSV_MAX[2];
     }
 
-    /**
-     * todo:球满时与距离传感器的距离（单位：mm）
-     * 传感器检测到小于此值时认为球已满
-     */
-    public static double maxdistance = 20;
-
-    /**
-     * todo:球空时与距离传感器的距离（单位：mm）
-     * 传感器检测到大于此值时认为球已空
-     */
-    public static double mindistance = 50;
-
-    /**
-     * todo:距离传感器异常阈值（单位：mmm）
-     * 传感器在小于此距离时读数不稳定，需要过滤
-     */
-    public static double wrongdistance = 10;
 
     /**
      * 根据 AprilTag ID 获取球门位置
@@ -226,13 +205,13 @@ public class HypParams {
      * trigger舵机发射位置（0~1）
      * 舵机旋转到此位置时发射球
      */
-    public static double triggerLaunchPosition = 0.8;
+    public static double triggerLaunchPosition = 0.679;
 
     /**
      * trigger舵机复位位置（0~1）
      * 发射后舵机回到此位置
      */
-    public static double triggerResetPosition = 0.2;
+    public static double triggerResetPosition = 0.421;
 
     /**
      * todo:红队吃球位姿列表（单位：英寸，弧度）

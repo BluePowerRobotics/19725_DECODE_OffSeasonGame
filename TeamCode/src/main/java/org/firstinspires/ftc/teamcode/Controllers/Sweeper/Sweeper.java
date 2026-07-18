@@ -57,6 +57,10 @@ public class Sweeper {
         targetVelocity = 0;
     }
     
+    public void setTargetVelocity(int velocity) {
+        targetVelocity = velocity;
+    }
+    
     public void setPower(double power) {
         motor.setPower(power);
     }

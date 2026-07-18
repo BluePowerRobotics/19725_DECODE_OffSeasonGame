@@ -49,6 +49,8 @@ public class Turret {
     private Gamepad gamepad1;
     private Gamepad gamepad2;
 
+    private int preSpeed = 0;
+
     /**
      * 设置手柄引用，用于发射失败时震动反馈
      */
@@ -316,6 +318,11 @@ public class Turret {
     }
 
     public void update(boolean AllowVision, boolean shouldShoot, int targetTagId) {
+        update(AllowVision, shouldShoot, targetTagId, 0);
+    }
+
+    public void update(boolean AllowVision, boolean shouldShoot, int targetTagId, int preSpeed) {
+        this.preSpeed = preSpeed;
         this.currentTargetTagId = targetTagId;
         shooter.update();
         turretDegreeController.update();
@@ -334,10 +341,16 @@ public class Turret {
         } else {
             reset();
             aim(AllowVision);
+            shooter.setTargetVelocity(this.preSpeed);
         }
     }
 
     public void update(int speed, boolean shouldShoot) {
+        update(speed, shouldShoot, 0);
+    }
+
+    public void update(int speed, boolean shouldShoot, int preSpeed) {
+        this.preSpeed = preSpeed;
         shooter.update();
         turretDegreeController.update();
 
@@ -363,16 +376,28 @@ public class Turret {
             telemetry.update();
         } else {
             reset();
+            shooter.setTargetVelocity(this.preSpeed);
         }
     }
 
     public void update(double kx) {
+        update(kx, 0);
+    }
+
+    public void update(double kx, int preSpeed) {
+        this.preSpeed = preSpeed;
         shooter.update();
+        shooter.setTargetVelocity(this.preSpeed);
         DcMotorEx rollMotor = turretDegreeController.rollMotor;
         rollMotor.setPower(kx);
     }
 
     public void update(double roll, double yaw, int speed, boolean shouldShoot) {
+        update(roll, yaw, speed, shouldShoot, 0);
+    }
+
+    public void update(double roll, double yaw, int speed, boolean shouldShoot, int preSpeed) {
+        this.preSpeed = preSpeed;
         shooter.update();
         turretDegreeController.update();
         turretDegreeController.rotateTo(roll, yaw);
@@ -399,6 +424,7 @@ public class Turret {
             telemetry.update();
         } else {
             reset();
+            shooter.setTargetVelocity(this.preSpeed);
         }
     }
 

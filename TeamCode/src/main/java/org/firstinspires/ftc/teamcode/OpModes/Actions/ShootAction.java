@@ -25,7 +25,7 @@ public class ShootAction implements Action {
     public boolean run(@NonNull TelemetryPacket packet) {
         RobotPosition.getInstance().update();
 
-        sweeper.setStop();
+        sweeper.setGiveArtifact();
         sweeper.update();
         chassis.stop();
         turret.update(true, true, targetTagId);
