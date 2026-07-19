@@ -32,6 +32,8 @@ public class Chassis {
     private final Telemetry telemetry;
     private double lastKx = 0, lastKy = 0, lastKomega = 0;
 
+    private final TeamColor teamColor;
+
     // 航向PID控制器，用于GoTo方法的旋转功率控制
     private final PIDController headingPID;
     private double lastGoToTime = 0;
@@ -39,6 +41,7 @@ public class Chassis {
     private boolean isFirstGoTo = true;      // 首次调用标志，避免D项跳变
 
     public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+        this.teamColor = teamColor;
         Pose2d startPose = (teamColor == TeamColor.RED) ?
                 HypParams.startPoseRed : HypParams.startPoseBlue;
         RobotPosition.RobotPositioninit(hardwareMap, startPose);
@@ -179,10 +182,14 @@ public class Chassis {
             double strafeVel = -Kx * maxV;
             double omega = -Komega * maxOmega;
             if(useNoHeadMode){
-                double theta = RobotPosition.getInstance().getTheta();
+                // 操作手基础朝向：BLUE 面向 -pi/2 (y-为前), RED 面向 pi/2 (y+为前)
+                double driverHeading = (teamColor == TeamColor.RED) ? Math.PI / 2 : -Math.PI / 2;
+                // 摇杆输入在操作手主观坐标系中，旋转到场地坐标系后再旋转到机器人坐标系
+                // 复合效果等价于用 (theta - driverHeading) 替代原 theta
+                double theta = RobotPosition.getInstance().getTheta() - driverHeading;
                 double cos = Math.cos(theta);
                 double sin = Math.sin(theta);
-                // 将场心坐标系速度旋转到机器人坐标系
+                // 将操作手坐标系速度旋转到机器人坐标系
                 double forwardRobot = forwardVel * cos + strafeVel * sin;
                 double strafeRobot = -forwardVel * sin + strafeVel * cos;
                 drive.setDrivePowers(new PoseVelocity2d(new Vector2d(forwardRobot, strafeRobot), omega));
