@@ -45,8 +45,6 @@ public class FullTest extends LinearOpMode {
     private static final int SPEED_STEP = 100;
     private static final int SPEED_MIN = 0;
     private static final int SPEED_MAX = 3000;
-    private static final int PRESPEED_STEP = 50;
-    private static final int PRESPEED_MAX = 2000;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -167,9 +165,10 @@ public class FullTest extends LinearOpMode {
                 targetSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, targetSpeed));
 
                 // 发射开关
-                if (gamepad2.aWasPressed()) {
-                    isShooting = !isShooting;
-                }
+                isShooting=gamepad2.a;
+
+                // 预载飞轮速度（P2 右扳机）
+                preSpeed = Math.round(gamepad2.right_trigger * HypParams.maxPreSpeed);
 
                 // 手动模式下使用 update(roll, yaw, speed, shouldShoot, preSpeed)
                 turret.update(roll, yaw, targetSpeed, isShooting, preSpeed);
@@ -179,15 +178,10 @@ public class FullTest extends LinearOpMode {
                 boolean allowVision = (aimMode == AIM_MODE.VISION);
 
                 // 预载飞轮速度（P2 右扳机）
-                if (gamepad2.right_trigger > 0.5) {
-                    preSpeed += PRESPEED_STEP;
-                }
-                preSpeed = Math.max(0, Math.min(PRESPEED_MAX, preSpeed));
+                preSpeed = Math.round(gamepad2.right_trigger * HypParams.maxPreSpeed);
 
                 // 发射开关
-                if (gamepad2.aWasPressed()) {
-                    isShooting = !isShooting;
-                }
+                isShooting=gamepad2.a;
 
                 // 自动瞄准模式下使用 update(AllowVision, shouldShoot, targetTagId, preSpeed)
                 turret.update(allowVision, isShooting, targetTagId, preSpeed);

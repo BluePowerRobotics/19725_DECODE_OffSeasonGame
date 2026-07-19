@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @Autonomous
 @Config
-public class AutoAction extends LinearOpMode {
+public class AutoActionRed extends LinearOpMode {
     public enum TEAM_COLOR {
         RED, BLUE
     }
