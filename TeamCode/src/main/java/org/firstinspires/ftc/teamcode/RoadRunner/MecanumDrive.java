@@ -80,12 +80,12 @@ public final class MecanumDrive {
         // 驱动模型参数
         public double inPerTick = 0.001999;
         public double lateralInPerTick = inPerTick;
-        public double trackWidthTicks = 13000;
+        public double trackWidthTicks = 5765.723859478465;
 
         // 电机前馈参数（tick 单位）
-        public double kS = 0.2;
-        public double kV = 2.5;
-        public double kA = 0.3;
+        public double kS = 1.2019792244145228;
+        public double kV = 0.00035261972751626935666666666666667;
+        public double kA = 0.00007;
 
         // 路径规划参数（英寸单位）
         public double maxWheelVel = 50;
@@ -97,13 +97,14 @@ public final class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // 路径控制器增益
-        public double axialGain = 0.5;
-        public double lateralGain = 0.5;
-        public double headingGain = 3.0;
+        public double axialGain = 3;
+        public double lateralGain = 5;
+        public double headingGain = 2;
 
-        public double axialVelGain = 0.2;
-        public double lateralVelGain = 0.2;
-        public double headingVelGain = 0.1;
+        public double axialVelGain = 1
+                ;
+        public double lateralVelGain = 2;
+        public double headingVelGain = 1;
     }
 
     /**
