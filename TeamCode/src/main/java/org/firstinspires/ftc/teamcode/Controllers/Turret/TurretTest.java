@@ -7,7 +7,8 @@ import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 
 @TeleOp(name = "TurretTest", group = "Tests")
-public class TurretTest extends LinearOpMode {
+public class
+TurretTest extends LinearOpMode {
     private Turret turret;
     private Sweeper sweeper;
     
@@ -97,6 +98,7 @@ public class TurretTest extends LinearOpMode {
             telemetry.addData("Status", "Running");
             telemetry.addData("Roll", "%.2f deg", roll);
             telemetry.addData("Yaw", "%.2f deg", yaw);
+            telemetry.addData("YawP",turret.turretDegreeController.yawServo.getPosition());
             telemetry.addData("Speed", "%d RPM", speed);
             telemetry.addData("PreSpeed", "%d RPM", preSpeed);
             telemetry.addData("Trigger", isTriggerPressed ? "Half Step" : "Full Step");

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret.turner;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -15,10 +16,11 @@ import org.firstinspires.ftc.teamcode.utility.HypParams;
  * 支持 roll(水平旋转) 电机使用 PIDSVA 位置闭环控制
  * 支持 yaw(仰角) 舵机使用位置直接控制
  */
+@Config
 public class TurretDegreeController {
 
     public DcMotorEx rollMotor;
-    private Servo yawServo;
+    public Servo yawServo;
     private VoltageOut voltageOut;
     private PIDSVAController controller;
     private SlotConfig config;
@@ -36,13 +38,13 @@ public class TurretDegreeController {
     // 原始目标角度跟踪（可能超出硬件限制，用于判断何时回到有效范围）
     private double rawTargetRoll = 0.0;
 
-    public double kP = 1.0;
-    public double kI = 0.0;
-    public double kD = 0.0;
-    public double maxI = 1.0;
-    public double kS = 0.0;
-    public double kV = 0.0;
-    public double kA = 0.0;
+    public static double kP = 1.0;
+    public static double kI = 0.0;
+    public static double kD = 0.0;
+    public static double maxI = 1.0;
+    public static double kS = 0.0;
+    public static double kV = 0.0;
+    public static double kA = 0.0;
     public double outputMin = -14.0;
     public double outputMax = 14.0;
 
@@ -180,7 +182,7 @@ public class TurretDegreeController {
         setTargetYaw(targetAngle);
         currentYaw = yawServo.getPosition() / YAW_SERVO_POSITION_PER_DEGREE + YAW_ANGLE_MIN;
 
-        return Math.abs(currentYaw - targetAngle) <= ANGLE_TOLERANCE;
+        return Math.abs(currentYaw - this.targetYaw) <= ANGLE_TOLERANCE;
     }
 
     /**

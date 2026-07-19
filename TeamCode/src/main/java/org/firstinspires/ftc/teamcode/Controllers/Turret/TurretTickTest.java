@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -22,6 +24,7 @@ public class TurretTickTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry=new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         roll = hardwareMap.get(DcMotorEx.class,"roll");
         roll.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         roll.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
@@ -33,10 +36,10 @@ public class TurretTickTest extends LinearOpMode {
             }
             if(mode){
                 if(gamepad1.dpadUpWasPressed()){
-                    targetPosition_r = targetPosition_r +50;
+                    targetPosition_r = targetPosition_r +80;
                 }
                 if(gamepad1.dpadDownWasPressed()){
-                    targetPosition_r = targetPosition_r -50;
+                    targetPosition_r = targetPosition_r -80;
                 }
                 if(gamepad1.dpadLeftWasPressed()){
                     currentDegree_r = currentDegree_r -1;

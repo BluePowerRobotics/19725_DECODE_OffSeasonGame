@@ -399,8 +399,8 @@ public class Turret {
     public void update(double roll, double yaw, int speed, boolean shouldShoot, int preSpeed) {
         this.preSpeed = preSpeed;
         shooter.update();
-        turretDegreeController.update();
         turretDegreeController.rotateTo(roll, yaw);
+        turretDegreeController.update();
 
         if (waitingForSpeed) {
             if (shooter.reachedVelocity() && turretDegreeController.reachedTarget()) {
