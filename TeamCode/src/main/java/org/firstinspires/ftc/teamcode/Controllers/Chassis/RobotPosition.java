@@ -73,6 +73,10 @@ public class RobotPosition {
     public Pose2d currentPose;
     public PoseVelocity2d currentVelocity2d;
 
+    // 位姿修正偏移量，用于消除累计误差
+    private Pose2d poseCorrection = new Pose2d(0, 0, 0);
+    private boolean correctionActive = false;
+
     private static RobotPosition instance;
 
     public static RobotPosition getInstance(){
@@ -98,6 +102,25 @@ public class RobotPosition {
         return instance;
     }
 
+    /**
+     * 立即将机器人位姿修正为目标值，并保持该修正偏移量不变
+     * 用于消除 pinpoint 累计误差。调用后，后续 update() 返回的位姿
+     * 将始终基于本次修正偏移量计算，直到下一次 ResetPoseTo 被调用。
+     *
+     * @param pose 目标位姿（真实位姿）
+     */
+    public void ResetPoseTo(Pose2d pose) {
+        Pose2d rawPose = localizer.getPose();
+        // 计算修正偏移量 = 目标位姿 - 当前原始读数
+        double dx = pose.position.x - rawPose.position.x;
+        double dy = pose.position.y - rawPose.position.y;
+        double dtheta = pose.heading.toDouble() - rawPose.heading.toDouble();
+        poseCorrection = new Pose2d(dx, dy, dtheta);
+        correctionActive = true;
+        // 立即更新当前位姿
+        currentPose = pose;
+    }
+
     // 每帧调用：更新定位器并返回当前位姿
     public Pose2d update() {
         currentVelocity2d = drive.updatePoseEstimate();
@@ -108,6 +131,14 @@ public class RobotPosition {
                 instance.localizer.update();
                 Pose2d p = instance.localizer.getPose();
                 if (p != null) {
+                    // 应用位姿修正偏移（消除累计误差）
+                    if (correctionActive) {
+                        p = new Pose2d(
+                                p.position.x + poseCorrection.position.x,
+                                p.position.y + poseCorrection.position.y,
+                                p.heading.toDouble() + poseCorrection.heading.toDouble()
+                        );
+                    }
                     instance.currentPose = p;
                 }
             } catch (Exception ignored) {

@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @TeleOp(name = "SensitivityTest", group = "Tests")
 public class SensitivityTest extends LinearOpMode {
@@ -29,7 +30,7 @@ public class SensitivityTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
 
         waitForStart();
 

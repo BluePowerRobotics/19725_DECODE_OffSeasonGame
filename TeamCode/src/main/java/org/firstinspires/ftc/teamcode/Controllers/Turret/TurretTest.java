@@ -15,6 +15,7 @@ public class TurretTest extends LinearOpMode {
     private double roll = 0.0;      // 水平旋转角（度）
     private double yaw = 0.0;       // 仰角（度）
     private int speed = 600;       // 飞轮功率
+    private int preSpeed = 0;      // 预载飞轮速度
     
     // 步长设置
     private static final double YAW_STEP = 5.0;        // 仰角步长（度）
@@ -41,7 +42,7 @@ public class TurretTest extends LinearOpMode {
         
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Instructions", "Left stick: adjust roll | D-pad: adjust yaw/speed");
-        telemetry.addData("Instructions", "Right trigger: half step | A button: shoot");
+        telemetry.addData("Instructions", "Right trigger: preSpeed | Left trigger: half step | A: shoot");
         telemetry.addData("Sweeper", "Running continuously");
         telemetry.update();
         
@@ -49,7 +50,7 @@ public class TurretTest extends LinearOpMode {
         
         while (opModeIsActive()) {
             // 读取右扳机状态（决定步长）
-            boolean isTriggerPressed = gamepad1.right_trigger > 0.5;
+            boolean isTriggerPressed = gamepad1.left_trigger > 0.5;
             double yawStep = isTriggerPressed ? YAW_STEP_HALF : YAW_STEP;
             int speedStep = isTriggerPressed ? SPEED_STEP_HALF : SPEED_STEP;
             
@@ -81,11 +82,14 @@ public class TurretTest extends LinearOpMode {
                 speed = Math.max(SPEED_MIN, speed);
             }
             
+            // 右扳机控制预载飞轮速度（0 ~ maxPreSpeed）
+            preSpeed = (int)(gamepad1.right_trigger * HypParams.maxPreSpeed);
+            
             // A键发射
             boolean shouldShoot = gamepad1.aWasPressed();
             
             // 更新炮塔状态
-            turret.update(roll, yaw, speed, shouldShoot);
+            turret.update(roll, yaw, speed, shouldShoot, preSpeed);
             // 更新扫球器（持续运行）
             sweeper.update();
             
@@ -94,6 +98,7 @@ public class TurretTest extends LinearOpMode {
             telemetry.addData("Roll", "%.2f deg", roll);
             telemetry.addData("Yaw", "%.2f deg", yaw);
             telemetry.addData("Speed", "%d RPM", speed);
+            telemetry.addData("PreSpeed", "%d RPM", preSpeed);
             telemetry.addData("Trigger", isTriggerPressed ? "Half Step" : "Full Step");
             telemetry.addData("Ready to Shoot", shouldShoot ? "Yes" : "No");
             telemetry.addData("TagH", "%.2f m", HypParams.TagH);

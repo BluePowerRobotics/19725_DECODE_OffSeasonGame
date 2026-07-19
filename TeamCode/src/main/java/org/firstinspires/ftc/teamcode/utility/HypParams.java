@@ -92,6 +92,16 @@ public class HypParams {
      * 机器人在自动搜索状态下的移动速度
      */
     public static double WanderSpeed = 1;
+    /**
+     * todo:红队重置姿态（单位：英寸，弧度）
+     * 包含初始位置(x, y)和初始朝向(theta)
+     */
+    public static Pose2d ResetPoseRed = new Pose2d(63, -60.7, -Math.PI/2);
+    /**
+     * todo:蓝队重置姿态（单位：英寸，弧度）
+     * 包含初始位置(x, y)和初始朝向(theta)
+     */
+    public static Pose2d ResetPoseBlue = new Pose2d(63, 60.7, Math.PI/2);
     /*
         * 最大小球偏移角（单位：弧度）
         * 可以根据limelight的视场角和实际情况调整
@@ -200,6 +210,12 @@ public class HypParams {
         }
         return null;
     }
+
+    /**
+     * 预设飞轮最大转速（RPM）
+     * 用于 TeleOp 中 right_trigger 控制预载速度的上限
+     */
+    public static int maxPreSpeed = 2000;
 
     /**
      * trigger舵机发射位置（0~1）

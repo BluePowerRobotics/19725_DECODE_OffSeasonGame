@@ -9,27 +9,28 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
 import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
+import org.firstinspires.ftc.teamcode.utility.HypParams;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-@TeleOp(name="ChassisTester", group="Tests")
-public class ChassisTester extends LinearOpMode {
+@TeleOp(name="ChassisTesterBlue", group="Tests")
+public class ChassisTesterBlue extends LinearOpMode {
 
     long lastNanoTime=0;
-
 
     @Override
     public void runOpMode()throws InterruptedException{
         ActionRunner actionRunner = new ActionRunner();
-        Chassis chassis=new Chassis(hardwareMap, OffseasonDECODE.TEAM_COLOR.RED, actionRunner, telemetry);
+        Chassis chassis=new Chassis(hardwareMap, TeamColor.BLUE, actionRunner, telemetry);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while (opModeIsActive()){
             RobotPosition.getInstance().update();
             chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
             if(gamepad1.xWasReleased())chassis.exchangeUseNoHeadMode();
+            if(gamepad1.aWasReleased())RobotPosition.getInstance().ResetPoseTo(HypParams.ResetPoseBlue);
             lastNanoTime=System.nanoTime();
             chassis.telemetry();
             telemetry.update();

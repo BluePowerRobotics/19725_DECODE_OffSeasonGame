@@ -46,7 +46,7 @@ public class AutoAction extends LinearOpMode {
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         while (opModeInInit() || !initStarted) {
-            teamColor = TEAM_COLOR.RED;
+            teamColor = TEAM_COLOR.BLUE;
             switch (teamColor) {
                 case BLUE:
                     targetTagId = 20;

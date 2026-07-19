@@ -24,8 +24,7 @@ public class TurretDegreeController {
     private SlotConfig config;
     private Telemetry telemetry;
 
-    public static double ROLL_MOTOR_TICKS_PER_REV = 28.0;
-    public static double ROLL_TICKS_PER_DEGREE = ROLL_MOTOR_TICKS_PER_REV / 360.0;
+    public static double ROLL_TICKS_PER_DEGREE =1.5455;
     public static double ANGLE_TOLERANCE = 0.5;
 
     private double currentRoll = 0.0;
@@ -49,8 +48,9 @@ public class TurretDegreeController {
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
-    public static double YAW_ANGLE_MIN = 0.0;
-    public static double YAW_ANGLE_MAX = 180.0;
+    public static double YAW_ANGLE_MIN = 34;
+    public static double YAW_ANGLE_MAX = 60;
+    public static double YAW_SERVO_POSITION_PER_DEGREE = 0.0385;
 
     /**
      * 构造函数
@@ -178,7 +178,7 @@ public class TurretDegreeController {
      */
     private boolean rotateYawTo(double targetAngle) {
         setTargetYaw(targetAngle);
-        currentYaw = yawServo.getPosition() * (YAW_ANGLE_MAX - YAW_ANGLE_MIN) + YAW_ANGLE_MIN;
+        currentYaw = yawServo.getPosition() / YAW_SERVO_POSITION_PER_DEGREE + YAW_ANGLE_MIN;
 
         return Math.abs(currentYaw - targetAngle) <= ANGLE_TOLERANCE;
     }
@@ -207,11 +207,11 @@ public class TurretDegreeController {
         double power = voltageOut.getVoltageOutPower(outputVoltage);
         rollMotor.setPower(power);
 
-        double yawTargetServo = (targetYaw - YAW_ANGLE_MIN) / (YAW_ANGLE_MAX - YAW_ANGLE_MIN);
+        double yawTargetServo = (targetYaw - YAW_ANGLE_MIN) * YAW_SERVO_POSITION_PER_DEGREE;
         yawServo.setPosition(Math.max(YAW_SERVO_MIN, Math.min(YAW_SERVO_MAX, yawTargetServo)));
         //提醒一点，这里的yawServo.getPosition()读取到的就是你给它set的targetposition。舵机不会
         //以任何电气方式实时读取自己的位置并返回。所以currentYaw即yawTargetServo
-        currentYaw = yawServo.getPosition() * (YAW_ANGLE_MAX - YAW_ANGLE_MIN) + YAW_ANGLE_MIN;
+        currentYaw = yawServo.getPosition() / YAW_SERVO_POSITION_PER_DEGREE + YAW_ANGLE_MIN;
 
         if (telemetry != null) {
             telemetry.addData("TargetRoll", targetRoll);

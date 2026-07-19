@@ -7,13 +7,13 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.OpModes.OffseasonDECODE;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
 import org.firstinspires.ftc.teamcode.utility.MathSolver;
+import org.firstinspires.ftc.teamcode.utility.TeamColor;
 import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers.PIDController;
 
 
@@ -38,8 +38,8 @@ public class Chassis {
     private double lastNormalizedError = 0; // 上一次的展开误差，用于D项微分计算
     private boolean isFirstGoTo = true;      // 首次调用标志，避免D项跳变
 
-    public Chassis(HardwareMap hardwareMap, OffseasonDECODE.TEAM_COLOR teamColor, ActionRunner actionRunner, Telemetry telemetry) {
-        Pose2d startPose = (teamColor == OffseasonDECODE.TEAM_COLOR.RED) ?
+    public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+        Pose2d startPose = (teamColor == TeamColor.RED) ?
                 HypParams.startPoseRed : HypParams.startPoseBlue;
         RobotPosition.RobotPositioninit(hardwareMap, startPose);
         this.drive = RobotPosition.getInstance().getDrive();

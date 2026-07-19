@@ -10,7 +10,7 @@ public class TurretTickTest extends LinearOpMode {
     DcMotorEx roll;
     Servo yaw;
     double MOTOR_TICK_PER_DEGREE;
-    double SERVO_POSITION_PER_DEGREE;
+    double SERVO_POSITION_PER_DEGREE = 0.0385;
 
     double targetPosition_r =0;
     double targetPosition_y =0;
