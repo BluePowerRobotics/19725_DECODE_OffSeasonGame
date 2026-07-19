@@ -14,10 +14,10 @@ public class HypParams {
      * 定义机器人在场地中的碰撞边界，用于避障和边界检测
      */
     public static ConvexPolygon BoundingBox = new ConvexPolygon(
-        new Point2D(20, 20),
-        new Point2D(-20, 20),
-        new Point2D(-20, -20),
-        new Point2D(20, -20)
+        new Point2D(8, 5.5),
+        new Point2D(-8, 5.5),
+        new Point2D(-8, -5.5),
+        new Point2D(8, -5.5)
     );
 
     /**
@@ -49,11 +49,11 @@ public class HypParams {
     /**
      * todo:AprilTag与炮口的高度差（单位：英寸）
      */
-    public static double TagH= 33;
+    public static double TagH= 17;
     /**
      * todo:相机仰角（单位：度）
      */
-    public static double WebcamTheta = 45;
+    public static double WebcamTheta = 20;
     /**
      * todo:射程最远时所对仰角
      */
@@ -106,7 +106,7 @@ public class HypParams {
         * 最大小球偏移角（单位：弧度）
         * 可以根据limelight的视场角和实际情况调整
      */
-    public static double MaxBearing=Math.toRadians(10); //25
+    public static double MaxBearing=Math.toRadians(26); 
 
     /**
      * 初始操控模式标志
