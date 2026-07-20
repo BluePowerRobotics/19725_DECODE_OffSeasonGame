@@ -246,4 +246,16 @@ public class HypParams {
         new Pose2d(10, -20, Math.toRadians(-90)),
         new Pose2d(20, -20, Math.toRadians(-90))
     };
+
+    /**
+     * todo:红队停泊位姿（单位：英寸，弧度）
+     * 自动模式结束前，机器人移动到射击区外的停泊位置
+     */
+    public static Pose2d StopPoseRed = new Pose2d(30, -60, -Math.PI/2);
+
+    /**
+     * todo:蓝队停泊位姿（单位：英寸，弧度）
+     * 自动模式结束前，机器人移动到射击区外的停泊位置
+     */
+    public static Pose2d StopPoseBlue = new Pose2d(30, 60, Math.PI/2);
 }

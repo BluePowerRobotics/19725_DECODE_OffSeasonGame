@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToEatPose;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToShootingAreaAction;
+import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToStopPose;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.ShootAction;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
@@ -41,6 +42,9 @@ public class AutoActionRed extends LinearOpMode {
     private String lastActionType="Eat";
     private boolean[] eatPoseReached;
     private int currentEatPoseIndex;
+    private boolean parked = false;
+    private static final long AUTO_TIMEOUT_MS = 30000;
+    private static final long PARK_TIME_THRESHOLD_MS = 3000;
 
     @Override
     public void runOpMode() {
@@ -83,9 +87,22 @@ public class AutoActionRed extends LinearOpMode {
 
         if (isStopRequested()) return;
 
+        long startTime = System.currentTimeMillis();
+
         while (opModeIsActive()) {
             RobotPosition.getInstance().update();
             actionRunner.update();
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = AUTO_TIMEOUT_MS - elapsedTime;
+
+            if (!parked && remainingTime <= PARK_TIME_THRESHOLD_MS) {
+                actionRunner.add(new GoToStopPose(chassis, sweeper, HypParams.StopPoseRed));
+                lastActionType = "GoToStopPose";
+                parked = true;
+                continue;
+            }
+
             if(!actionRunner.isBusy()) {
                 // 如果上一个动作是 EatAction，直接进入 GoToShootingAreaAction
                 if ((lastActionType.equals("Eat")&&!RobotPosition.getInstance().isEmpty() && !RobotPosition.getInstance().isAbleToShoot())||(RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
