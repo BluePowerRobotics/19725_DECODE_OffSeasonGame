@@ -45,11 +45,36 @@ public class Turret {
     private double finalAimRoll;
     private double finalAimYaw;
     private int currentTargetTagId;
+    private boolean isLaunching = false;
     
     private Gamepad gamepad1;
     private Gamepad gamepad2;
 
     private int preSpeed = 0;
+
+    // 反转模式（P1 右 Bumper 触发）：飞轮反转 + 扳机舵机到发射位置，用于排球
+    private boolean reverseMode = false;
+
+    // 最近一次 aim() 的结果跟踪（用于 Telemetry 显示）
+    private boolean lastAimIsTargetFound = false;
+    private double lastAimTargetRoll = 0;
+    private double lastAimTargetYaw = 0;
+    private int lastAimDetectionCount = 0;
+
+    // 视觉滞后滤波：防止检测闪烁导致角度跳变
+    private static final int VISION_DROP_THRESHOLD = 30; // 允许连续丢失的最大帧数
+    private int visionDropFrames = VISION_DROP_THRESHOLD; // 当前连续丢失帧数（初始为阈值，表示未获得过视觉数据）
+    private double lastVisionRoll = 0; // 最后一帧有效视觉的 roll
+    private double lastVisionYaw = 0; // 最后一帧有效视觉的 yaw
+    private int lastTargetTagId = -1; // 上一帧的目标标签 ID，用于检测切换
+
+    /**
+     * 设置反转模式
+     * 反转模式下飞轮反转，扳机舵机移到发射位置，用于从进料口反向排球
+     */
+    public void setReverse(boolean reverse) {
+        this.reverseMode = reverse;
+    }
 
     /**
      * 设置手柄引用，用于发射失败时震动反馈
@@ -124,6 +149,12 @@ public class Turret {
     public Object[] aim(boolean allowVision) {
         get_angle();
 
+        // 如果目标标签切换，立即重置视觉滤波状态
+        if (currentTargetTagId != lastTargetTagId) {
+            visionDropFrames = VISION_DROP_THRESHOLD;
+            lastTargetTagId = currentTargetTagId;
+        }
+
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean isTargetFound = false;
         AprilTagDetection targetDetection = null;
@@ -142,16 +173,25 @@ public class Turret {
         double targetYaw = 0;
 
         if (isTargetFound && targetDetection != null) {
+            // 视觉检测成功：重置丢失计数，保存视觉数据
+            visionDropFrames = 0;
             //webcam顺时针为正，程序内统一以逆时针为正
             double bearing = -targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
-            targetRoll = this.roll + bearing;
-            targetYaw = this.yaw + elevation;
+            targetRoll = this.roll - bearing;
+            targetYaw = HypParams.WebcamTheta + elevation;
+            lastVisionRoll = targetRoll;
+            lastVisionYaw = targetYaw;
             // 即使超出射界，仍保留视觉数据更新 targetRoll 以保持跟踪
             // 物理限幅由 TurretDegreeController.setTargetRoll() 处理
-        }
-
-        if (!isTargetFound) {
+        } else if (allowVision && visionDropFrames < VISION_DROP_THRESHOLD) {
+            // 视觉短暂丢失，未超过阈值：继续使用上一帧有效视觉数据，避免角度跳变
+            visionDropFrames++;
+            targetRoll = lastVisionRoll;
+            targetYaw = lastVisionYaw;
+            isTargetFound = true; // 标记为视觉有效（滤波后）
+        } else {
+            // 视觉丢失超过阈值或未启用视觉：使用定位计算
             double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
             if (goalPos != null) {
                 double robotX = RobotPosition.getInstance().getX();
@@ -172,8 +212,14 @@ public class Turret {
             }
         }
 
-        rotate_to(targetRoll, targetYaw);
-        return new Object[]{isTargetFound, targetRoll, targetYaw - HypParams.WebcamTheta};
+        // 更新 telemetry 跟踪数据
+        lastAimIsTargetFound = isTargetFound;
+        lastAimTargetRoll = targetRoll;
+        lastAimTargetYaw = targetYaw;
+        lastAimDetectionCount = detections.size();
+
+        rotate_to(targetRoll, HypParams.BestYaw);
+        return new Object[]{isTargetFound, targetRoll, targetYaw};
     }
 
     /**
@@ -193,9 +239,13 @@ public class Turret {
                     double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
                     double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
                     double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
+                    // 补偿炮台偏移：炮口位于车基准点正后方 TurretCenterDistance 英寸处，
+                    // 目标相对于车基准点的水平距离比相对于炮台近 TurretCenterDistance
+                    double dx = targetX - HypParams.TurretCenterDistance;
+                    double dy = targetY;
                     solution = bstSolver.predict(
                         RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                        targetX, targetY);
+                        dx, dy);
                 } else {
                     double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                     if (goalPos != null) {
@@ -242,9 +292,13 @@ public class Turret {
                         double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
                         double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
                         double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
+                        // 补偿炮台偏移：炮口位于车基准点正后方 TurretCenterDistance 英寸处，
+                        // 目标相对于车基准点的水平距离比相对于炮台近 TurretCenterDistance
+                        double dx = targetX - HypParams.TurretCenterDistance;
+                        double dy = targetY;
                         solution = bstSolver.predict(
                             RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                            targetX, targetY);
+                            dx, dy);
                     } else {
                         double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                         double robotX = RobotPosition.getInstance().getX();
@@ -306,14 +360,27 @@ public class Turret {
 
     public void launch() {
         triggerServo.setPosition(HypParams.triggerLaunchPosition);
+        isLaunching = true;
         lastLaunchTime = System.currentTimeMillis();
     }
+
+    public boolean isLaunching() {
+        return isLaunching;
+    }
+
+    // ======== Telemetry 查询接口 ========
+    public boolean isLastAimTargetFound() { return lastAimIsTargetFound; }
+    public double getLastAimTargetRoll() { return lastAimTargetRoll; }
+    public double getLastAimTargetYaw() { return lastAimTargetYaw; }
+    public int getLastAimDetectionCount() { return lastAimDetectionCount; }
+    public int getVisionDropFrames() { return visionDropFrames; }
 
     public void reset(){
         triggerServo.setPosition(HypParams.triggerResetPosition);
         shooting = false;
         waitingForSpeed = false;
-        shooter.setTargetVelocity(0);
+        isLaunching = false;
+        shooter.setTargetVelocity(preSpeed);
         shootPhase = ShootPhase.IDLE;
     }
 
@@ -324,6 +391,16 @@ public class Turret {
     public void update(boolean AllowVision, boolean shouldShoot, int targetTagId, int preSpeed) {
         this.preSpeed = preSpeed;
         this.currentTargetTagId = targetTagId;
+
+        // 反转模式：飞轮反转 + 扳机舵机到发射位置，用于从进料口反向排球
+        if (reverseMode) {
+            shooter.setTargetVelocity(HypParams.shooterReverseSpeed);
+            triggerServo.setPosition(HypParams.triggerLaunchPosition);
+            shooter.update();
+            turretDegreeController.update();
+            return;
+        }
+
         shooter.update();
         turretDegreeController.update();
 
@@ -340,8 +417,7 @@ public class Turret {
             shoot(AllowVision);
         } else {
             reset();
-            aim(AllowVision);
-            shooter.setTargetVelocity(this.preSpeed);
+            aim(AllowVision);  
         }
     }
 
@@ -376,7 +452,6 @@ public class Turret {
             telemetry.update();
         } else {
             reset();
-            shooter.setTargetVelocity(this.preSpeed);
         }
     }
 
@@ -398,6 +473,15 @@ public class Turret {
 
     public void update(double roll, double yaw, int speed, boolean shouldShoot, int preSpeed) {
         this.preSpeed = preSpeed;
+
+        // 反转模式：飞轮反转 + 扳机舵机到发射位置，用于从进料口反向排球
+        if (reverseMode) {
+            shooter.setTargetVelocity(HypParams.shooterReverseSpeed);
+            triggerServo.setPosition(HypParams.triggerLaunchPosition);
+            shooter.update();
+            return;
+        }
+
         shooter.update();
         turretDegreeController.rotateTo(roll, yaw);
         turretDegreeController.update();
@@ -424,7 +508,6 @@ public class Turret {
             telemetry.update();
         } else {
             reset();
-            shooter.setTargetVelocity(this.preSpeed);
         }
     }
 

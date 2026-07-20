@@ -200,6 +200,7 @@ public class Chassis {
         }
     }
     public void telemetry(){
+        /*
         telemetry.addData("X",RobotPosition.getInstance().getX());
         telemetry.addData("Y",RobotPosition.getInstance().getY());
         telemetry.addData("Heading",Math.toDegrees(RobotPosition.getInstance().getTheta()));
@@ -222,6 +223,6 @@ public class Chassis {
         telemetry.addData("LeftStickX", lastKx);
         telemetry.addData("LeftStickY", lastKy);
         telemetry.addData("RightStickX", lastKomega);
-
+        */
     }
 }

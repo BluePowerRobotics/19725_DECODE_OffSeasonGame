@@ -54,6 +54,13 @@ public class HypParams {
      * todo:相机仰角（单位：度）
      */
     public static double WebcamTheta = 20;
+
+    /**
+     * todo:炮台中心到车基准点的纵向偏移（单位：英寸）
+     * 炮台在地面的投影位于车基准点正后方 TurretCenterDistance 英寸处，
+     * 瞄准计算时需要将车基准点位置转换为炮台位置。
+     */
+    public static double TurretCenterDistance = 0;
     /**
      * todo:射程最远时所对仰角
      */
@@ -218,6 +225,12 @@ public class HypParams {
     public static int maxPreSpeed = 2000;
 
     /**
+     * 反转模式下飞轮转速（RPM，负值表示反转）
+     * 当 P1 右 Bumper 按下时，飞轮以该速度反转排球
+     */
+    public static int shooterReverseSpeed = -2000;
+
+    /**
      * trigger舵机发射位置（0~1）
      * 舵机旋转到此位置时发射球
      */
@@ -246,16 +259,4 @@ public class HypParams {
         new Pose2d(10, -20, Math.toRadians(-90)),
         new Pose2d(20, -20, Math.toRadians(-90))
     };
-
-    /**
-     * todo:红队停泊位姿（单位：英寸，弧度）
-     * 自动模式结束前，机器人移动到射击区外的停泊位置
-     */
-    public static Pose2d StopPoseRed = new Pose2d(30, -60, -Math.PI/2);
-
-    /**
-     * todo:蓝队停泊位姿（单位：英寸，弧度）
-     * 自动模式结束前，机器人移动到射击区外的停泊位置
-     */
-    public static Pose2d StopPoseBlue = new Pose2d(30, 60, Math.PI/2);
 }
