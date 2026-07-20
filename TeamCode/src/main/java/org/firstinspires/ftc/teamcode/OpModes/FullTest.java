@@ -121,7 +121,7 @@ public class FullTest extends LinearOpMode {
             // 吸取器控制 + 炮台反转模式
             // 一操右 bumper 按下时：飞轮反转 + sweeper 反转 + 扳机舵机到发射位置
             if (gamepad1.right_bumper) {
-                turret.setReverseMode(true);
+                turret.setReverse(true);
                 sweeper.setOutput();
             }
 
@@ -146,7 +146,7 @@ public class FullTest extends LinearOpMode {
 
             // 右 bumper 释放时恢复炮台正常模式（总是在 sweeper 控制之后执行）
             if (!gamepad1.right_bumper) {
-                turret.setReverseMode(false);
+                turret.setReverse(false);
             }
 
             // ======== P2 Controls ========
