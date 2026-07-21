@@ -5,6 +5,7 @@ import android.graphics.Color;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -128,7 +129,9 @@ public class RobotPosition {
 
         if (instance.localizer != null) {
             try {
-                instance.localizer.update();
+                // 位姿已在 drive.updatePoseEstimate() → localizer.update() 中更新完毕，
+                // 此处只需读取最新位姿，不再重复调用 localizer.update()
+                // instance.localizer.update();
                 Pose2d p = instance.localizer.getPose();
                 if (p != null) {
                     // 应用位姿修正偏移（消除累计误差）
