@@ -29,7 +29,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
     private boolean isShooting = false;
 
     private enum AIM_MODE { VISION, LOCALIZATION, MANUAL }
-    private AIM_MODE aimMode = AIM_MODE.VISION;
+    private AIM_MODE aimMode = AIM_MODE.MANUAL;
 
     private int targetTagId = 24;
 
@@ -74,13 +74,13 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
         telemetry.addData("A", "Emergency Stop");
         telemetry.addData("Left Bumper", "Sweeper Eat");
         telemetry.addData("Right Bumper", "Sweeper Output");
+        telemetry.addData("Y", "Sweeper Stop");
         telemetry.addData("--- P2 Controls ---", "");
         telemetry.addData("X", "Cycle Aim Mode: VISION/LOCALIZATION/MANUAL");
         telemetry.addData("Left Stick X", "Turret Roll (MANUAL mode only)");
         telemetry.addData("D-Pad Up/Down", "Yaw +/-5 (MANUAL mode only)");
         telemetry.addData("D-Pad Left/Right", "Speed +/-100 (MANUAL mode only)");
-        telemetry.addData("Y", "(Hold) Shoot");
-        telemetry.addData("A", "Emergency Stop");
+        telemetry.addData("Y", "Toggle Shoot"); 
         telemetry.addData("Right Trigger", "Preload Speed");
         telemetry.update();
 
