@@ -97,12 +97,12 @@ public final class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // 路径控制器增益
-        public double axialGain = 3;
-        public double lateralGain = 5;
+        public double axialGain = 2;
+        public double lateralGain = 3;
         public double headingGain = 2;
 
-        public double axialVelGain = 1;
-        public double lateralVelGain = 2;
+        public double axialVelGain = 0.5;
+        public double lateralVelGain = 1;
         public double headingVelGain = 1;
     }
 
@@ -110,7 +110,6 @@ public final class MecanumDrive {
      * 全局参数实例，可通过 FTC Dashboard 实时调整
      */
     public static Params PARAMS = new Params();
-
     /**
      * Mecanum 轮运动学模型
      */

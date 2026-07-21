@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.VoltageOut;
 @Config
 public class Shooter {
     /** 比例系数 */
-    public static double kP = 0.15;
+    public static double kP = 0.08;
     /** 积分系数 */
     public static double kI = 0;
     /** 微分系数 */
-    public static double kD = 0;
+    public static double kD = 0.00000001;
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */

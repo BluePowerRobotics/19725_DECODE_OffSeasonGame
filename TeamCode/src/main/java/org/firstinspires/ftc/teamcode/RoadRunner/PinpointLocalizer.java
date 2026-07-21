@@ -26,7 +26,7 @@ public final class PinpointLocalizer implements Localizer {
      */
     public static class Params {
         public double parYTicks =  2460.9120957820664; // 平行编码器的 y 位置（tick 单位）
-        public double perpXTicks = 1907.1003263946116; // 垂直编码器的 x 位置（tick 单位）
+        public double perpXTicks = -1907.1003263946116; // 垂直编码器的 x 位置（tick 单位）
         public double pinXOffset = 0; // Pinpoint 基准点相对于机器人中心的 X 偏移（英寸，+为前方）
         public double pinYOffset = 0; //
         // Pinpoint 基准点相对于机器人中心的 Y 偏移（英寸，+为左侧）
