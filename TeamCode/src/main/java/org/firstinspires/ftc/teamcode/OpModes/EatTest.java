@@ -88,6 +88,7 @@ public class EatTest extends LinearOpMode {
 
             // 显示状态信息
             telemetry.addData("Has Target", tracker.getHasTarget());
+            telemetry.addData("Target Theta", "%.2f deg", Math.toDegrees(tracker.getTargetTheta()));
             telemetry.addData("Is Busy", actionRunner.isBusy());
             telemetry.addData("Ball Full", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isFull());
             telemetry.addData("Ball Empty", org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition.getInstance().isEmpty());

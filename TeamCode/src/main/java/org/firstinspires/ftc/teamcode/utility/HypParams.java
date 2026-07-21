@@ -59,7 +59,7 @@ public class HypParams {
      * todo:相机在地面投影与车基准点的水平距离（单位：英寸）
      * 相机位于车基准点正前方该距离处，用于校正视觉瞄准时的水平距离计算
      */
-    public static double WebCamCenterDistance = 5.6
+    public static double WebCamCenterDistance = 7;
         ;
     /**
      * todo:射程最远时所对仰角
@@ -69,7 +69,7 @@ public class HypParams {
      * 炮台水平旋转角度范围（单位：度）
      * 炮台实际可旋转的机械角度限制为 [-maxRoll, maxRoll]
      */
-    public static double maxRoll = 120;
+    public static double maxRoll = 110;
     /**
      * todo:机器人最大线速度（单位：英寸/秒）
      * 底盘运动时允许的最大平移速度
@@ -86,13 +86,13 @@ public class HypParams {
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(0, 0, 0);
+    public static Pose2d startPoseRed = new Pose2d(0, 0, Math.PI);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(0, 0, 0);
+    public static Pose2d startPoseBlue = new Pose2d(0, 0, Math.PI);
 
     /**
      * todo:自动模式下游走速度（单位：英寸/秒）

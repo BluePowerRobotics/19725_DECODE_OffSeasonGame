@@ -40,6 +40,10 @@ public class Chassis {
     private double lastNormalizedError = 0; // 上一次的展开误差，用于D项微分计算
     private boolean isFirstGoTo = true;      // 首次调用标志，避免D项跳变
 
+    private static double kp = 3.0;
+    private static double ki = 0;
+    private static double kd = 0;
+
     public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry) {
         this.teamColor = teamColor;
         Pose2d startPose = (teamColor == TeamColor.RED) ?
@@ -49,7 +53,7 @@ public class Chassis {
         this.actionRunner = actionRunner;
         this.telemetry = telemetry;
         // 初始化航向PID：kP=3.0, kI=0.1, kD=0.05, maxI=0.5
-        this.headingPID = new PIDController(3.0, 0.1, 0.05, 0.5);
+        this.headingPID = new PIDController(kp, ki, kd, 0.5);
 
     }
 

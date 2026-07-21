@@ -237,9 +237,9 @@ public class Turret {
                     double aimRoll = (double) aimResult[1];
                     double aimYaw = (double) aimResult[2];
                     double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-                    double dWebcam = HypParams.TagH * cotYaw;
-                    double targetX = dWebcam * Math.cos(Math.toRadians(aimRoll)) + HypParams.WebCamCenterDistance;
-                    double targetY = dWebcam * Math.sin(Math.toRadians(aimRoll));
+                    double d = HypParams.TagH * cotYaw + HypParams.WebCamCenterDistance;
+                    double targetX = d * Math.cos(Math.toRadians(aimRoll));
+                    double targetY = d * Math.sin(Math.toRadians(aimRoll));
                     solution = bstSolver.predict(
                         RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
                         targetX, targetY);
@@ -336,13 +336,11 @@ public class Turret {
             case AIMING: {
                 if (turretDegreeController.reachedTarget()) {
                     launch();
-                    shootPhase = ShootPhase.IDLE;
                     waitingForSpeed = false;
-                    telemetry.addData("Shooter", "Launched");
+                    telemetry.addData("Shooter", "Launching");
                     telemetry.update();
                 } else if (System.currentTimeMillis() - speedWaitStartTime > AIM_TIMEOUT_MS) {
                     launch();
-                    shootPhase = ShootPhase.IDLE;
                     waitingForSpeed = false;
                     telemetry.addData("Shooter", "Aim timeout, force launch");
                     telemetry.update();
@@ -399,6 +397,11 @@ public class Turret {
         turretDegreeController.update();
 
         if (shootPhase != ShootPhase.IDLE) {
+            if (!shouldShoot) {
+                reset();
+                aim(AllowVision);
+                return;
+            }
             shoot(useVisionForAiming);
             return;
         }

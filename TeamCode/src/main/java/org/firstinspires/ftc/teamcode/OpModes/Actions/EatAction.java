@@ -12,18 +12,18 @@ import org.firstinspires.ftc.teamcode.utility.HypParams;
 public class EatAction implements Action {
     private final Chassis chassis;
     private final Tracker tracker;
-    //private final Sweeper sweeper;
+    private final Sweeper sweeper;
 
     public EatAction(Chassis chassis, Tracker tracker, Sweeper sweeper) {
         this.chassis = chassis;
         this.tracker = tracker;
-        //this.sweeper = sweeper;
+        this.sweeper = sweeper;
     }
 
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
         RobotPosition.getInstance().update();
-        /*
+        
         if (RobotPosition.getInstance().isFull()) {
             sweeper.setStop();
             sweeper.update();
@@ -32,7 +32,6 @@ public class EatAction implements Action {
 
         sweeper.setEat();
         sweeper.update();
-        */
         tracker.update();
 
         if (tracker.getHasTarget()) {
