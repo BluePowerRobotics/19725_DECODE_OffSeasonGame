@@ -61,7 +61,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
         targetTagId = 20; // 蓝队球门 AprilTag ID
 
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, true);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
         turret.setGamepads(gamepad1, gamepad2);
