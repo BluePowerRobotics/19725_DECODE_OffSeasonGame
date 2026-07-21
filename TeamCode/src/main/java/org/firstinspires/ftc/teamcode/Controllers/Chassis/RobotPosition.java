@@ -33,27 +33,29 @@ public class RobotPosition {
     private final EMA hueFilter = new EMA(HypParams.ColorAlpha);
     private final EMA saturationFilter = new EMA(HypParams.ColorAlpha);
     private final EMA valueFilter = new EMA(HypParams.ColorAlpha);
-    private final float[] filteredHsv = new float[3];
-
     public boolean ableToShoot = false;
     //todo :调整距离
     /**
-     *true 表示有3个球
-     * false 表示3个球未满（未检测到球）
+     * 两个传感器都检测到球时才判定为满
      */
     public boolean isFull(){
-        if (fullSensor == null) return false;
-        readAndFilter(fullSensor, filteredHsv);
-        return HypParams.isBall_Full(filteredHsv);
+        if (fullSensor == null || emptySensor == null) return false;
+        float[] fullHsv = new float[3];
+        float[] emptyHsv = new float[3];
+        readAndFilter(fullSensor, fullHsv);
+        readAndFilter(emptySensor, emptyHsv);
+        return HypParams.isBall_Full(fullHsv) && HypParams.isBall_Empty(emptyHsv);
     }
     /**
-     *true 表示无球
-     *false 表示有球
+     * 两个传感器都未检测到球时才判定为空
      */
     public boolean isEmpty(){
-        if (emptySensor == null) return true;
-        readAndFilter(emptySensor, filteredHsv);
-        return !(HypParams.isBall_Empty(filteredHsv));
+        if (fullSensor == null || emptySensor == null) return true;
+        float[] fullHsv = new float[3];
+        float[] emptyHsv = new float[3];
+        readAndFilter(fullSensor, fullHsv);
+        readAndFilter(emptySensor, emptyHsv);
+        return !HypParams.isBall_Full(fullHsv) && !HypParams.isBall_Empty(emptyHsv);
     }
 
     /**

@@ -12,10 +12,7 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.Point2D;
 import org.firstinspires.ftc.teamcode.utility.ConvexPolygon;
-import org.firstinspires.ftc.teamcode.utility.MathSolver;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
-import org.firstinspires.ftc.teamcode.Controllers.MotorExamples.PIDSVAControllers.PIDController;
-
 
 @Config
 public class Chassis {
@@ -34,26 +31,20 @@ public class Chassis {
 
     private final TeamColor teamColor;
 
-    // 航向PID控制器，用于GoTo方法的旋转功率控制
-    private final PIDController headingPID;
-    private double lastGoToTime = 0;
-    private double lastNormalizedError = 0; // 上一次的展开误差，用于D项微分计算
-    private boolean isFirstGoTo = true;      // 首次调用标志，避免D项跳变
-
-    private static double kp = 3.0;
-    private static double ki = 0;
-    private static double kd = 0;
-
-    public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry) {
+    public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry, boolean isTeleOp) {
         this.teamColor = teamColor;
-        Pose2d startPose = (teamColor == TeamColor.RED) ?
-                HypParams.startPoseRed : HypParams.startPoseBlue;
-        RobotPosition.RobotPositioninit(hardwareMap, startPose);
+        Pose2d initPose;
+        if (isTeleOp) {
+            initPose = (teamColor == TeamColor.RED) ?
+                    HypParams.StopPoseRed : HypParams.StopPoseBlue;
+        } else {
+            initPose = (teamColor == TeamColor.RED) ?
+                    HypParams.startPoseRed : HypParams.startPoseBlue;
+        }
+        RobotPosition.RobotPositioninit(hardwareMap, initPose);
         this.drive = RobotPosition.getInstance().getDrive();
         this.actionRunner = actionRunner;
         this.telemetry = telemetry;
-        // 初始化航向PID：kP=3.0, kI=0.1, kD=0.05, maxI=0.5
-        this.headingPID = new PIDController(kp, ki, kd, 0.5);
 
     }
 
@@ -71,100 +62,18 @@ public class Chassis {
                 new Vector2d(0,0),
                 0));
     }
-    public void GoTo(double targetTheta) { //targetTheta表示目标方向与小车正前方（x轴正方向）的夹角（逆时针为正）
-        // 将角度差归一化到[-π, π]
-        double error = MathSolver.normalizeAngle(targetTheta);
+    public void GoTo(double targetTheta){ //targetTheta表示目标与小车正前方（x轴正方向）的夹角（逆时针为正） 
+        //前进的同时转向 
+        double vx = Math.cos(targetTheta) * wanderSpeed; 
+        double vy = Math.sin(targetTheta) * wanderSpeed; 
+        double k = maxOmega / HypParams.MaxBearing; 
+        double omega = targetTheta * k; 
+        //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试 
+        drive.setDrivePowers(new PoseVelocity2d( 
+                new Vector2d(vx,vy), 
+                omega)); 
 
-        // 对误差做连续性展开：仅用于D项的微分计算
-        double unwrappedError = error;
-        if (!isFirstGoTo) {
-            double errorDelta = error - lastNormalizedError;
-            if (errorDelta > Math.PI) {
-                unwrappedError = error - 2 * Math.PI;
-            } else if (errorDelta < -Math.PI) {
-                unwrappedError = error + 2 * Math.PI;
-            }
-        }
-        double dErrorDelta = isFirstGoTo ? 0 : (unwrappedError - lastNormalizedError);
-        lastNormalizedError = unwrappedError;
-
-        // 速度分量：使用归一化误差，使速度方向与PID控制的旋转方向一致
-        double vx = Math.cos(error) * wanderSpeed;
-        double vy = Math.sin(error) * wanderSpeed;
-
-        // 计算时间间隔（秒）
-        double currentTime = System.nanoTime() / 1e9;
-        double dt = (lastGoToTime > 0) ? (currentTime - lastGoToTime) : 0.02;
-
-        // 长时间间隔后重置PID状态（累计的积分和微分状态已过时）
-        if (dt <= 0 || dt > 0.5) {
-            headingPID.reset();
-            isFirstGoTo = true;
-            dt = 0.02;
-        }
-        lastGoToTime = currentTime;
-
-        // 完整PID计算，然后替换D项：避免±π边界导数尖峰
-        double prevError = headingPID.getPreviousError();
-        double fullOutput = headingPID.calculate(0, -error, dt);
-
-        // 减去内部D项（使用归一化误差），加上外部D项（使用展开误差）
-        double kD = headingPID.getKD();
-        double internalD = kD * (error - prevError) / dt;
-        double externalD = isFirstGoTo ? 0 : (kD * dErrorDelta / dt);
-        isFirstGoTo = false;
-
-        double omega = fullOutput - internalD + externalD;
-        // 角速度限幅
-        omega = Math.max(-maxOmega, Math.min(maxOmega, omega));
-
-        drive.setDrivePowers(new PoseVelocity2d(
-                new Vector2d(vx, vy),
-                omega));
     }
-    public void GoToShootingArea(){
-        Point2D currentPos = new Point2D(
-            RobotPosition.getInstance().getX(),
-            RobotPosition.getInstance().getY()
-        );
-
-        if (RobotPosition.getInstance().isAbleToShoot()) {
-            stop();
-            return;
-        }
-        //前往最近的发射区，可以改为只去小三角
-        Point2D VecToLeft = SHOOTING_AREA_LEFT.NearestVectorFrom(currentPos);
-        Point2D VecToRight = SHOOTING_AREA_RIGHT.NearestVectorFrom(currentPos);
-
-        Point2D nearestVector = (HypParams.ToLeft) ? VecToLeft : VecToRight;
-        double targetTheta = nearestVector.getRadian()-RobotPosition.getInstance().getTheta();
-
-        GoTo(targetTheta);
-    }
-
-
-    /**
-     * 设置航向PID参数（用于手柄热调参）
-     */
-    public void setHeadingPID(double kP, double kI, double kD) {
-        headingPID.setPID(kP, kI, kD);
-    }
-
-    /**
-     * 重置航向PID积分与微分状态
-     */
-    public void resetHeadingPID() {
-        headingPID.reset();
-        lastNormalizedError = 0;
-        isFirstGoTo = true;
-    }
-
-    /** @return 航向PID的kP值 */
-    public double getHeadingKP() { return headingPID.getKP(); }
-    /** @return 航向PID的kI值 */
-    public double getHeadingKI() { return headingPID.getKI(); }
-    /** @return 航向PID的kD值 */
-    public double getHeadingKD() { return headingPID.getKD(); }
 
     /** 设置漫游速度（用于手柄调节） */
     public void setWanderSpeed(double speed) {
@@ -212,11 +121,12 @@ public class Chassis {
         telemetry.addData("HeadingPID_kP", headingPID.getKP());
         telemetry.addData("HeadingPID_kI", headingPID.getKI());
         telemetry.addData("HeadingPID_kD", headingPID.getKD());
+        /*/
         telemetry.addData("lfP",drive.leftFront.getPower());
         telemetry.addData("rfP",drive.rightFront.getPower());
         telemetry.addData("lbP",drive.leftBack.getPower());
         telemetry.addData("rbP",drive.rightBack.getPower());
-
+        /*
         //telemetry.addData("Vx",RobotPosition.getInstance().getVx());
         //telemetry.addData("Vy",RobotPosition.getInstance().getVy());
         //telemetry.addData("Omega",Math.toDegrees(RobotPosition.getInstance().getOmega()));
@@ -224,9 +134,11 @@ public class Chassis {
         telemetry.addData("rfV",drive.rightFront.getVelocity());
         telemetry.addData("lbV",drive.leftBack.getVelocity());
         telemetry.addData("rbV",drive.rightBack.getVelocity());
-        telemetry.addData("LeftStickX", lastKx);
-        telemetry.addData("LeftStickY", lastKy);
-        telemetry.addData("RightStickX", lastKomega);
+        
+        telemetry.addData("Kx", lastKx);
+        telemetry.addData("Ky", lastKy);
+        telemetry.addData("Komega", lastKomega);
         */
+        
     }
 }

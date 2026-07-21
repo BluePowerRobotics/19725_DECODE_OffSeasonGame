@@ -71,7 +71,7 @@ public class FullTest extends LinearOpMode {
         }
 
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, true);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
         turret.setGamepads(gamepad1, gamepad2);
@@ -133,11 +133,7 @@ public class FullTest extends LinearOpMode {
                     sweeper.setStop();
                 }
             } else {
-                // 球满时自动停止，除非操作手按住左右 bumper 强行继续
-                boolean driverOverride = gamepad1.left_bumper || gamepad1.right_bumper;
-                if (RobotPosition.getInstance().isFull() && !driverOverride) {
-                    sweeper.setStop();
-                } else if (gamepad1.left_bumper) {
+                if (gamepad1.left_bumper) {
                     sweeper.setEat();
                 } else if (gamepad1.y) {
                     sweeper.setStop();
@@ -227,6 +223,8 @@ public class FullTest extends LinearOpMode {
             telemetry.addData("Reverse Mode", gamepad1.right_bumper ? "ACTIVE" : "OFF");
 
             // 位姿信息
+            telemetry.addData("Ball Full", RobotPosition.getInstance().isFull());
+            telemetry.addData("Ball Empty", RobotPosition.getInstance().isEmpty());
             telemetry.addData("Pose X", "%.2f in", RobotPosition.getInstance().getX());
             telemetry.addData("Pose Y", "%.2f in", RobotPosition.getInstance().getY());
             telemetry.addData("Pose Theta", "%.2f deg", Math.toDegrees(RobotPosition.getInstance().getTheta()));

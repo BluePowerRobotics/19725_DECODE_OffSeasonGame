@@ -30,7 +30,7 @@ public class SensitivityTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry);
+        chassis = new Chassis(hardwareMap, TeamColor.RED, actionRunner, telemetry, true);
 
         waitForStart();
 

@@ -23,7 +23,7 @@ public class ChassisTesterBlue extends LinearOpMode {
     @Override
     public void runOpMode()throws InterruptedException{
         ActionRunner actionRunner = new ActionRunner();
-        Chassis chassis=new Chassis(hardwareMap, TeamColor.BLUE, actionRunner, telemetry);
+        Chassis chassis=new Chassis(hardwareMap, TeamColor.BLUE, actionRunner, telemetry, true);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while (opModeIsActive()){

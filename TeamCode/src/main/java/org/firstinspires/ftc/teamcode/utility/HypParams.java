@@ -110,10 +110,10 @@ public class HypParams {
      */
     public static Pose2d ResetPoseBlue = new Pose2d(63, 60.7, Math.PI/2);
     /*
-        * 最大小球偏移角（单位：弧度）
+        * 最大小球偏移角（单位：角度）
         * 可以根据limelight的视场角和实际情况调整
      */
-    public static double MaxBearing=Math.toRadians(26); 
+    public static double MaxBearing=Math.toRadians(26);
 
     /**
      * 初始操控模式标志
@@ -171,13 +171,16 @@ public class HypParams {
      * todo:FullSensor处球的HSV范围下限
      * 数组：[H, S, V]，H范围0~360，S/V范围0~1
      */
-    public static float[] Ball_Full_HSV_MIN = {260f, 0.3f, 0.3f};
+    public static float[] Ball_Full_HSV_MIN = {0f, 0.1f, 0.01f};
 
     /**
      * todo:FullSensor处球的HSV范围上限
      * 数组：[H, S, V]
      */
-    public static float[] Ball_Full_HSV_MAX = {310f, 1.0f, 1.0f};
+    public static float[] Ball_Full_HSV_MAX = {360f, 0.95f, 0.95f};
+    public static Pose2d StopPoseBlue = new Pose2d(0, 0, Math.PI);
+
+    public static Pose2d StopPoseRed = new Pose2d(0, 0, Math.PI);
 
     /**
      * 判断HSV值是否落在EmptySensor处球的预设范围内

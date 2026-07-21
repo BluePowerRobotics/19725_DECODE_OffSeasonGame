@@ -67,6 +67,7 @@ public class Sweeper {
     
     public void update() {
         motor.setVelocity(targetVelocity);
+        targetVelocity = 0; // 每帧必须重新调用set函数，否则自动归零
     }
     
     public double getPower() {

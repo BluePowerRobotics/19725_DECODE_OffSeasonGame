@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Controllers.Turret;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.utility.MathSolver;
 import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
 
 import java.util.List;
-
+@Config
 public class Turret {
     public Shooter shooter;
     Telemetry telemetry;
@@ -62,7 +63,7 @@ public class Turret {
     private int lastAimDetectionCount = 0;
 
     // 视觉滞后滤波：防止检测闪烁导致角度跳变
-    private static final int VISION_DROP_THRESHOLD = 30; // 允许连续丢失的最大帧数
+    public static int VISION_DROP_THRESHOLD = 30; // 允许连续丢失的最大帧数
     private int visionDropFrames = VISION_DROP_THRESHOLD; // 当前连续丢失帧数（初始为阈值，表示未获得过视觉数据）
     private double lastVisionRoll = 0; // 最后一帧有效视觉的 roll
     private double lastVisionYaw = 0; // 最后一帧有效视觉的 yaw
