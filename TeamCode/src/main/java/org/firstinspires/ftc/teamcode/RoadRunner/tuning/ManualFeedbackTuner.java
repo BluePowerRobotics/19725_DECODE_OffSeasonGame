@@ -45,7 +45,9 @@ public final class ManualFeedbackTuner extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
-            MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+            // Y 模式下机器人需朝 +Y 方向（heading = π/2）才能使用 lineToY()
+            double startHeading = MODE.equals("Y") ? Math.PI / 2 : 0;
+            MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, startHeading));
 
             checkOdometry(drive);
             waitForStart();
@@ -63,7 +65,7 @@ public final class ManualFeedbackTuner extends LinearOpMode {
                         break;
                     case "Y":
                         Actions.runBlocking(
-                                drive.actionBuilder(new Pose2d(0, 0, 0))
+                                drive.actionBuilder(new Pose2d(0, 0, Math.PI / 2))
                                         .lineToY(DISTANCE)
                                         .waitSeconds(TIME)
                                         .lineToY(0)
@@ -82,7 +84,9 @@ public final class ManualFeedbackTuner extends LinearOpMode {
                 }
             }
         } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {
-            TankDrive drive = new TankDrive(hardwareMap, new Pose2d(0, 0, 0));
+            // Y 模式下机器人需朝 +Y 方向（heading = π/2）才能使用 lineToY()
+            double startHeading = MODE.equals("Y") ? Math.PI / 2 : 0;
+            TankDrive drive = new TankDrive(hardwareMap, new Pose2d(0, 0, startHeading));
 
             checkOdometry(drive);
             waitForStart();
@@ -100,7 +104,7 @@ public final class ManualFeedbackTuner extends LinearOpMode {
                         break;
                     case "Y":
                         Actions.runBlocking(
-                                drive.actionBuilder(new Pose2d(0, 0, 0))
+                                drive.actionBuilder(new Pose2d(0, 0, Math.PI / 2))
                                         .lineToY(DISTANCE)
                                         .waitSeconds(TIME)
                                         .lineToY(0)
