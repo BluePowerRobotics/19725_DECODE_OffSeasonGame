@@ -15,9 +15,9 @@ public class Sweeper {
     private Telemetry telemetry;
     
 
-    public static int EatVel = 960;
+    public static int EatVel = 700;
     public static int GiveTheArtifactVel = 2000;
-    public static int OutputVel = -960;
+    public static int OutputVel = -500;
     
     private int targetVelocity = 0;
     
