@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-@TeleOp(name = "OffseasonDECODE_Blue", group = "Main")
+@TeleOp(name = "OffseasonDECODE_Blue", group = "A_OffseasonDECODE")
 public class OffseasonDECODE_Blue extends LinearOpMode {
     private Chassis chassis;
     private Sweeper sweeper;
@@ -39,8 +39,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
     // 预载飞轮速度（P2 右扳机控制）
     private int preSpeed = 0;
 
-    // 队伍颜色
-    private TeamColor teamColor;
+    private TeamColor teamColor = TeamColor.BLUE;
 
     private static final double ROLL_SPEED = 2.0;
     private static final double YAW_STEP = 5.0;
@@ -62,7 +61,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
         targetTagId = 20; // 蓝队球门 AprilTag ID
 
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, true);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
         turret.setGamepads(gamepad1, gamepad2);
@@ -214,8 +213,6 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
             telemetry.addData("Reverse Mode", gamepad1.right_bumper ? "ACTIVE" : "OFF");
 
             // 位姿信息
-            telemetry.addData("Ball Full", RobotPosition.getInstance().isFull());
-            telemetry.addData("Ball Empty", RobotPosition.getInstance().isEmpty());
             telemetry.addData("Pose X", "%.2f in", RobotPosition.getInstance().getX());
             telemetry.addData("Pose Y", "%.2f in", RobotPosition.getInstance().getY());
             telemetry.addData("Pose Theta", "%.2f deg", Math.toDegrees(RobotPosition.getInstance().getTheta()));
