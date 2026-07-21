@@ -37,6 +37,17 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
 
     private TeamColor teamColor = TeamColor.BLUE;
 
+    private long lastFrameTime = 0;
+    private double fps = 0;
+    private double frameTimeMs = 0;
+
+    // 各模块耗时统计（微秒）
+    private double timeRobotPosUs = 0;
+    private double timeChassisUs = 0;
+    private double timeTurretUs = 0;
+    private double timeSweeperUs = 0;
+    private double timeTelemetryUs = 0;
+
     private static final double ROLL_SPEED = 2.0;
     private static final double YAW_STEP = 5.0;
     private static final int SPEED_STEP = 100;
@@ -76,11 +87,23 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            // 帧率计算（原始帧间隔，不加平滑）
+            long now = System.nanoTime();
+            if (lastFrameTime > 0) {
+                frameTimeMs = (now - lastFrameTime) / 1_000_000.0;
+                fps = 1000.0 / frameTimeMs;
+            }
+            lastFrameTime = now;
+
+            long t0 = System.nanoTime();
             RobotPosition.getInstance().update();
+            timeRobotPosUs = (System.nanoTime() - t0) / 1000.0;
 
             // ======== P1 Controls ========
 
+            t0 = System.nanoTime();
             chassis.update(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+            timeChassisUs = (System.nanoTime() - t0) / 1000.0;
 
             if (gamepad1.xWasPressed()) {
                 chassis.exchangeUseNoHeadMode();
@@ -166,8 +189,9 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
                 // 预载飞轮速度（P2 右扳机）
                 preSpeed = Math.round(gamepad2.right_trigger * HypParams.maxPreSpeed);
 
-                // 手动模式下使用 update(roll, yaw, speed, shouldShoot, preSpeed)
+                t0 = System.nanoTime();
                 turret.update(roll, yaw, targetSpeed, isShooting, preSpeed);
+                timeTurretUs = (System.nanoTime() - t0) / 1000.0;
 
             } else {
                 // --- VISION / LOCALIZATION 模式：自动瞄准 ---
@@ -179,12 +203,16 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
                 // 发射开关
                 isShooting = gamepad2.y;
 
+                t0 = System.nanoTime();
                 turret.update(allowVision, isShooting, targetTagId, preSpeed);
+                timeTurretUs = (System.nanoTime() - t0) / 1000.0;
             }
 
             // ======== Update & Telemetry ========
 
+            t0 = System.nanoTime();
             sweeper.update();
+            timeSweeperUs = (System.nanoTime() - t0) / 1000.0;
 
             telemetry.addData("Team", teamColor == TeamColor.BLUE ? "BLUE" : "RED");
             telemetry.addData("useNoHeadMode", chassis.getUseNoHeadMode());
@@ -228,11 +256,31 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
 
             chassis.telemetry();
             sweeper.setTelemetry();
+            // === 帧率 & 各模块耗时（微秒） ===
+            telemetry.addData("FPS / Frame", "%.1f / %.1f ms", fps, frameTimeMs);
+            telemetry.addData("Time: RobotPos", "%.0f us", timeRobotPosUs);
+            telemetry.addData("Time: Chassis", "%.0f us", timeChassisUs);
+            telemetry.addData("Time: Turret", "%.0f us", timeTurretUs);
+            telemetry.addData("Time: Sweeper", "%.0f us", timeSweeperUs);
+            // === 各硬件 setPower 耗时（微秒） ===
+            long chassisSP = RobotPosition.getInstance().getDrive().chassisSetPowerNs;
+            long shooterSP = turret.shooter.shooterSetPowerNs;
+            long turretSP = turret.turretDegreeController.turretSetPowerNs;
+            long sweeperSP = sweeper.sweeperSetPowerNs;
+            telemetry.addData("setPower: Chassis", "%.1f us", chassisSP / 1000.0);
+            telemetry.addData("setPower: Shooter", "%.1f us", shooterSP / 1000.0);
+            telemetry.addData("setPower: Turret", "%.1f us", turretSP / 1000.0);
+            telemetry.addData("setPower: Sweeper", "%.1f us", sweeperSP / 1000.0);
+            // 重置本帧 setPower 计时
+            RobotPosition.getInstance().getDrive().chassisSetPowerNs = 0;
+            turret.shooter.shooterSetPowerNs = 0;
+            turret.turretDegreeController.turretSetPowerNs = 0;
+            sweeper.sweeperSetPowerNs = 0;
+            // telemetry.update() 耗时
+            telemetry.addData("Time: Telemetry", "%.0f us", timeTelemetryUs);
+            long tTel = System.nanoTime();
             telemetry.update();
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.fieldOverlay().setStroke("#3F51B5");
-            Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+            timeTelemetryUs = (System.nanoTime() - tTel) / 1000.0;
         }
 
         chassis.stop();
