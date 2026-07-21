@@ -237,15 +237,12 @@ public class Turret {
                     double aimRoll = (double) aimResult[1];
                     double aimYaw = (double) aimResult[2];
                     double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-                    double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
-                    double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
-                    // 补偿炮台偏移：炮口位于车基准点正后方 TurretCenterDistance 英寸处，
-                    // 目标相对于车基准点的水平距离比相对于炮台近 TurretCenterDistance
-                    double dx = targetX - HypParams.TurretCenterDistance;
-                    double dy = targetY;
+                    double dWebcam = HypParams.TagH * cotYaw;
+                    double targetX = dWebcam * Math.cos(Math.toRadians(aimRoll)) + HypParams.WebCamCenterDistance;
+                    double targetY = dWebcam * Math.sin(Math.toRadians(aimRoll));
                     solution = bstSolver.predict(
                         RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                        dx, dy);
+                        targetX, targetY);
                 } else {
                     double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                     if (goalPos != null) {
@@ -290,15 +287,12 @@ public class Turret {
                         double aimRoll = (double) aimResult[1];
                         double aimYaw = (double) aimResult[2];
                         double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-                        double targetX = HypParams.TagH * cotYaw * Math.cos(Math.toRadians(aimRoll));
-                        double targetY = HypParams.TagH * cotYaw * Math.sin(Math.toRadians(aimRoll));
-                        // 补偿炮台偏移：炮口位于车基准点正后方 TurretCenterDistance 英寸处，
-                        // 目标相对于车基准点的水平距离比相对于炮台近 TurretCenterDistance
-                        double dx = targetX - HypParams.TurretCenterDistance;
-                        double dy = targetY;
+                        double dWebcam = HypParams.TagH * cotYaw;
+                        double targetX = dWebcam * Math.cos(Math.toRadians(aimRoll)) + HypParams.WebCamCenterDistance;
+                        double targetY = dWebcam * Math.sin(Math.toRadians(aimRoll));
                         solution = bstSolver.predict(
                             RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                            dx, dy);
+                            targetX, targetY);
                     } else {
                         double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                         double robotX = RobotPosition.getInstance().getX();

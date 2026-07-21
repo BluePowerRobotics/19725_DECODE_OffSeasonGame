@@ -56,11 +56,11 @@ public class HypParams {
     public static double WebcamTheta = 20;
 
     /**
-     * todo:炮台中心到车基准点的纵向偏移（单位：英寸）
-     * 炮台在地面的投影位于车基准点正后方 TurretCenterDistance 英寸处，
-     * 瞄准计算时需要将车基准点位置转换为炮台位置。
+     * todo:相机在地面投影与车基准点的水平距离（单位：英寸）
+     * 相机位于车基准点正前方该距离处，用于校正视觉瞄准时的水平距离计算
      */
-    public static double TurretCenterDistance = 0;
+    public static double WebCamCenterDistance = 5.6
+        ;
     /**
      * todo:射程最远时所对仰角
      */
