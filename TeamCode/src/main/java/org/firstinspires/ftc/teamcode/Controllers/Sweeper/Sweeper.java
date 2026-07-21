@@ -15,8 +15,8 @@ public class Sweeper {
     private Telemetry telemetry;
     
 
-    public static int EatVel = 1960;
-    public static int GiveTheArtifactVel = 1960;
+    public static int EatVel = 960;
+    public static int GiveTheArtifactVel = 2000;
     public static int OutputVel = -960;
     
     private int targetVelocity = 0;
@@ -86,8 +86,11 @@ public class Sweeper {
     }
     
     public void setTelemetry() {
+        /*
         telemetry.addData("Sweeper Velocity", getVel());
         telemetry.addData("Sweeper Power*1000", getPower()*1000);
         telemetry.addData("Sweeper Current", getCurrent());
+
+         */
     }
 }

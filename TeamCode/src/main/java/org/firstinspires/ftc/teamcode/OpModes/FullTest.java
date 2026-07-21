@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
+import org.firstinspires.ftc.teamcode.RoadRunner.Drawing;
 import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
@@ -62,10 +64,10 @@ public class FullTest extends LinearOpMode {
 
         if (gamepad1.a) {
             teamColor = TeamColor.BLUE;
-            targetTagId = 24; // 蓝队球门 AprilTag ID
+            targetTagId = 20; // 蓝队球门 AprilTag ID
         } else {
             teamColor = TeamColor.RED;
-            targetTagId = 20; // 红队球门 AprilTag ID
+            targetTagId = 24; // 红队球门 AprilTag ID
         }
 
         actionRunner = new ActionRunner();
@@ -82,7 +84,7 @@ public class FullTest extends LinearOpMode {
         telemetry.addData("X", "Toggle No-Head Mode");
         telemetry.addData("A", "Reset Pose to " + (teamColor == TeamColor.BLUE ? "Blue" : "Red") + " ResetPose");
         telemetry.addData("Left Bumper", "Sweeper Eat");
-        telemetry.addData("Right Bumper", "Sweeper Output");
+        telemetry.addData("Right Bumper", "Sweeper Output + Flywheel Reverse + Trigger Launch");
         telemetry.addData("Y", "Sweeper Stop");
         telemetry.addData("--- P2 Controls ---", "");
         telemetry.addData("X", "Cycle Aim Mode: VISION/LOCALIZATION/MANUAL");
@@ -116,9 +118,20 @@ public class FullTest extends LinearOpMode {
                 telemetry.addData("ResetPose", "Reset to " + (teamColor == TeamColor.BLUE ? "Blue" : "Red"));
             }
 
-            // 吸取器控制
-            if (isShooting) {
-                sweeper.setGiveArtifact();
+            // 吸取器控制 + 炮台反转模式
+            // 一操右 bumper 按下时：飞轮反转 + sweeper 反转 + 扳机舵机到发射位置
+            if (gamepad1.right_bumper) {
+                turret.setReverse(true);
+                sweeper.setOutput();
+            }
+
+            // P2 A 按下时：若炮台正在发射则持续给球，否则停止；此模式下不服从操作手的左右 bumper 或 Y 键
+            if (gamepad2.a) {
+                if (turret.isLaunching()) {
+                    sweeper.setGiveArtifact();
+                } else {
+                    sweeper.setStop();
+                }
             } else {
                 // 球满时自动停止，除非操作手按住左右 bumper 强行继续
                 boolean driverOverride = gamepad1.left_bumper || gamepad1.right_bumper;
@@ -126,11 +139,14 @@ public class FullTest extends LinearOpMode {
                     sweeper.setStop();
                 } else if (gamepad1.left_bumper) {
                     sweeper.setEat();
-                } else if (gamepad1.right_bumper) {
-                    sweeper.setOutput();
                 } else if (gamepad1.y) {
                     sweeper.setStop();
                 }
+            }
+
+            // 右 bumper 释放时恢复炮台正常模式（总是在 sweeper 控制之后执行）
+            if (!gamepad1.right_bumper) {
+                turret.setReverse(false);
             }
 
             // ======== P2 Controls ========
@@ -193,15 +209,51 @@ public class FullTest extends LinearOpMode {
 
             telemetry.addData("Team", teamColor == TeamColor.BLUE ? "BLUE" : "RED");
             telemetry.addData("useNoHeadMode", chassis.getUseNoHeadMode());
-            telemetry.addData("Aim Mode", aimMode);
+
+            // 瞄准模式显示（含视觉降级指示）
+            String aimModeDisplay;
+            if (aimMode == AIM_MODE.VISION) {
+                aimModeDisplay = turret.isLastAimTargetFound() ? "VISION" : "VISION(LOCALIZATION)";
+            } else {
+                aimModeDisplay = aimMode.toString();
+            }
+            telemetry.addData("Aim Mode", aimModeDisplay);
             telemetry.addData("PreSpeed", "%d RPM", preSpeed);
+            telemetry.addData("Current Speed", "%.0f RPM", turret.shooter.getCurrentVelocity());
             telemetry.addData("Roll", "%.2f deg", roll);
             telemetry.addData("Yaw", "%.2f deg", yaw);
             telemetry.addData("Target Speed", "%d RPM", targetSpeed);
             telemetry.addData("Shooting", isShooting ? "ACTIVE" : "IDLE");
+            telemetry.addData("Reverse Mode", gamepad1.right_bumper ? "ACTIVE" : "OFF");
+
+            // 位姿信息
+            telemetry.addData("Pose X", "%.2f in", RobotPosition.getInstance().getX());
+            telemetry.addData("Pose Y", "%.2f in", RobotPosition.getInstance().getY());
+            telemetry.addData("Pose Theta", "%.2f deg", Math.toDegrees(RobotPosition.getInstance().getTheta()));
+
+            // 目标信息
+            telemetry.addData("Target Tag ID", targetTagId);
+            double[] goalPos = HypParams.getGoalPosition(targetTagId);
+            if (goalPos != null) {
+                telemetry.addData("Target Coords", "(%.1f, %.1f)", goalPos[0], goalPos[1]);
+            }
+            telemetry.addData("Target Roll", "%.2f deg", turret.getLastAimTargetRoll());
+
+            // Webcam 检测结果
+            telemetry.addData("Webcam Detections", turret.getLastAimDetectionCount());
+            telemetry.addData("Webcam Tag Found", turret.isLastAimTargetFound() ? "YES" : "NO");
+            telemetry.addData("Vision Drop Frames", turret.getVisionDropFrames() + "/" + 10);
+            if (turret.isLastAimTargetFound()) {
+                telemetry.addData("Webcam Target Yaw", "%.2f deg", turret.getLastAimTargetYaw());
+            }
+
             chassis.telemetry();
             sweeper.setTelemetry();
             telemetry.update();
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setStroke("#3F51B5");
+            Drawing.drawRobot(packet.fieldOverlay(), RobotPosition.getInstance().getPose2d());
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
         }
 
         chassis.stop();

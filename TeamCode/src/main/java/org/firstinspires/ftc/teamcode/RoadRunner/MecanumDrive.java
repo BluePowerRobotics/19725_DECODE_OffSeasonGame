@@ -101,8 +101,7 @@ public final class MecanumDrive {
         public double lateralGain = 5;
         public double headingGain = 2;
 
-        public double axialVelGain = 1
-                ;
+        public double axialVelGain = 1;
         public double lateralVelGain = 2;
         public double headingVelGain = 1;
     }
@@ -358,8 +357,13 @@ public final class MecanumDrive {
         leftBack = hardwareMap.get(DcMotorEx.class, "bL");
         rightBack = hardwareMap.get(DcMotorEx.class, "bR");
         rightFront = hardwareMap.get(DcMotorEx.class, "fR");
-        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        // 显式设置所有电机方向，确保运动学模型与物理方向一致
+        // 标准配置：左侧 FORWARD，右侧 REVERSE
+        // 如果 X 前进时偏向某一侧，优先用 MecanumMotorDirectionDebugger 排查
+        // 哪个电机方向反了，对应改为 REVERSE/FORWARD
         leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
@@ -635,10 +639,10 @@ public final class MecanumDrive {
             ));
 
             // 设置电机功率
-            leftFront.setPower(feedforward.compute(wheelVels.leftFront) / voltage);
-            leftBack.setPower(feedforward.compute(wheelVels.leftBack) / voltage);
-            rightBack.setPower(feedforward.compute(wheelVels.rightBack) / voltage);
-            rightFront.setPower(feedforward.compute(wheelVels.rightFront) / voltage);
+            leftFront.setPower(leftFrontPower);
+            leftBack.setPower(leftBackPower);
+            rightBack.setPower(rightBackPower);
+            rightFront.setPower(rightFrontPower);
 
             // 绘制
             Canvas c = p.fieldOverlay();

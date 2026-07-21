@@ -38,15 +38,15 @@ public class TurretDegreeController {
     // 原始目标角度跟踪（可能超出硬件限制，用于判断何时回到有效范围）
     private double rawTargetRoll = 0.0;
 
-    public static double kP = 1.0;
-    public static double kI = 0.0;
-    public static double kD = 0.0;
+    public static double kP = 0.6;
+    public static double kI = 0.01;
+    public static double kD = 0.02;
     public static double maxI = 1.0;
     public static double kS = 0.0;
     public static double kV = 0.0;
     public static double kA = 0.0;
-    public double outputMin = -14.0;
-    public double outputMax = 14.0;
+    public double outputMin = -11.0;
+    public double outputMax = 11.0;
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
