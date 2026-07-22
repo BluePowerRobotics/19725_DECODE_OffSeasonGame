@@ -1,185 +1,114 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToEatPose;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToShootingAreaAction;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.GoToStopPose;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.ShootAction;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.SearchAction;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
-import org.firstinspires.ftc.teamcode.Controllers.Limelight.Tracker;
+import org.firstinspires.ftc.teamcode.Controllers.Limelight.Detector;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
-import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
-import org.firstinspires.ftc.teamcode.OpModes.Actions.EatAction;
+import org.firstinspires.ftc.teamcode.OpModes.Actions.*;
+import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-
-
-@Autonomous
-@Config
+@Autonomous(name = "AutoActionRed", group = "Auto")
 public class AutoActionRed extends LinearOpMode {
-    public enum TEAM_COLOR {
-        RED, BLUE
+    private enum Phase {
+        SHOOT, SEARCH, EAT, RETURN_TO_START, PARK
     }
 
-    private TEAM_COLOR teamColor = TEAM_COLOR.RED;
-    private boolean initStarted = false;
-
     private Chassis chassis;
-    private Turret turret;
-    private Tracker tracker;
     private Sweeper sweeper;
-    private int targetTagId;
-    private String lastActionType="Eat";
-    private boolean[] eatPoseReached;
-    private int currentEatPoseIndex;
-    private boolean parked = false;
-    private static final long AUTO_TIMEOUT_MS = 30000;
-    private static final long PARK_TIME_THRESHOLD_MS = 3000;
+    private Turret turret;
+    private Detector detector;
+    private ActionRunner actionRunner;
+    private MecanumDrive drive;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        while (opModeInInit() || !initStarted) {
-            teamColor = TEAM_COLOR.RED;
-            switch (teamColor) {
-                case BLUE:
-                    targetTagId = 20;
-                    break;
-                case RED:
-                    targetTagId = 24;
-                    break;
-            }
 
-            telemetry.addData("TEAM_COLOR", teamColor.toString());
-            telemetry.addData("Target Tag ID", targetTagId);
-            telemetry.addData("Instructions", "A: Blue, B: Red");
-            telemetry.update();
+        TeamColor teamColor = TeamColor.RED;
+        int targetTagId = HypParams.targetTagIdRed;
 
-            initStarted = true;
-        }
-
-        ActionRunner actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor == TEAM_COLOR.RED ?
-                TeamColor.RED : TeamColor.BLUE, actionRunner, telemetry, false);
-
-        turret = new Turret(hardwareMap, telemetry);
-
+        actionRunner = new ActionRunner();
+        detector = new Detector(hardwareMap);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, false);
         sweeper = new Sweeper(hardwareMap, telemetry);
+        turret = new Turret(hardwareMap, telemetry);
+        drive = RobotPosition.getInstance().getDrive();
 
-        tracker = new Tracker(hardwareMap);
-        tracker.start();
+        detector.start();
 
-        Pose2d[] eatPoses = (teamColor == TEAM_COLOR.RED) ? HypParams.EatPosesRed : HypParams.EatPosesBlue;
-        eatPoseReached = new boolean[eatPoses.length];
-        currentEatPoseIndex = 0;
+        telemetry.addData("Status", "AutoActionRed Initialized");
+        telemetry.update();
 
         waitForStart();
 
-        if (isStopRequested()) return;
+        Phase currentPhase = Phase.SHOOT;
+        boolean parkingStarted = false;
 
-        long startTime = System.currentTimeMillis();
-
+        // 主循环：检查时间 → 检查isBusy → 状态转移
         while (opModeIsActive()) {
+            // 检查时间：不足且未开始停车 → 立即清空并启动GoToStopPose
+            if (isTimeToPark() && !parkingStarted) {
+                actionRunner.clear();
+                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed));
+                currentPhase = Phase.PARK;
+                parkingStarted = true;
+            }
+
             RobotPosition.getInstance().update();
             actionRunner.update();
 
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            long remainingTime = AUTO_TIMEOUT_MS - elapsedTime;
-
-            if (!parked && remainingTime <= PARK_TIME_THRESHOLD_MS) {
-                actionRunner.add(new GoToStopPose(chassis, sweeper, HypParams.StopPoseRed));
-                lastActionType = "GoToStopPose";
-                parked = true;
+            // action未完成，继续等待
+            if (actionRunner.isBusy()) {
+                telemetry.addData("Phase", currentPhase);
+                telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+                telemetry.update();
                 continue;
             }
 
-            if(!actionRunner.isBusy()) {
-                // ???????? EatAction????? GoToShootingAreaAction
-                if ((lastActionType.equals("Eat")&&!RobotPosition.getInstance().isEmpty() && !RobotPosition.getInstance().isAbleToShoot())||(RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-                    actionRunner.add(new GoToShootingAreaAction(chassis, sweeper));
-                    lastActionType = "GoToShootingArea";
-                }
-                else if (!RobotPosition.getInstance().isEmpty() && RobotPosition.getInstance().isAbleToShoot()) {
-                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-                    lastActionType = "Shoot";
-                }
-                else if (RobotPosition.getInstance().isEmpty() || (!RobotPosition.getInstance().isFull() && !RobotPosition.getInstance().isAbleToShoot())) {
-                    // ?????????????
-                    boolean hasUnreachedPose = false;
-                    for (int i = 0; i < eatPoseReached.length; i++) {
-                        if (!eatPoseReached[i]) {
-                            hasUnreachedPose = true;
-                            break;
-                        }
-                    }
-
-                    if (hasUnreachedPose) {
-                        // ?????????????????
-                        if (lastActionType.equals("GoToEatPose")) {
-                            // ????????????
-                            Pose2d currentPose = RobotPosition.getInstance().getPose2d();
-                            Pose2d targetPose = eatPoses[currentEatPoseIndex];
-                            double distance = Math.hypot(
-                                    currentPose.position.x - targetPose.position.x,
-                                    currentPose.position.y - targetPose.position.y
-                            );
-                            // ????????(5??)?????GoToEatPose
-                            if (distance > 5.0) {
-                                actionRunner.add(new GoToEatPose(chassis, sweeper, targetPose));
-                                lastActionType = "GoToEatPose";
-                            } else {
-                                eatPoseReached[currentEatPoseIndex] = true;
-                                // ??????????????????
-                                if (tracker.getHasTarget()) {
-                                    actionRunner.add(new EatAction(chassis, tracker, sweeper));
-                                    lastActionType = "Eat";
-                                } else {
-                                    // ?????????????????
-                                    for (int i = 0; i < eatPoseReached.length; i++) {
-                                        if (!eatPoseReached[i]) {
-                                            currentEatPoseIndex = i;
-                                            break;
-                                        }
-                                    }
-                                    actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
-                                    lastActionType = "GoToEatPose";
-                                }
-                            }
-                        } else {
-                            // ?????????????
-                            for (int i = 0; i < eatPoseReached.length; i++) {
-                                if (!eatPoseReached[i]) {
-                                    currentEatPoseIndex = i;
-                                    break;
-                                }
-                            }
-                            actionRunner.add(new GoToEatPose(chassis, sweeper, eatPoses[currentEatPoseIndex]));
-                            lastActionType = "GoToEatPose";
-                        }
-                    } else {
-                        // ???????????????? SearchAction
-                        if(tracker.getHasTarget()){
-                            actionRunner.add(new EatAction(chassis, tracker, sweeper));
-                            lastActionType = "Eat";
-                        }
-                        else{
-                            actionRunner.add(new SearchAction(chassis, tracker, sweeper,
-                                    teamColor == TEAM_COLOR.RED ? TeamColor.RED : TeamColor.BLUE));
-                            lastActionType = "Search";
-                        }
-                    }
-                }
+            // 停车完成，退出
+            if (currentPhase == Phase.PARK) {
+                break;
             }
+
+            // 根据当前phase启动下一个action
+            switch (currentPhase) {
+                case SHOOT:
+                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
+                    currentPhase = Phase.SEARCH;
+                    break;
+                case SEARCH:
+                    actionRunner.add(new SearchAction(drive, HypParams.searchPoseRed, detector));
+                    currentPhase = Phase.EAT;
+                    break;
+                case EAT:
+                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, HypParams.EatSecond));
+                    currentPhase = Phase.RETURN_TO_START;
+                    break;
+                case RETURN_TO_START:
+                    actionRunner.add(new GoToStartPose(drive, HypParams.startPoseRed));
+                    currentPhase = Phase.SHOOT;
+                    break;
+            }
+
+            telemetry.addData("Phase", currentPhase);
+            telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+            telemetry.update();
         }
+
+        detector.stop();
+        chassis.stop();
+    }
+
+    private boolean isTimeToPark() {
+        return getRuntime().milliseconds() > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
     }
 }

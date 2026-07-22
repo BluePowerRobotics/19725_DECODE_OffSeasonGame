@@ -8,21 +8,21 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.RoadRunner.MecanumDrive;
 
 /**
- * 前往吃球位姿Action：使用RoadRunner轨迹前往指定的EatPose
+ * 返回起始位姿Action：使用RoadRunner轨迹回到startPose
  */
-public class GoToEatPose implements Action {
+public class GoToStartPose implements Action {
     private final Action trajectoryAction;
 
-    public GoToEatPose(MecanumDrive drive, Pose2d eatPose) {
+    public GoToStartPose(MecanumDrive drive, Pose2d startPose) {
         Pose2d currentPose = RobotPosition.getInstance().getPose2d();
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(eatPose.position, eatPose.heading.toDouble())
+                .splineToConstantHeading(startPose.position, startPose.heading.toDouble())
                 .build();
     }
 
     @Override
     public boolean run(@NonNull TelemetryPacket packet) {
-        packet.put("GoToEatPose", "Navigating...");
+        packet.put("GoToStartPose", "Returning to start...");
         return trajectoryAction.run(packet);
     }
 }

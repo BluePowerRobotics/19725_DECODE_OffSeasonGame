@@ -52,16 +52,6 @@ public class OffseasonDECODE_Red extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        // ---- init 阶段：选择队伍颜色 ----
-        telemetry.addData("Select Team Color", "");
-        telemetry.addData("Press A (Blue)", "ResetPose: (63, 60.7, pi/2)");
-        telemetry.addData("Press B (Red)", "ResetPose: (63, -60.7, -pi/2)");
-        telemetry.update();
-
-        while (!isStopRequested() && !gamepad1.a && !gamepad1.b) {
-            idle();
-        }
-
         teamColor = TeamColor.RED;
         targetTagId = 24; // 红队球门 AprilTag ID
 

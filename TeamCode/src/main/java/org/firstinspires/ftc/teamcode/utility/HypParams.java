@@ -86,13 +86,13 @@ public class HypParams {
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(0, 0, Math.PI);
+    public static Pose2d startPoseRed = new Pose2d(72, 0, Math.PI/2);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(0, 0, Math.PI);
+    public static Pose2d startPoseBlue = new Pose2d(-72, 0, Math.PI/2);
 
     /**
      * todo:自动模式下游走速度（单位：英寸/秒）
@@ -178,9 +178,55 @@ public class HypParams {
      * 数组：[H, S, V]
      */
     public static float[] Ball_Full_HSV_MAX = {360f, 0.95f, 0.95f};
-    public static Pose2d StopPoseBlue = new Pose2d(0, 0, Math.PI);
+    public static Pose2d StopPoseBlue = new Pose2d(0, -24, Math.PI);
 
-    public static Pose2d StopPoseRed = new Pose2d(0, 0, Math.PI);
+    public static Pose2d StopPoseRed = new Pose2d(0, 24, Math.PI);
+
+    // ======== AutoAction 自动阶段参数 ========
+
+    /**
+     * todo:红队搜索位姿（单位：英寸，弧度）
+     * 前往此位置等待Limelight检测到足够的球
+     */
+    public static Pose2d searchPoseRed = new Pose2d(63, 36.7, Math.PI/2);
+
+    /**
+     * todo:蓝队搜索位姿（单位：英寸，弧度）
+     */
+    public static Pose2d searchPoseBlue = new Pose2d(63, -36.7, -Math.PI/2);
+
+    /**
+     * todo:吃球移动距离（单位：英寸）
+     * EatAction中intake激活时沿Y轴移动的距离
+     */
+    public static double EatDistance = 24;
+
+    /**
+     * todo:吃球等待时间（单位：秒）
+     * 到达吃球位置后保持intake开启的时间
+     */
+    public static double EatSecond = 2;
+
+    /**
+     * todo:停车时间阈值（单位：毫秒）
+     * 自动阶段剩余时间小于此值时执行停车
+     */
+    public static long PARK_TIME_THRESHOLD_MS = 5000;
+
+    /**
+     * 自动阶段总时长（单位：毫秒）
+     */
+    public static long AUTONOMOUS_DURATION_MS = 30000;
+
+    /**
+     * 红队目标 AprilTag ID
+     */
+    public static int targetTagIdRed = 24;
+
+    /**
+     * 蓝队目标 AprilTag ID
+     */
+    public static int targetTagIdBlue = 20;
 
     /**
      * 判断HSV值是否落在EmptySensor处球的预设范围内
@@ -250,8 +296,9 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesRed = {
-        new Pose2d(10, 20, Math.toRadians(90)),
-        new Pose2d(20, 20, Math.toRadians(90))
+        new Pose2d(36, 24, Math.toRadians(90)),
+        new Pose2d(12, 24, Math.toRadians(90)),
+        new Pose2d(-12, 24, Math.toRadians(90))
     };
 
     /**
@@ -259,7 +306,8 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesBlue = {
-        new Pose2d(10, -20, Math.toRadians(-90)),
-        new Pose2d(20, -20, Math.toRadians(-90))
+        new Pose2d(36, -24, Math.toRadians(-90)),
+        new Pose2d(12, -24, Math.toRadians(-90)),
+        new Pose2d(-12, -24, Math.toRadians(-90))
     };
 }

@@ -8,13 +8,16 @@ import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 
-public class ShootAction implements Action {
+public class ShootActionManual implements Action {
     private final Turret turret;
     private final Sweeper sweeper;
     private int targetTagId;
     private final Chassis chassis;
 
-    public ShootAction(Chassis chassis, Turret turret, int targetTagId, Sweeper sweeper) {
+    public double roll= 0;
+    public double yaw = 45;
+    public int speed = 2000;
+    public ShootActionManual(Chassis chassis, Turret turret, int targetTagId, Sweeper sweeper) {
         this.chassis = chassis;
         this.turret = turret;
         this.targetTagId = targetTagId;
@@ -32,7 +35,7 @@ public class ShootAction implements Action {
         }
         sweeper.update();
         chassis.stop();
-        turret.update(true, true, targetTagId);
+        turret.update(roll, yaw, speed, true);
         return !RobotPosition.getInstance().isEmpty();
     }
 }

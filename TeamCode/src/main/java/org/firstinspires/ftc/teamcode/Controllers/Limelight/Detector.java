@@ -91,6 +91,20 @@ public class Detector {
         }
         return 0.0;
     }
+
+    /**
+     * 获取当前检测到的目标总数
+     * @return 检测到的目标数量，无效结果返回0
+     */
+    public int targetNum() {
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            List<LLResultTypes.DetectorResult> detectorResults = result.getDetectorResults();
+            return detectorResults != null ? detectorResults.size() : 0;
+        }
+        return 0;
+    }
+
     public List<String> PrintAll() {
         List<String> allInfo = new ArrayList<>();
         LLResult result = limelight.getLatestResult();

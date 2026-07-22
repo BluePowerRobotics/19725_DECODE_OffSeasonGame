@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
-import org.firstinspires.ftc.teamcode.utility.MathSolver;
 import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
 
 import java.util.List;
@@ -454,10 +453,10 @@ public class Turret {
     }
 
     public void update(double kx) {
-        update(kx, 0);
+        update(roll, yaw, kx, 0);
     }
 
-    public void update(double kx, int preSpeed) {
+    public void update(double roll, double yaw, double kx, int preSpeed) {
         this.preSpeed = preSpeed;
         shooter.update();
         shooter.setTargetVelocity(this.preSpeed);
