@@ -69,7 +69,8 @@ public class AutoActionBlue extends LinearOpMode {
             // action未完成，继续等待
             if (actionRunner.isBusy()) {
                 telemetry.addData("Phase", currentPhase);
-                telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+                telemetry.addData("Time", "%.1fs", getRuntime());
+                telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
                 telemetry.update();
                 continue;
             }
@@ -100,7 +101,8 @@ public class AutoActionBlue extends LinearOpMode {
             }
 
             telemetry.addData("Phase", currentPhase);
-            telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+            telemetry.addData("Time", "%.1fs", getRuntime());
+            telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
             telemetry.update();
         }
 
@@ -109,6 +111,6 @@ public class AutoActionBlue extends LinearOpMode {
     }
 
     private boolean isTimeToPark() {
-        return getRuntime().milliseconds() > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
+        return getRuntime()*1000 > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
     }
 }

@@ -36,7 +36,7 @@ public class GoToShootingAreaAction implements Action {
         double targetY = robotPos.getY() + nearestVec.getY();
 
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(new Vector2d(targetX, targetY), currentPose.heading.toDouble())
+                .strafeToLinearHeading(new Vector2d(targetX, targetY), currentPose.heading.toDouble())
                 .build();
     }
 

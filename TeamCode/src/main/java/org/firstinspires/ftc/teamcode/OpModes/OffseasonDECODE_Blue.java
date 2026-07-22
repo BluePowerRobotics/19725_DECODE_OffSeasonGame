@@ -95,7 +95,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
             }
 
             // 重置定位到对应颜色的 ResetPose
-            if (gamepad1.aWasReleased()) {
+            if (gamepad1.yWasReleased()) {
                 Pose2d resetPose = (teamColor == TeamColor.BLUE) ?
                         HypParams.ResetPoseBlue : HypParams.ResetPoseRed;
                 RobotPosition.getInstance().ResetPoseTo(resetPose);
@@ -187,8 +187,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
 
             sweeper.update();
 
-            telemetry.addData("Team", teamColor == TeamColor.BLUE ? "BLUE" : "RED");
-            telemetry.addData("useNoHeadMode", chassis.getUseNoHeadMode());
+            double[] angles = turret.get_angle();
 
             // 瞄准模式显示（含视觉降级指示）
             String aimModeDisplay;
@@ -198,37 +197,27 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
                 aimModeDisplay = aimMode.toString();
             }
             telemetry.addData("Aim Mode", aimModeDisplay);
-            telemetry.addData("PreSpeed", "%d RPM", preSpeed);
-            telemetry.addData("Current Speed", "%.0f RPM", turret.shooter.getCurrentVelocity());
-            telemetry.addData("Roll", "%.2f deg", roll);
-            telemetry.addData("Yaw", "%.2f deg", yaw);
-            telemetry.addData("Target Speed", "%d RPM", targetSpeed);
-            telemetry.addData("Shooting", isShooting ? "ACTIVE" : "IDLE");
-            telemetry.addData("Reverse Mode", gamepad1.right_bumper ? "ACTIVE" : "OFF");
+            telemetry.addData("Turret State", turret.getState());
+            telemetry.addData("Vision Drop", "%d/%d", turret.getVisionDropFrames(), Turret.VISION_DROP_THRESHOLD);
 
-            // 位姿信息
+            // 飞轮
+            telemetry.addData("Flywheel Target", "%.0f RPM", turret.shooter.getTargetVelocity());
+            telemetry.addData("Flywheel Current", "%.0f RPM", turret.shooter.getCurrentVelocity());
+            telemetry.addData("Flywheel Power", "%.2f", turret.shooter.getPowerL());
+
+            // Intake
+            telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
+
+            // 炮台角度
+            telemetry.addData("Turret Roll", "%.2f deg", angles[0]);
+            telemetry.addData("Turret Roll Power", "%.2f", turret.turretDegreeController.rollMotor.getPower());
+            telemetry.addData("Turret Yaw", "%.2f deg", angles[1]);
+
+            // Pinpoint 位姿
             telemetry.addData("Pose X", "%.2f in", RobotPosition.getInstance().getX());
             telemetry.addData("Pose Y", "%.2f in", RobotPosition.getInstance().getY());
             telemetry.addData("Pose Theta", "%.2f deg", Math.toDegrees(RobotPosition.getInstance().getTheta()));
 
-            // 目标信息
-            telemetry.addData("Target Tag ID", targetTagId);
-            double[] goalPos = HypParams.getGoalPosition(targetTagId);
-            if (goalPos != null) {
-                telemetry.addData("Target Coords", "(%.1f, %.1f)", goalPos[0], goalPos[1]);
-            }
-            telemetry.addData("Target Roll", "%.2f deg", turret.getLastAimTargetRoll());
-
-            // Webcam 检测结果
-            telemetry.addData("Webcam Detections", turret.getLastAimDetectionCount());
-            telemetry.addData("Webcam Tag Found", turret.isLastAimTargetFound() ? "YES" : "NO");
-            telemetry.addData("Vision Drop Frames", turret.getVisionDropFrames() + "/" + 10);
-            if (turret.isLastAimTargetFound()) {
-                telemetry.addData("Webcam Target Yaw", "%.2f deg", turret.getLastAimTargetYaw());
-            }
-
-            chassis.telemetry();
-            sweeper.setTelemetry();
             telemetry.update();
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");

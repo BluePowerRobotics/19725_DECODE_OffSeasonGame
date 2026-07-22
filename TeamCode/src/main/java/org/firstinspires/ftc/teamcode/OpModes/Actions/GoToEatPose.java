@@ -16,7 +16,7 @@ public class GoToEatPose implements Action {
     public GoToEatPose(MecanumDrive drive, Pose2d eatPose) {
         Pose2d currentPose = RobotPosition.getInstance().getPose2d();
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(eatPose.position, eatPose.heading.toDouble())
+                .strafeToLinearHeading(eatPose.position, eatPose.heading.toDouble())
                 .build();
     }
 

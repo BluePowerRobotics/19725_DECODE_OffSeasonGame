@@ -16,7 +16,7 @@ public class GoToStopPose implements Action {
     public GoToStopPose(MecanumDrive drive, Pose2d stopPose) {
         Pose2d currentPose = RobotPosition.getInstance().getPose2d();
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(stopPose.position, stopPose.heading.toDouble())
+                .strafeToLinearHeading(stopPose.position, stopPose.heading.toDouble())
                 .build();
     }
 

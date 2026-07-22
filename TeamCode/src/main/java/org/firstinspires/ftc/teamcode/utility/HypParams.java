@@ -14,10 +14,10 @@ public class HypParams {
      * 定义机器人在场地中的碰撞边界，用于避障和边界检测
      */
     public static ConvexPolygon BoundingBox = new ConvexPolygon(
-        new Point2D(8, 5.5),
-        new Point2D(-8, 5.5),
-        new Point2D(-8, -5.5),
-        new Point2D(8, -5.5)
+        new Point2D(6.8, 4.8),
+        new Point2D(-6.8, 4.8),
+        new Point2D(-6.8, -4.8),
+        new Point2D(6.8, -4.8)
     );
 
     /**
@@ -25,9 +25,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_LEFT = new ConvexPolygon(
-        new Point2D(72, 24),
-        new Point2D(72, -24),
-        new Point2D(48, 0)
+        new Point2D(0, 0),
+        new Point2D(-72, 72),
+        new Point2D(-72, -72)
     );
 
     /**
@@ -35,9 +35,9 @@ public class HypParams {
      * 机器人在此区域内可以进行射击
      */
     public static ConvexPolygon SHOOTING_AREA_RIGHT = new ConvexPolygon(
-        new Point2D(0, 0),
-        new Point2D(-72, 72),
-        new Point2D(-72, -72)
+        new Point2D(72, 24),
+        new Point2D(72, -24),
+        new Point2D(48, 0)
     );
     //是否去小三角
     public static boolean ToLeft=true;
@@ -86,14 +86,13 @@ public class HypParams {
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(72, 0, Math.PI/2);
+    public static Pose2d startPoseRed = new Pose2d(64.2, 29.4, Math.PI);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(-72, 0, Math.PI/2);
-
+    public static Pose2d startPoseBlue = new Pose2d(64.2, -29.4, Math.PI);
     /**
      * todo:自动模式下游走速度（单位：英寸/秒）
      * 机器人在自动搜索状态下的移动速度
@@ -178,9 +177,9 @@ public class HypParams {
      * 数组：[H, S, V]
      */
     public static float[] Ball_Full_HSV_MAX = {360f, 0.95f, 0.95f};
-    public static Pose2d StopPoseBlue = new Pose2d(0, -24, Math.PI);
+    public static Pose2d StopPoseBlue = new Pose2d(38.96, -14.72, Math.PI/2);
 
-    public static Pose2d StopPoseRed = new Pose2d(0, 24, Math.PI);
+    public static Pose2d StopPoseRed = new Pose2d(38.96, 14.72, -Math.PI/2);
 
     // ======== AutoAction 自动阶段参数 ========
 
@@ -188,12 +187,12 @@ public class HypParams {
      * todo:红队搜索位姿（单位：英寸，弧度）
      * 前往此位置等待Limelight检测到足够的球
      */
-    public static Pose2d searchPoseRed = new Pose2d(63, 36.7, Math.PI/2);
+    public static Pose2d searchPoseRed = new Pose2d(63, 63, Math.PI);
 
     /**
      * todo:蓝队搜索位姿（单位：英寸，弧度）
      */
-    public static Pose2d searchPoseBlue = new Pose2d(63, -36.7, -Math.PI/2);
+    public static Pose2d searchPoseBlue = new Pose2d(63, -63, Math.PI);
 
     /**
      * todo:吃球移动距离（单位：英寸）

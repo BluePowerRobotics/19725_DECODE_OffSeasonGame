@@ -57,6 +57,7 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
             // 检查时间：不足且未开始停车 → 立即清空并启动GoToStopPose
             if (isTimeToPark() && !parkingStarted) {
                 actionRunner.clear();
+                sweeper.setStop();
                 actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseBlue));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
@@ -69,7 +70,8 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
             if (actionRunner.isBusy()) {
                 telemetry.addData("Phase", currentPhase);
                 telemetry.addData("EatIndex", "%d/%d", eatPoseIndex, eatPoses.length);
-                telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+                telemetry.addData("Time", "%.1fs", getRuntime());
+                telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
                 telemetry.update();
                 continue;
             }
@@ -113,7 +115,8 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
 
             telemetry.addData("Phase", currentPhase);
             telemetry.addData("EatIndex", "%d/%d", eatPoseIndex, eatPoses.length);
-            telemetry.addData("Time", "%.1fs", getRuntime().seconds());
+            telemetry.addData("Time", "%.1fs", getRuntime());
+            telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
             telemetry.update();
         }
 
@@ -121,6 +124,6 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
     }
 
     private boolean isTimeToPark() {
-        return getRuntime().milliseconds() > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
+        return getRuntime()*1000 > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
     }
 }

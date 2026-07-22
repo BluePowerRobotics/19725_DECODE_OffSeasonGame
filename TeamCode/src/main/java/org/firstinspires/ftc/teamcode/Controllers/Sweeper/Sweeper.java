@@ -20,6 +20,7 @@ public class Sweeper {
     public static int OutputVel = -500;
     
     private int targetVelocity = 0;
+    private int lastTargetVelocity = 0;
     
     public static int ForR = 0;
     
@@ -67,6 +68,7 @@ public class Sweeper {
     
     public void update() {
         motor.setVelocity(targetVelocity);
+        lastTargetVelocity = targetVelocity;
         targetVelocity = 0; // 每帧必须重新调用set函数，否则自动归零
     }
     
@@ -76,6 +78,10 @@ public class Sweeper {
     
     public double getVel() {
         return motor.getVelocity();
+    }
+    
+    public int getTargetVelocity() {
+        return lastTargetVelocity;
     }
     
     public int getFR() {

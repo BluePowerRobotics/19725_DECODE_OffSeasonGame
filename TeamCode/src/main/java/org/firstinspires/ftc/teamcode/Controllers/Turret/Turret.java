@@ -35,7 +35,7 @@ public class Turret {
     private boolean waitingForSpeed = false;
     private long speedWaitStartTime = 0;
     private long lastLaunchTime = 0;
-    private static final long SPEED_WAIT_TIMEOUT_MS = 500;
+    private static final long SPEED_WAIT_TIMEOUT_MS = 2000;
     private static final long LAUNCH_COOLDOWN_MS = 300;
     private static final long AIM_TIMEOUT_MS = 2000;
 
@@ -232,8 +232,12 @@ public class Turret {
             case IDLE: {
                 useVisionForAiming = allowVision;
                 BSTsolver.Solution solution;
-                if (allowVision) {
-                    Object[] aimResult = aim(true);
+                // 先尝试 aim，获取视觉是否成功的信息
+                Object[] aimResult = aim(allowVision);
+                boolean visionOk = allowVision && (boolean) aimResult[0];
+
+                if (visionOk) {
+                    // 视觉有效：使用视觉测距公式
                     double aimRoll = (double) aimResult[1];
                     double aimYaw = (double) aimResult[2];
                     double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
@@ -244,6 +248,7 @@ public class Turret {
                         RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
                         targetX, targetY);
                 } else {
+                    // 视觉失效或未启用：使用定位计算
                     double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                     if (goalPos != null) {
                         double robotX = RobotPosition.getInstance().getX();
@@ -276,14 +281,15 @@ public class Turret {
             }
 
             case ACCELERATING: {
-                aim(useVisionForAiming);
+                Object[] aimResult = aim(useVisionForAiming);
                 if (shooter.reachedVelocity()) {
                     shootPhase = ShootPhase.AIMING;
                     speedWaitStartTime = System.currentTimeMillis();
 
                     BSTsolver.Solution solution;
-                    if (useVisionForAiming) {
-                        Object[] aimResult = aim(true);
+                    boolean visionOk = useVisionForAiming && (boolean) aimResult[0];
+                    if (visionOk) {
+                        // 视觉有效：使用视觉测距公式
                         double aimRoll = (double) aimResult[1];
                         double aimYaw = (double) aimResult[2];
                         double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
@@ -294,6 +300,7 @@ public class Turret {
                             RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
                             targetX, targetY);
                     } else {
+                        // 视觉失效或未启用：使用定位计算
                         double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
                         double robotX = RobotPosition.getInstance().getX();
                         double robotY = RobotPosition.getInstance().getY();
@@ -366,6 +373,15 @@ public class Turret {
     public double getLastAimTargetYaw() { return lastAimTargetYaw; }
     public int getLastAimDetectionCount() { return lastAimDetectionCount; }
     public int getVisionDropFrames() { return visionDropFrames; }
+
+    /** 获取炮台当前状态字符串 */
+    public String getState() {
+        if (reverseMode) return "REVERSE";
+        if (shootPhase != ShootPhase.IDLE) return shootPhase.toString();
+        if (isLaunching) return "LAUNCHING";
+        if (shooting) return "COOLDOWN";
+        return "IDLE";
+    }
 
     public void reset(){
         triggerServo.setPosition(HypParams.triggerResetPosition);

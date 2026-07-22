@@ -22,7 +22,7 @@ public class SearchAction implements Action {
         this.detector = detector;
         Pose2d currentPose = RobotPosition.getInstance().getPose2d();
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(searchPose.position, searchPose.heading.toDouble())
+                .strafeToLinearHeading(searchPose.position, searchPose.heading.toDouble())
                 .build();
     }
 
@@ -30,7 +30,7 @@ public class SearchAction implements Action {
     public boolean run(@NonNull TelemetryPacket packet) {
         if (!trajectoryDone) {
             trajectoryDone = !trajectoryAction.run(packet);
-            if (!trajectoryDone) {
+            if (trajectoryDone) {
                 packet.put("SearchAction", "Arrived, waiting for balls...");
             }
             return true;

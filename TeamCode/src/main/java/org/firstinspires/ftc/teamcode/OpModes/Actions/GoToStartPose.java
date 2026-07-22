@@ -16,7 +16,7 @@ public class GoToStartPose implements Action {
     public GoToStartPose(MecanumDrive drive, Pose2d startPose) {
         Pose2d currentPose = RobotPosition.getInstance().getPose2d();
         this.trajectoryAction = drive.actionBuilder(currentPose)
-                .splineToConstantHeading(startPose.position, startPose.heading.toDouble())
+                .strafeToLinearHeading(startPose.position, startPose.heading.toDouble())
                 .build();
     }
 

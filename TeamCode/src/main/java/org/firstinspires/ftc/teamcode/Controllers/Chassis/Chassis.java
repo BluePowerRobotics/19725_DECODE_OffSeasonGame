@@ -16,13 +16,9 @@ import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
 @Config
 public class Chassis {
-    private static final ConvexPolygon SHOOTING_AREA_LEFT = HypParams.SHOOTING_AREA_LEFT;
-    private static final ConvexPolygon SHOOTING_AREA_RIGHT = HypParams.SHOOTING_AREA_RIGHT;
 
     private final double maxV = HypParams.maxV;
     private final double maxOmega = HypParams.maxOmega;
-    private double wanderSpeed = HypParams.WanderSpeed;
-
     private final MecanumDrive drive;
     private final ActionRunner actionRunner;
     private boolean useNoHeadMode = HypParams.InitialUseNoHeadMode;
@@ -62,26 +58,6 @@ public class Chassis {
                 new Vector2d(0,0),
                 0));
     }
-    public void GoTo(double targetTheta){ //targetTheta表示目标与小车正前方（x轴正方向）的夹角（逆时针为正） 
-        //前进的同时转向 
-        double vx = Math.cos(targetTheta) * wanderSpeed; 
-        double vy = Math.sin(targetTheta) * wanderSpeed; 
-        double k = maxOmega / HypParams.MaxBearing; 
-        double omega = targetTheta * k; 
-        //这里的坐标系和正负我不确定。去TeamCode/src/main/java/org/firstinspires/ftc/teamcode/RoadRunner/tuning/LocalizationTest.java里试 
-        drive.setDrivePowers(new PoseVelocity2d( 
-                new Vector2d(vx,vy), 
-                omega)); 
-
-    }
-
-    /** 设置漫游速度（用于手柄调节） */
-    public void setWanderSpeed(double speed) {
-        this.wanderSpeed = Math.max(0, Math.min(maxV, speed));
-    }
-
-    /** @return 当前漫游速度 */
-    public double getWanderSpeed() { return wanderSpeed; }
 
     public void update(double Kx, double Ky, double Komega){
         lastKx = Kx;

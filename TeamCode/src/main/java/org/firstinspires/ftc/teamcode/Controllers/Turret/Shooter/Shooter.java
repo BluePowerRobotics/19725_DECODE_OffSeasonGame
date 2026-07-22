@@ -141,4 +141,7 @@ public class Shooter {
     public double getCurrentVelocity(){
         return currentVelocity;
     }
+    public double getTargetVelocity(){
+        return targetVelocity;
+    }
 }
