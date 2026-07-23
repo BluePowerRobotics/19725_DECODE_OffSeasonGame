@@ -91,7 +91,7 @@ public class AutoActionRed extends LinearOpMode {
                     currentPhase = Phase.EAT;
                     break;
                 case EAT:
-                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, HypParams.EatSecond));
+                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, Math.PI, HypParams.EatSecond));
                     currentPhase = Phase.RETURN_TO_START;
                     break;
                 case RETURN_TO_START:

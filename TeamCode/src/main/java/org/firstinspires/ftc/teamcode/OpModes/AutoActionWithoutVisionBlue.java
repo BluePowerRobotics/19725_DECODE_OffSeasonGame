@@ -35,7 +35,6 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
         TeamColor teamColor = TeamColor.BLUE;
         int targetTagId = HypParams.targetTagIdBlue;
         Pose2d[] eatPoses = HypParams.EatPosesBlue;
-        double eatDistance = -HypParams.EatDistance; // 蓝色向-Y移动
 
         actionRunner = new ActionRunner();
         chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, false);
@@ -92,11 +91,11 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
                     currentPhase = Phase.EAT;
                     break;
                 case EAT:
-                    actionRunner.add(new EatAction(drive, sweeper, eatDistance, HypParams.EatSecond));
+                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, -Math.PI / 2, HypParams.EatSecond));
                     currentPhase = Phase.GOTO_SHOOTING;
                     break;
                 case GOTO_SHOOTING:
-                    actionRunner.add(new GoToShootingAreaAction(drive));
+                    actionRunner.add(new GoToShootingAreaAction(drive, teamColor));
                     currentPhase = Phase.SHOOT;
                     break;
                 case SHOOT:

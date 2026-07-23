@@ -50,8 +50,8 @@ public class TurretDegreeController {
 
     public static double YAW_SERVO_MIN = 0.0;
     public static double YAW_SERVO_MAX = 1.0;
-    public static double YAW_ANGLE_MIN = 34;
-    public static double YAW_ANGLE_MAX = 60;
+    public static double YAW_ANGLE_MIN = 40;
+    public static double YAW_ANGLE_MAX = 66;
     public static double YAW_SERVO_POSITION_PER_DEGREE = 0.0385;
 
     /**

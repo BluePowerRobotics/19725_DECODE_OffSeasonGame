@@ -79,7 +79,7 @@ public class OffseasonDECODE_Red extends LinearOpMode {
             }
 
             // 重置定位到对应颜色的 ResetPose
-            if (gamepad1.aWasReleased()) {
+            if (gamepad1.bWasReleased()) {
                 Pose2d resetPose = (teamColor == TeamColor.BLUE) ?
                         HypParams.ResetPoseBlue : HypParams.ResetPoseRed;
                 RobotPosition.getInstance().ResetPoseTo(resetPose);
@@ -128,21 +128,34 @@ public class OffseasonDECODE_Red extends LinearOpMode {
 
             // --- MANUAL 模式：手动控制 Roll / Yaw / Speed ---
             if (aimMode == AIM_MODE.MANUAL) {
-                roll += gamepad2.left_stick_x * ROLL_SPEED;
+                roll += -gamepad2.left_stick_x * ROLL_SPEED;
 
-                if (gamepad2.dpad_up) {
+                if (gamepad2.dpadUpWasPressed()) {
                     yaw += YAW_STEP;
                 }
-                if (gamepad2.dpad_down) {
+                if (gamepad2.dpadDownWasPressed()) {
                     yaw -= YAW_STEP;
                 }
 
-                if (gamepad2.dpad_right) {
+                if (gamepad2.dpadRightWasPressed()) {
                     targetSpeed += SPEED_STEP;
+                    if(targetSpeed>=1600){
+                        targetSpeed=1600;
+                    }
+                    if(targetSpeed <=0){
+                        targetSpeed=0;
+                    }
                 }
-                if (gamepad2.dpad_left) {
+                if (gamepad2.dpadLeftWasPressed()) {
                     targetSpeed -= SPEED_STEP;
+                    if(targetSpeed>=1600){
+                        targetSpeed=1600;
+                    }
+                    if(targetSpeed <=0){
+                        targetSpeed=0;
+                    }
                 }
+
                 targetSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, targetSpeed));
 
                 // 发射开关

@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode.OpModes.Actions;
 
 import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
-
+@Config
 public class ShootActionManual implements Action {
     private final Turret turret;
     private final Sweeper sweeper;

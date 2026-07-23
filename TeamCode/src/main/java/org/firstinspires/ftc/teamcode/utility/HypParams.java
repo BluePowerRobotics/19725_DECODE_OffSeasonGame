@@ -86,18 +86,13 @@ public class HypParams {
      * todo:红队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseRed = new Pose2d(64.2, 29.4, Math.PI);
+    public static Pose2d startPoseRed = new Pose2d(-41.3, 55,0);
 
     /**
      * todo:蓝队初始姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
-    public static Pose2d startPoseBlue = new Pose2d(64.2, -29.4, Math.PI);
-    /**
-     * todo:自动模式下游走速度（单位：英寸/秒）
-     * 机器人在自动搜索状态下的移动速度
-     */
-    public static double WanderSpeed = 1;
+    public static Pose2d startPoseBlue = new Pose2d(-41.3, -55, 0);
     /**
      * todo:红队重置姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
@@ -270,13 +265,13 @@ public class HypParams {
      * 预设飞轮最大转速（RPM）
      * 用于 TeleOp 中 right_trigger 控制预载速度的上限
      */
-    public static int maxPreSpeed = 2000;
+    public static int maxPreSpeed = 1800;
 
     /**
      * 反转模式下飞轮转速（RPM，负值表示反转）
      * 当 P1 右 Bumper 按下时，飞轮以该速度反转排球
      */
-    public static int shooterReverseSpeed = -2000;
+    public static int shooterReverseSpeed = -1800;
 
     /**
      * trigger舵机发射位置（0~1）
@@ -295,9 +290,8 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesRed = {
-        new Pose2d(36, 24, Math.toRadians(90)),
+        new Pose2d(-12, 24, Math.toRadians(90)),
         new Pose2d(12, 24, Math.toRadians(90)),
-        new Pose2d(-12, 24, Math.toRadians(90))
     };
 
     /**
@@ -305,8 +299,7 @@ public class HypParams {
      * 包含多个预设的吃球位置，机器人会按顺序访问这些位置
      */
     public static Pose2d[] EatPosesBlue = {
-        new Pose2d(36, -24, Math.toRadians(-90)),
+        new Pose2d(-12, -24, Math.toRadians(-90)),
         new Pose2d(12, -24, Math.toRadians(-90)),
-        new Pose2d(-12, -24, Math.toRadians(-90))
     };
 }
