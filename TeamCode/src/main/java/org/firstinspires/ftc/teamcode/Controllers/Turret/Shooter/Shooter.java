@@ -22,7 +22,7 @@ public class Shooter {
     /** 积分上限 */
     public static double maxI = 1.0;
     /** 静态摩擦系数 */
-    public static double kS = 0.8;
+    public static double kS = 1.23;
     /** 速度系数 */
     public static double kV = 0.0049;
     /** 加速度系数 */

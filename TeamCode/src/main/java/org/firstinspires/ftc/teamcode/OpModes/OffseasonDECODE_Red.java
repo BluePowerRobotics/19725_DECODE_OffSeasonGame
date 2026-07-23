@@ -144,8 +144,8 @@ public class OffseasonDECODE_Red extends LinearOpMode {
 
                 if (gamepad2.dpadRightWasPressed()) {
                     targetSpeed += SPEED_STEP;
-                    if(targetSpeed>=1600){
-                        targetSpeed=1600;
+                    if(targetSpeed>=2600){
+                        targetSpeed=2600;
                     }
                     if(targetSpeed <=0){
                         targetSpeed=0;
@@ -153,8 +153,8 @@ public class OffseasonDECODE_Red extends LinearOpMode {
                 }
                 if (gamepad2.dpadLeftWasPressed()) {
                     targetSpeed -= SPEED_STEP;
-                    if(targetSpeed>=1600){
-                        targetSpeed=1600;
+                    if(targetSpeed>=2600){
+                        targetSpeed=2600;
                     }
                     if(targetSpeed <=0){
                         targetSpeed=0;
@@ -164,7 +164,13 @@ public class OffseasonDECODE_Red extends LinearOpMode {
                 targetSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, targetSpeed));
 
                 // 发射开关
-                isShooting=gamepad2.a;
+                if(gamepad2.aWasPressed()){
+                    isShooting = !isShooting;
+                }
+
+                if (gamepad2.right_bumper) {
+                    turret.forceLaunch();
+                }
 
                 // 预载飞轮速度（P2 右扳机）
                 preSpeed = Math.round(gamepad2.right_trigger * HypParams.maxPreSpeed);
@@ -180,7 +186,13 @@ public class OffseasonDECODE_Red extends LinearOpMode {
                 preSpeed = Math.round(gamepad2.right_trigger * HypParams.maxPreSpeed);
 
                 // 发射开关
-                isShooting=gamepad2.a;
+                if(gamepad2.aWasPressed()){
+                    isShooting = !isShooting;
+                }
+
+                if (gamepad2.right_bumper) {
+                    turret.forceLaunch();
+                }
 
                 // 自动瞄准模式下使用 update(AllowVision, shouldShoot, targetTagId, preSpeed)
                 turret.update(allowVision, isShooting, targetTagId, preSpeed);

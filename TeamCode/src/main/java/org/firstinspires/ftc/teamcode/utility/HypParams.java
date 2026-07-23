@@ -40,6 +40,16 @@ public class HypParams {
         new Point2D(48, 0)
     );
     //是否去小三角
+    public static ConvexPolygon SHOOTING_FARAREA_LEFT = new ConvexPolygon(
+            new Point2D(0, 0),
+            new Point2D(-72, 72),
+            new Point2D(-72, -72)
+    );
+    public static ConvexPolygon SHOOTING_FARAREA_RIGHT = new ConvexPolygon(
+            new Point2D(72, 24),
+            new Point2D(72, -24),
+            new Point2D(48, 0)
+    );
     public static boolean ToLeft=true;
     /**
      * todo:炮口与目标的高度差（单位：米）
@@ -183,6 +193,9 @@ public class HypParams {
     public static Pose2d StopPoseBlue = new Pose2d(0, -24, Math.PI);
 
     public static Pose2d StopPoseRed = new Pose2d(0, 24, Math.PI);
+    public static Pose2d StopPoseFarBlue = new Pose2d(48, -36, Math.PI);
+
+    public static Pose2d StopPoseFarRed = new Pose2d(48, 36, Math.PI);
 
     // ======== AutoAction 自动阶段参数 ========
 
@@ -213,7 +226,7 @@ public class HypParams {
      * todo:停车时间阈值（单位：毫秒）
      * 自动阶段剩余时间小于此值时执行停车
      */
-    public static long PARK_TIME_THRESHOLD_MS = 5000;
+    public static long PARK_TIME_THRESHOLD_MS = 3000;
 
     /**
      * 自动阶段总时长（单位：毫秒）
@@ -300,6 +313,7 @@ public class HypParams {
     public static Pose2d[] EatPosesRed = {
         new Pose2d(-12, 24, Math.toRadians(90)),
         new Pose2d(12, 24, Math.toRadians(90)),
+        new Pose2d(36, 24, Math.toRadians(90)),
     };
 
     /**
@@ -309,6 +323,7 @@ public class HypParams {
     public static Pose2d[] EatPosesBlue = {
         new Pose2d(-12, -24, Math.toRadians(-90)),
         new Pose2d(12, -24, Math.toRadians(-90)),
+        new Pose2d(36, -24, Math.toRadians(90)),
     };
 
     /**
@@ -316,10 +331,41 @@ public class HypParams {
      * AutoActionRed中从StartPoseFar出发前往此位置吃球
      */
     public static Pose2d EatPoseFarRed = new Pose2d(63, 36.7, Math.PI/2);
+    public static Pose2d[] EatPoseRed_FAR = {
+        new Pose2d(36, 24, Math.toRadians(90)),
+        new Pose2d(63, 36.7, Math.PI/2),
+    };
 
     /**
      * todo:蓝队远距离吃球位姿（单位：英寸，弧度）
      * AutoActionBlue中从StartPoseFar出发前往此位置吃球
      */
     public static Pose2d EatPoseFarBlue = new Pose2d(63, -36.7,- Math.PI/2);
+    public static Pose2d[] EatPosesBlue_FAR = {
+            new Pose2d(36, -24, Math.toRadians(-90)),
+            new Pose2d(63, -36.7, Math.PI/2),
+    };
+
+    /**
+     * 红队密道区位姿（单位：英寸，弧度）
+     * 用于自动阶段前往密道区使用Limelight自主吃球
+     */
+    public static Pose2d TunnelPoseRed = new Pose2d(24, 48, Math.PI);
+
+    /**
+     * 蓝队密道区位姿（单位：英寸，弧度）
+     * 用于自动阶段前往密道区使用Limelight自主吃球
+     */
+    public static Pose2d TunnelPoseBlue = new Pose2d(24, -48, Math.PI);
+
+    /**
+     * 密道区自主吃球持续时间（单位：毫秒）
+     */
+    public static long LIMELIGHT_EAT_DURATION_MS = 8000;
+
+    /**
+     * 自动阶段等待时间（单位：毫秒）
+     * 用于吃球后等待5秒
+     */
+    public static long AUTO_WAIT_DURATION_MS = 5000;
 }
