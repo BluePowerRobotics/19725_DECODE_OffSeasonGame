@@ -54,7 +54,7 @@ public class AutoActionRed extends LinearOpMode {
             if (isTimeToPark() && !parkingStarted) {
                 actionRunner.clear();
                 sweeper.setStop();
-                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed));
+                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed, turret));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
             }
