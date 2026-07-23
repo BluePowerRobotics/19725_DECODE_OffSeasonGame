@@ -60,7 +60,7 @@ public class AutoActionWithoutVisionRed extends LinearOpMode {
             if (isTimeToPark() && !parkingStarted) {
                 actionRunner.clear();
                 sweeper.setStop();
-                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed));
+                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed, turret));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
             }
@@ -109,7 +109,7 @@ public class AutoActionWithoutVisionRed extends LinearOpMode {
                     eatPoseIndex++;
                     if (eatPoseIndex >= eatPoses.length) {
                         // 所有吃球位姿用完，停车
-                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed));
+                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseRed, turret));
                         currentPhase = Phase.PARK;
                         parkingStarted = true;
                     } else {
