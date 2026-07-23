@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.utility.TeamColor;
 @Autonomous(name = "AutoActionWithoutVisionBlue", group = "Auto")
 public class AutoActionWithoutVisionBlue extends LinearOpMode {
     private enum Phase {
-        SHOOT_PRELOAD, GOTO_EAT, EAT, GOTO_SHOOTING, SHOOT, PARK
+        GOTO_SHOOTING_PRELOAD, SHOOT_PRELOAD, GOTO_EAT, EAT, GOTO_SHOOTING, SHOOT, PARK
     }
 
     private Chassis chassis;
@@ -47,7 +47,7 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
 
         waitForStart();
 
-        Phase currentPhase = Phase.SHOOT_PRELOAD;
+        Phase currentPhase = Phase.GOTO_SHOOTING_PRELOAD;
         int eatPoseIndex = 0;
         boolean parkingStarted = false;
 
@@ -82,6 +82,10 @@ public class AutoActionWithoutVisionBlue extends LinearOpMode {
 
             // 根据当前phase启动下一个action
             switch (currentPhase) {
+                case GOTO_SHOOTING_PRELOAD:
+                    actionRunner.add(new GoToShootingAreaAction(drive, teamColor));
+                    currentPhase = Phase.SHOOT_PRELOAD;
+                    break;
                 case SHOOT_PRELOAD:
                     actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
                     currentPhase = Phase.GOTO_EAT;

@@ -131,6 +131,11 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
 
             // ======== P2 Controls ========
 
+            // 二操右扳机：强制发射，不论是否达速立即释放扳机并用intake送球
+            if (gamepad2.right_bumper) {
+                turret.forceLaunch();
+            }
+
             // 循环切换瞄准模式：VISION → LOCALIZATION → MANUAL → VISION
             if (gamepad2.xWasPressed()) {
                 switch (aimMode) {
@@ -154,7 +159,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
 
                 if (gamepad2.dpadRightWasPressed()) {
                     targetSpeed += SPEED_STEP;
-                    if(targetSpeed>=1600){
+                    if(targetSpeed>=3600){
                         targetSpeed=1600;
                     }
                     if(targetSpeed <=0){
@@ -163,7 +168,7 @@ public class OffseasonDECODE_Blue extends LinearOpMode {
                 }
                 if (gamepad2.dpadLeftWasPressed()) {
                     targetSpeed -= SPEED_STEP;
-                    if(targetSpeed>=1600){
+                    if(targetSpeed>=3600){
                         targetSpeed=1600;
                     }
                     if(targetSpeed <=0){

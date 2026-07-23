@@ -367,6 +367,19 @@ public class Turret {
         return isLaunching;
     }
 
+    /**
+     * 强制发射：不论是否达速，立即释放扳机并标记为发射中
+     * 用于二操右扳机强制送球场景
+     */
+    public void forceLaunch() {
+        triggerServo.setPosition(HypParams.triggerLaunchPosition);
+        isLaunching = true;
+        lastLaunchTime = System.currentTimeMillis();
+        shooting = true;
+        waitingForSpeed = false;
+        shootPhase = ShootPhase.IDLE;
+    }
+
     // ======== Telemetry 查询接口 ========
     public boolean isLastAimTargetFound() { return lastAimIsTargetFound; }
     public double getLastAimTargetRoll() { return lastAimTargetRoll; }

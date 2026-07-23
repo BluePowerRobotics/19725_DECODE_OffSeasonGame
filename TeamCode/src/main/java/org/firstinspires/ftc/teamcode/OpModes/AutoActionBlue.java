@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
-import org.firstinspires.ftc.teamcode.Controllers.Limelight.Detector;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
 import org.firstinspires.ftc.teamcode.OpModes.Actions.*;
@@ -19,13 +18,12 @@ import org.firstinspires.ftc.teamcode.utility.TeamColor;
 @Autonomous(name = "AutoActionBlue", group = "Auto")
 public class AutoActionBlue extends LinearOpMode {
     private enum Phase {
-        SHOOT, SEARCH, EAT, RETURN_TO_START, PARK
+        GOTO_EAT, EAT, GOTO_START, GOTO_SHOOTING, SHOOT, PARK
     }
 
     private Chassis chassis;
     private Sweeper sweeper;
     private Turret turret;
-    private Detector detector;
     private ActionRunner actionRunner;
     private MecanumDrive drive;
 
@@ -37,27 +35,25 @@ public class AutoActionBlue extends LinearOpMode {
         int targetTagId = HypParams.targetTagIdBlue;
 
         actionRunner = new ActionRunner();
-        detector = new Detector(hardwareMap);
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, false);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, HypParams.StartPoseFarBlue);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
         drive = RobotPosition.getInstance().getDrive();
 
-        detector.start();
-
         telemetry.addData("Status", "AutoActionBlue Initialized");
+        telemetry.addData("StartPose", HypParams.StartPoseFarBlue);
         telemetry.update();
 
         waitForStart();
 
-        Phase currentPhase = Phase.SHOOT;
+        Phase currentPhase = Phase.GOTO_EAT;
         boolean parkingStarted = false;
 
-        // 主循环：检查时间 → 检查isBusy → 状态转移
         while (opModeIsActive()) {
-            // 检查时间：不足且未开始停车 → 立即清空并启动GoToStopPose
+            // 检查时间：剩余不足且未开始停车 → 立即清空并启动GoToStopPose
             if (isTimeToPark() && !parkingStarted) {
                 actionRunner.clear();
+                sweeper.setStop();
                 actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseBlue));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
@@ -70,7 +66,6 @@ public class AutoActionBlue extends LinearOpMode {
             if (actionRunner.isBusy()) {
                 telemetry.addData("Phase", currentPhase);
                 telemetry.addData("Time", "%.1fs", getRuntime());
-                telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
                 telemetry.update();
                 continue;
             }
@@ -82,35 +77,39 @@ public class AutoActionBlue extends LinearOpMode {
 
             // 根据当前phase启动下一个action
             switch (currentPhase) {
-                case SHOOT:
-                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-                    currentPhase = Phase.SEARCH;
-                    break;
-                case SEARCH:
-                    actionRunner.add(new SearchAction(drive, HypParams.searchPoseBlue, detector));
+                case GOTO_EAT:
+                    actionRunner.add(new GoToEatPose(drive, HypParams.EatPoseFarBlue));
                     currentPhase = Phase.EAT;
                     break;
                 case EAT:
-                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, Math.PI, HypParams.EatSecond));
-                    currentPhase = Phase.RETURN_TO_START;
+                    // 蓝色：向-Y方向移动吃球
+                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, -Math.PI / 2, HypParams.EatSecond));
+                    currentPhase = Phase.GOTO_START;
                     break;
-                case RETURN_TO_START:
-                    actionRunner.add(new GoToStartPose(drive, HypParams.startPoseBlue));
+                case GOTO_START:
+                    actionRunner.add(new GoToStartPose(drive, HypParams.StartPoseFarBlue));
+                    currentPhase = Phase.GOTO_SHOOTING;
+                    break;
+                case GOTO_SHOOTING:
+                    actionRunner.add(new GoToShootingAreaAction(drive, teamColor));
                     currentPhase = Phase.SHOOT;
+                    break;
+                case SHOOT:
+                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
+                    currentPhase = Phase.PARK;
+                    parkingStarted = true;
                     break;
             }
 
             telemetry.addData("Phase", currentPhase);
             telemetry.addData("Time", "%.1fs", getRuntime());
-            telemetry.addData("Intake Target", "%d RPM", sweeper.getTargetVelocity());
             telemetry.update();
         }
 
-        detector.stop();
         chassis.stop();
     }
 
     private boolean isTimeToPark() {
-        return getRuntime()*1000 > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
+        return getRuntime() * 1000 > (HypParams.AUTONOMOUS_DURATION_MS - HypParams.PARK_TIME_THRESHOLD_MS);
     }
 }

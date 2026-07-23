@@ -44,6 +44,14 @@ public class Chassis {
 
     }
 
+    public Chassis(HardwareMap hardwareMap, TeamColor teamColor, ActionRunner actionRunner, Telemetry telemetry, Pose2d startPose) {
+        this.teamColor = teamColor;
+        RobotPosition.RobotPositioninit(hardwareMap, startPose);
+        this.drive = RobotPosition.getInstance().getDrive();
+        this.actionRunner = actionRunner;
+        this.telemetry = telemetry;
+    }
+
     public void setUseNoHeadMode(boolean useNoHeadMode){
         this.useNoHeadMode = useNoHeadMode;
     }

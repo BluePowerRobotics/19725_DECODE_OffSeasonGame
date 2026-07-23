@@ -94,6 +94,14 @@ public class HypParams {
      */
     public static Pose2d startPoseBlue = new Pose2d(-41.3, -55, 0);
     /**
+     * 红队远距离起始姿态（单位：英寸，弧度）
+     */
+    public static Pose2d StartPoseFarRed = new Pose2d(64.2, 29.4, Math.PI);
+    /**
+     * 蓝队远距离起始姿态（单位：英寸，弧度）
+     */
+    public static Pose2d StartPoseFarBlue = new Pose2d(64.2, -29.4, Math.PI);
+    /**
      * todo:红队重置姿态（单位：英寸，弧度）
      * 包含初始位置(x, y)和初始朝向(theta)
      */
@@ -172,9 +180,9 @@ public class HypParams {
      * 数组：[H, S, V]
      */
     public static float[] Ball_Full_HSV_MAX = {360f, 0.95f, 0.95f};
-    public static Pose2d StopPoseBlue = new Pose2d(38.96, -14.72, Math.PI/2);
+    public static Pose2d StopPoseBlue = new Pose2d(0, -24, Math.PI);
 
-    public static Pose2d StopPoseRed = new Pose2d(38.96, 14.72, -Math.PI/2);
+    public static Pose2d StopPoseRed = new Pose2d(0, 24, Math.PI);
 
     // ======== AutoAction 自动阶段参数 ========
 
@@ -302,4 +310,16 @@ public class HypParams {
         new Pose2d(-12, -24, Math.toRadians(-90)),
         new Pose2d(12, -24, Math.toRadians(-90)),
     };
+
+    /**
+     * todo:红队远距离吃球位姿（单位：英寸，弧度）
+     * AutoActionRed中从StartPoseFar出发前往此位置吃球
+     */
+    public static Pose2d EatPoseFarRed = new Pose2d(63, 36.7, Math.PI/2);
+
+    /**
+     * todo:蓝队远距离吃球位姿（单位：英寸，弧度）
+     * AutoActionBlue中从StartPoseFar出发前往此位置吃球
+     */
+    public static Pose2d EatPoseFarBlue = new Pose2d(63, -36.7,- Math.PI/2);
 }

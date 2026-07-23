@@ -74,7 +74,6 @@ public final class PinpointLocalizer implements Localizer {
         driver.setEncoderDirections(initialParDirection, initialPerpDirection);
 
         driver.resetPosAndIMU();
-
         txWorldPinpoint = initialPose;
     }
 
