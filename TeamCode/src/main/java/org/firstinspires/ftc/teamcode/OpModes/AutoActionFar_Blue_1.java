@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import static org.firstinspires.ftc.teamcode.utility.HypParams.EatPoseFarBlue;
+import static org.firstinspires.ftc.teamcode.utility.HypParams.searchPoseBlue;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -8,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.Chassis;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
+import org.firstinspires.ftc.teamcode.Controllers.Limelight.Detector;
 import org.firstinspires.ftc.teamcode.Controllers.Limelight.Tracker;
 import org.firstinspires.ftc.teamcode.Controllers.Sweeper.Sweeper;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.Turret;
@@ -17,10 +21,10 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-@Autonomous(name = "AutoActionFar_Red", group = "Auto")
-public class AutoActionFar_Red extends LinearOpMode {
+@Autonomous(name = "AutoActionFar_Blue_1", group = "Auto")
+public class AutoActionFar_Blue_1 extends LinearOpMode {
     private enum Phase {
-        GOTO_SHOOTING_PRELOAD, SHOOT_PRELOAD, GOTO_EAT_FAR, EAT_FAR, WAIT_5S, GOTO_TUNNEL, LIMELIGHT_EAT, GOTO_SHOOTING, SHOOT, PARK
+        GOTO_SHOOTING_PRELOAD, SHOOT_PRELOAD, GOTO_EAT_FAR, EAT_FAR, GOTO_TUNNEL, GOTO_SHOOTING, SHOOT, PARK
     }
 
     private Chassis chassis;
@@ -29,39 +33,39 @@ public class AutoActionFar_Red extends LinearOpMode {
     private ActionRunner actionRunner;
     private MecanumDrive drive;
     private Tracker tracker;
+    private Detector detector;
 
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        TeamColor teamColor = TeamColor.RED;
-        int targetTagId = HypParams.targetTagIdRed;
-        Pose2d[] eatPoses = HypParams.EatPoseRed_FAR;
+        TeamColor teamColor = TeamColor.BLUE;
+        int targetTagId = HypParams.targetTagIdBlue;
 
         actionRunner = new ActionRunner();
-        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, HypParams.StartPoseFarRed);
+        chassis = new Chassis(hardwareMap, teamColor, actionRunner, telemetry, HypParams.StartPoseFarBlue);
         sweeper = new Sweeper(hardwareMap, telemetry);
         turret = new Turret(hardwareMap, telemetry);
         drive = RobotPosition.getInstance().getDrive();
         tracker = new Tracker(hardwareMap);
+        detector = new Detector(hardwareMap);
 
-        telemetry.addData("Status", "AutoActionFar_Red Initialized");
-        telemetry.addData("StartPose", HypParams.StartPoseFarRed);
+        telemetry.addData("Status", "AutoActionFar_Blue Initialized");
+        telemetry.addData("StartPose", HypParams.StartPoseFarBlue);
         telemetry.update();
 
         waitForStart();
 
         Phase currentPhase = Phase.GOTO_SHOOTING_PRELOAD;
-        int eatPoseIndex = 0;
-        int eatPoseIndex_preload = 0;
         boolean parkingStarted = false;
+        boolean eattunnel = false;
 
         while (opModeIsActive()) {
             if (isTimeToPark() && !parkingStarted) {
                 actionRunner.clear();
                 sweeper.setStop();
                 sweeper.update();
-                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarRed));
+                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue, turret));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
             }
@@ -86,53 +90,37 @@ public class AutoActionFar_Red extends LinearOpMode {
                     currentPhase = Phase.SHOOT_PRELOAD;
                     break;
                 case SHOOT_PRELOAD:
-                    if (eatPoseIndex_preload >= eatPoses.length) {
-                        actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-                        currentPhase = Phase.WAIT_5S;
-                        break;
-                    }else {
-                        actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-                        currentPhase = Phase.GOTO_EAT_FAR;
-                        break;
-                    }
+                    actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
+                    currentPhase = Phase.GOTO_EAT_FAR;
+                    break;
                 case GOTO_EAT_FAR:
-                    actionRunner.add(new GoToEatPose(drive, eatPoses[eatPoseIndex]));
+                    actionRunner.add(new GoToEatPose(drive, EatPoseFarBlue));
                     currentPhase = Phase.EAT_FAR;
                     break;
                 case EAT_FAR:
-                    eatPoseIndex_preload++;
-                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, Math.PI / 2, HypParams.EatSecond));
-                    currentPhase = Phase.GOTO_SHOOTING_PRELOAD;
-                    break;
-                case WAIT_5S:
-                    actionRunner.add(new WaitAction(HypParams.AUTO_WAIT_DURATION_MS));
-                    currentPhase = Phase.GOTO_TUNNEL;
-                    break;
+                    if (eattunnel){
+                        actionRunner.add(new EatAction(drive, sweeper, -HypParams.EatDistance, Math.PI / 2, HypParams.EatSecond));
+                        currentPhase = Phase.GOTO_SHOOTING;
+                        break;
+                    }else {
+                        actionRunner.add(new EatAction(drive, sweeper, -HypParams.EatDistance, Math.PI / 2, HypParams.EatSecond));
+                        currentPhase = Phase.GOTO_TUNNEL;
+                        break;
+                    }
                 case GOTO_TUNNEL:
-                    actionRunner.add(new GoToEatPose(drive, HypParams.TunnelPoseRed));
-                    currentPhase = Phase.LIMELIGHT_EAT;
-                    break;
-                case LIMELIGHT_EAT:
-                    actionRunner.add(new LimelightEatAction(drive, sweeper, tracker, HypParams.LIMELIGHT_EAT_DURATION_MS));
-                    currentPhase = Phase.GOTO_SHOOTING;
-                    parkingStarted = true;
+                    actionRunner.add(new SearchAction(drive, searchPoseBlue, detector));
+                    eattunnel = true;
+                    currentPhase = Phase.EAT_FAR;
                     break;
                 case GOTO_SHOOTING:
                     actionRunner.add(new GoToShootingFarAreaAction(drive, teamColor));
                     currentPhase = Phase.SHOOT;
                     break;
                 case SHOOT:
-                    eatPoseIndex++;
-                    if (eatPoseIndex >= eatPoses.length) {
                         // 所有吃球位姿用完，停车
-                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarRed));
+                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue, turret));
                         currentPhase = Phase.PARK;
                         parkingStarted = true;
-                    } else {
-                        actionRunner.add(new ShootAction(chassis, turret, targetTagId, sweeper));
-                        currentPhase = Phase.GOTO_EAT_FAR;
-                    }
-                    break;
             }
 
             telemetry.addData("Phase", currentPhase);

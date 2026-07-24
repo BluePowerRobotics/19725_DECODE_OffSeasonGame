@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.utility.TeamColor;
 public class GoToShootingFarAreaAction implements Action {
 
 
-    private static final Pose2d TARGET_FARPOSE_RED = new Pose2d(10, 24, Math.PI);
-    private static final Pose2d TARGET_FARPOSE_BLUE = new Pose2d(-10, 24, Math.PI);
+    private static final Pose2d TARGET_FARPOSE_RED = new Pose2d(49, 10, Math.PI);
+    private static final Pose2d TARGET_FARPOSE_BLUE = new Pose2d(49, -10, Math.PI);
     private final Action trajectoryAction;
 
     public GoToShootingFarAreaAction(MecanumDrive drive, TeamColor teamColor) {

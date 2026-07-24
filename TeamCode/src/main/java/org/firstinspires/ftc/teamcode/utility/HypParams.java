@@ -193,9 +193,9 @@ public class HypParams {
     public static Pose2d StopPoseBlue = new Pose2d(0, -24, Math.PI);
 
     public static Pose2d StopPoseRed = new Pose2d(0, 24, Math.PI);
-    public static Pose2d StopPoseFarBlue = new Pose2d(48, -36, Math.PI);
+    public static Pose2d StopPoseFarBlue = new Pose2d(52, -36, Math.PI);
 
-    public static Pose2d StopPoseFarRed = new Pose2d(48, 36, Math.PI);
+    public static Pose2d StopPoseFarRed = new Pose2d(52, 36, Math.PI);
 
     // ======== AutoAction 自动阶段参数 ========
 
@@ -343,7 +343,7 @@ public class HypParams {
     public static Pose2d EatPoseFarBlue = new Pose2d(63, -36.7,- Math.PI/2);
     public static Pose2d[] EatPosesBlue_FAR = {
             new Pose2d(36, -24, Math.toRadians(-90)),
-            new Pose2d(63, -36.7, Math.PI/2),
+            new Pose2d(63, -36.7, Math.toRadians(-90)),
     };
 
     /**

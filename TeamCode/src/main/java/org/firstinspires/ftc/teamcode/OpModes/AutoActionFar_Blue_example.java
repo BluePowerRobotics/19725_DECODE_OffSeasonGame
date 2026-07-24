@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.utility.ActionRunner;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.utility.TeamColor;
 
-@Autonomous(name = "AutoActionFar_Blue", group = "Auto")
-public class AutoActionFar_Blue extends LinearOpMode {
+@Autonomous(name = "AutoActionFar_Blue_example", group = "Auto")
+public class AutoActionFar_Blue_example extends LinearOpMode {
     private enum Phase {
         GOTO_SHOOTING_PRELOAD, SHOOT_PRELOAD, GOTO_EAT_FAR, EAT_FAR, WAIT_5S, GOTO_TUNNEL, LIMELIGHT_EAT, GOTO_SHOOTING, SHOOT, PARK
     }
@@ -62,7 +62,7 @@ public class AutoActionFar_Blue extends LinearOpMode {
                 actionRunner.clear();
                 sweeper.setStop();
                 sweeper.update();
-                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue));
+                actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue, turret));
                 currentPhase = Phase.PARK;
                 parkingStarted = true;
             }
@@ -102,7 +102,7 @@ public class AutoActionFar_Blue extends LinearOpMode {
                     break;
                 case EAT_FAR:
                     eatPoseIndex_preload++;
-                    actionRunner.add(new EatAction(drive, sweeper, HypParams.EatDistance, Math.PI / 2, HypParams.EatSecond));
+                    actionRunner.add(new EatAction(drive, sweeper, -HypParams.EatDistance, Math.PI / 2, HypParams.EatSecond));
                     currentPhase = Phase.GOTO_SHOOTING_PRELOAD;
                     break;
                 case WAIT_5S:
@@ -126,7 +126,7 @@ public class AutoActionFar_Blue extends LinearOpMode {
                     eatPoseIndex++;
                     if (eatPoseIndex >= eatPoses.length) {
                         // 所有吃球位姿用完，停车
-                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue));
+                        actionRunner.add(new GoToStopPose(drive, HypParams.StopPoseFarBlue, turret));
                         currentPhase = Phase.PARK;
                         parkingStarted = true;
                     } else {
