@@ -69,7 +69,7 @@ public class HypParams {
      * todo:相机在地面投影与车基准点的水平距离（单位：英寸）
      * 相机位于车基准点正前方该距离处，用于校正视觉瞄准时的水平距离计算
      */
-    public static double WebCamCenterDistance = 7;
+    public static double WebCamCenterDistance = 30;
         ;
     /**
      * todo:射程最远时所对仰角

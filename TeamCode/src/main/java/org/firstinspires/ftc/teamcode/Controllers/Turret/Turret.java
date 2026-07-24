@@ -14,8 +14,6 @@ import org.firstinspires.ftc.teamcode.Controllers.Turret.Shooter.Shooter;
 import org.firstinspires.ftc.teamcode.utility.HypParams;
 import org.firstinspires.ftc.teamcode.Controllers.Turret.turner.TurretDegreeController;
 import org.firstinspires.ftc.teamcode.Controllers.Chassis.RobotPosition;
-import org.firstinspires.ftc.teamcode.utility.BST.BSTsolver;
-
 import java.util.List;
 @Config
 public class Turret {
@@ -27,7 +25,12 @@ public class Turret {
 
     private double roll;
     private double yaw;
-    private BSTsolver bstSolver;
+
+    // 线性回归射速参数：speed = a * distance + b
+    public static double SPEED_A = 13.2;
+    public static double SPEED_B = 427;
+    // 固定仰角
+    private static final double FIXED_YAW = 45;
 
     private Servo triggerServo;
 
@@ -35,7 +38,7 @@ public class Turret {
     private boolean waitingForSpeed = false;
     private long speedWaitStartTime = 0;
     private long lastLaunchTime = 0;
-    private static final long SPEED_WAIT_TIMEOUT_MS = 2000;
+    private static final long SPEED_WAIT_TIMEOUT_MS = 10000;
     private static final long LAUNCH_COOLDOWN_MS = 300;
     private static final long AIM_TIMEOUT_MS = 2000;
 
@@ -84,6 +87,10 @@ public class Turret {
         this.gamepad2 = g2;
     }
 
+    public void setTargetTagId(int tagId) {
+        this.currentTargetTagId = tagId;
+    }
+
     /**
      * 发射失败时震动所有手柄 + telemetry提示
      */
@@ -102,7 +109,6 @@ public class Turret {
         this.telemetry = telemetry;
 
         turretDegreeController = new TurretDegreeController(hardwareMap, telemetry);
-        bstSolver = new BSTsolver();
 
         triggerServo = hardwareMap.get(Servo.class, "trigger");
         triggerServo.setPosition(HypParams.triggerResetPosition);
@@ -224,112 +230,61 @@ public class Turret {
 
     /**
      * 统一射击管理接口（状态机驱动）
-     * IDLE → 第一次BST解算初速度 → ACCELERATING → 达速后第二次BST解算roll/yaw → AIMING → 旋转到位 → launch
+     * IDLE → 距离测距 + 线性回归算射速 → ACCELERATING → 达速发射
+     * 仰角固定为45度，射速 = 12.7 * distance + 627，平转保持对准球门
      * @param allowVision true=视觉瞄准, false=定位瞄准
      */
     public void shoot(boolean allowVision) {
         switch (shootPhase) {
             case IDLE: {
                 useVisionForAiming = allowVision;
-                BSTsolver.Solution solution;
-                // 先尝试 aim，获取视觉是否成功的信息
                 Object[] aimResult = aim(allowVision);
                 boolean visionOk = allowVision && (boolean) aimResult[0];
 
+                double distance;
                 if (visionOk) {
-                    // 视觉有效：使用视觉测距公式
-                    double aimRoll = (double) aimResult[1];
+                    // 视觉有效：使用视觉测距
                     double aimYaw = (double) aimResult[2];
                     double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-                    double d = HypParams.TagH * cotYaw + HypParams.WebCamCenterDistance;
-                    double targetX = d * Math.cos(Math.toRadians(aimRoll));
-                    double targetY = d * Math.sin(Math.toRadians(aimRoll));
-                    solution = bstSolver.predict(
-                        RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                        targetX, targetY);
+                    distance = HypParams.TagH * cotYaw + HypParams.WebCamCenterDistance;
                 } else {
-                    // 视觉失效或未启用：使用定位计算
+                    // 视觉失效：使用定位计算距离
                     double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
-                    if (goalPos != null) {
-                        double robotX = RobotPosition.getInstance().getX();
-                        double robotY = RobotPosition.getInstance().getY();
-                        double robotTheta = RobotPosition.getInstance().getTheta();
-                        double vx = RobotPosition.getInstance().getVx();
-                        double vy = RobotPosition.getInstance().getVy();
-                        double dx = goalPos[0] - robotX;
-                        double dy = goalPos[1] - robotY;
-                        double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
-                        double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
-                        solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
-                    } else {
+                    if (goalPos == null) {
                         rumbleOnFail("No goal position for tag " + currentTargetTagId);
                         break;
                     }
+                    double robotX = RobotPosition.getInstance().getX();
+                    double robotY = RobotPosition.getInstance().getY();
+                    double robotTheta = RobotPosition.getInstance().getTheta();
+                    double dx = goalPos[0] - robotX;
+                    double dy = goalPos[1] - robotY;
+                    distance = Math.hypot(dx, dy);
                 }
-                if (solution.success) {
-                    shooting = true;
-                    shootPhase = ShootPhase.ACCELERATING;
-                    shooter.setTargetVelocity(solution.speed);
-                    waitingForSpeed = true;
-                    speedWaitStartTime = System.currentTimeMillis();
-                    telemetry.addData("BST Init", "speed=%d", solution.speed);
-                    telemetry.update();
-                } else {
-                    rumbleOnFail("BST solve failed: " + solution.message);
-                }
+
+                // 使用线性回归公式计算射速：speed = a * distance + b
+                int speed = (int) (SPEED_A * distance + SPEED_B);
+
+                shooting = true;
+                shootPhase = ShootPhase.ACCELERATING;
+                shooter.setTargetVelocity(speed);
+                waitingForSpeed = true;
+                speedWaitStartTime = System.currentTimeMillis();
+                telemetry.addData("Shoot Init", "dist=%.1f yaw=%.0f speed=%d", distance, FIXED_YAW, speed);
+                telemetry.update();
                 break;
             }
 
             case ACCELERATING: {
+                // 持续瞄准：平转保持对准球门，仰角固定为45度
                 Object[] aimResult = aim(useVisionForAiming);
-                if (shooter.reachedVelocity()) {
-                    shootPhase = ShootPhase.AIMING;
-                    speedWaitStartTime = System.currentTimeMillis();
+                double targetRoll = (double) aimResult[1];
+                rotate_to(targetRoll, FIXED_YAW);
 
-                    BSTsolver.Solution solution;
-                    boolean visionOk = useVisionForAiming && (boolean) aimResult[0];
-                    if (visionOk) {
-                        // 视觉有效：使用视觉测距公式
-                        double aimRoll = (double) aimResult[1];
-                        double aimYaw = (double) aimResult[2];
-                        double cotYaw = 1.0 / Math.tan(Math.toRadians(aimYaw));
-                        double dWebcam = HypParams.TagH * cotYaw;
-                        double targetX = dWebcam * Math.cos(Math.toRadians(aimRoll)) + HypParams.WebCamCenterDistance;
-                        double targetY = dWebcam * Math.sin(Math.toRadians(aimRoll));
-                        solution = bstSolver.predict(
-                            RobotPosition.getInstance().getVx(), RobotPosition.getInstance().getVy(),
-                            targetX, targetY);
-                    } else {
-                        // 视觉失效或未启用：使用定位计算
-                        double[] goalPos = HypParams.getGoalPosition(currentTargetTagId);
-                        double robotX = RobotPosition.getInstance().getX();
-                        double robotY = RobotPosition.getInstance().getY();
-                        double robotTheta = RobotPosition.getInstance().getTheta();
-                        double vx = RobotPosition.getInstance().getVx();
-                        double vy = RobotPosition.getInstance().getVy();
-                        double dx = goalPos[0] - robotX;
-                        double dy = goalPos[1] - robotY;
-                        double relativeDx = dx * Math.cos(robotTheta) + dy * Math.sin(robotTheta);
-                        double relativeDy = -dx * Math.sin(robotTheta) + dy * Math.cos(robotTheta);
-                        solution = bstSolver.predict(vx, vy, relativeDx, relativeDy);
-                    }
-                    if (solution.success) {
-                        finalAimRoll = Math.toDegrees(solution.roll);
-                        finalAimYaw = solution.yaw;
-                        
-                        // 若计算出的平转角度超出硬件允许范围，中止发射
-                        if (Math.abs(finalAimRoll) > HypParams.maxRoll) {
-                            rumbleOnFail(String.format("Roll out of range (%.1f°), abort", finalAimRoll));
-                            shootPhase = ShootPhase.IDLE;
-                            shooting = false;
-                            waitingForSpeed = false;
-                            break;
-                        }
-                        
-                        turretDegreeController.rotateTo(finalAimRoll, finalAimYaw);
-                        telemetry.addData("BST Final", "roll=%.2f yaw=%.2f", finalAimRoll, finalAimYaw);
-                    }
-                    telemetry.addData("Shooter", "Speed reached, turret aiming");
+                if (shooter.reachedVelocity()) {
+                    launch();
+                    waitingForSpeed = false;
+                    telemetry.addData("Shooter", "Speed reached, launching");
                     telemetry.update();
                 } else if (System.currentTimeMillis() - speedWaitStartTime > SPEED_WAIT_TIMEOUT_MS) {
                     rumbleOnFail("Speed wait timeout");
@@ -341,17 +296,10 @@ public class Turret {
             }
 
             case AIMING: {
-                if (turretDegreeController.reachedTarget()) {
-                    launch();
-                    waitingForSpeed = false;
-                    telemetry.addData("Shooter", "Launching");
-                    telemetry.update();
-                } else if (System.currentTimeMillis() - speedWaitStartTime > AIM_TIMEOUT_MS) {
-                    launch();
-                    waitingForSpeed = false;
-                    telemetry.addData("Shooter", "Aim timeout, force launch");
-                    telemetry.update();
-                }
+                // 保留兼容，实际不再使用
+                launch();
+                waitingForSpeed = false;
+                shootPhase = ShootPhase.IDLE;
                 break;
             }
         }
