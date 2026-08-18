@@ -269,7 +269,7 @@ public class Turret_2 {
                 if (solution.success) {
                     shooting = true;
                     shootPhase = ShootPhase.ACCELERATING;
-                    shooter.setTargetVelocity(solution.speed+100);
+                    shooter.setTargetVelocity(2100);
                     waitingForSpeed = true;
                     speedWaitStartTime = System.currentTimeMillis();
                     telemetry.addData("BST Init", "speed=%d", solution.speed);

@@ -32,7 +32,7 @@ public class Chassis {
         Pose2d initPose;
         if (isTeleOp) {
             initPose = (teamColor == TeamColor.RED) ?
-                    HypParams.StopPoseRed : HypParams.StopPoseBlue;
+                    HypParams.StopPoseFarRed : HypParams.StopPoseFarBlue;
         } else {
             initPose = (teamColor == TeamColor.RED) ?
                     HypParams.startPoseRed : HypParams.startPoseBlue;

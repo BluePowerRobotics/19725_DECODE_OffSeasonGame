@@ -27,8 +27,8 @@ public class Turret {
     private double yaw;
 
     // 线性回归射速参数：speed = a * distance + b
-    public static double SPEED_A = 13.2;
-    public static double SPEED_B = 427;
+    public static double SPEED_A = 10;
+    public static double SPEED_B = 800;
     // 固定仰角
     private static final double FIXED_YAW = 45;
 
@@ -184,7 +184,7 @@ public class Turret {
             //webcam顺时针为正，程序内统一以逆时针为正
             double bearing = -targetDetection.ftcPose.bearing;
             double elevation = targetDetection.ftcPose.elevation;
-            targetRoll = this.roll - bearing;
+            targetRoll = this.roll + bearing;
             targetYaw = HypParams.WebcamTheta + elevation;
             lastVisionRoll = targetRoll;
             lastVisionYaw = targetYaw;
