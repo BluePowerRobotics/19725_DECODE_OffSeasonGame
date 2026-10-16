@@ -20,7 +20,6 @@ public class ShootAction_Far implements Action {
     private final Chassis chassis;
     private final long durationMs;
     private long startTimeMs = -1;
-    private boolean Haslaunched = false;
 
     public static int DEFAULT_DURATION_MS = 5000;
 
@@ -46,7 +45,6 @@ public class ShootAction_Far implements Action {
 
         if (turret.isLaunching()) {
             sweeper.setGiveArtifact();
-            Haslaunched=true;
         } else {
             sweeper.setStop();
         }
@@ -55,12 +53,9 @@ public class ShootAction_Far implements Action {
         turret.update(true, true, targetTagId);
 
         if (System.currentTimeMillis() - startTimeMs >= durationMs) {
-            turret.forceLaunch();
-            Haslaunched = true;
-        }
-        if (!Haslaunched) {
             sweeper.setStop();
             turret.reset();
+            return false;
         }
         return true;
     }
